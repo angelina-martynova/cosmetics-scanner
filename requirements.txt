@@ -1,0 +1,12 @@
+flask==2.3.3
+flask-cors==5.0.0
+flask-sqlalchemy==3.0.5
+flask-login==0.6.3
+werkzeug==2.3.7
+pytesseract==0.3.10
+
+opencv-python-headless==4.8.1.78
+fuzzywuzzy[speedup]==0.18.0
+
+reportlab==4.0.6
+python-dotenv==1.0.0

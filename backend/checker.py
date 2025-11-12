@@ -1,51 +1,46 @@
-import json
-from fuzzywuzzy import fuzz
+class IngredientChecker:
+    def __init__(self):
+        self.ingredients = self.load_ingredients()
+        self.common_fixes = {
+            "methytisctvazuivare": "methylisothiazolinone",
+            "tetrasodiurs edta":   "tetrasodium edta",
+            "sodim laureth sulfate": "sodium laureth sulfate",
+            "peg~4": "peg-4",
+            "fragranc": "fragrance",
+        }
 
-# Завантаження блекліста
-with open("backend/blacklist.json", encoding="utf-8") as f:
-    BLACKLIST = json.load(f)
+    def load_ingredients(self):
+        # загрузка ингредиентов из файла или БД
+        return []
 
-# Словник частих помилок OCR
-common_fixes = {
-    "methytisctvazuivare": "Methylisothiazolinone",
-    "tetrasodiurs edta": "Tetrasodium EDTA",
-    "sodim laureth sulfate": "Sodium Laureth Sulfate",
-    "peg~4": "PEG-4",
-    "peg—~4": "PEG-4",
-    "fragranc": "Fragrance",
-    "cwarite": "Cocamide",
-    "sotore": "Sorbitol"
-}
+    def clean_text(self, text):
+        text = text.lower()
+        text = re.sub(r'[^a-zA-Z0-9а-яА-ЯіІїЇєЄ\s,]', ' ', text)
+        for wrong, correct in self.common_fixes.items():
+            text = text.replace(wrong, correct)
+        return text
 
-def clean_text(text):
-    lines = text.lower().split("\n")
-    ingredients_block = []
-    trigger_words = ["ingredients", "coctab", ":"]
+    def check_match(self, ingredient_name, cleaned_text):
+        return ingredient_name.lower() in cleaned_text
 
-    for line in lines:
-        if any(word in line for word in trigger_words):
-            ingredients_block.append(line)
+    def find_ingredients(self, text):
+        cleaned_text = self.clean_text(text)
+        found_ingredients = []
+        seen_ids = set()
+        
+        for ingredient in self.ingredients:
+            if ingredient.id in seen_ids:
+                continue
 
-    all_text = " ".join(ingredients_block)
-    all_text = all_text.replace(",", " ").replace(".", " ")
-    tokens = all_text.split()
-    return [common_fixes.get(t, t) for t in tokens]
+            if self.check_match(ingredient.name, cleaned_text):
+                found_ingredients.append(ingredient.to_dict())
+                seen_ids.add(ingredient.id)
+                continue
 
-def match_ingredient(token):
-    for entry in BLACKLIST:
-        if fuzz.token_sort_ratio(token.lower(), entry["name"].lower()) > 85:
-            return entry
-    return None
+            for alias in ingredient.aliases or []:
+                if self.check_match(alias, cleaned_text):
+                    found_ingredients.append(ingredient.to_dict())
+                    seen_ids.add(ingredient.id)
+                    break
 
-def check_ingredients(text):
-    found = []
-    tokens = clean_text(text)
-    matched = set()
-
-    for token in tokens:
-        result = match_ingredient(token)
-        if result and result["name"] not in matched:
-            found.append(result)
-            matched.add(result["name"])
-
-    return found
+        return found_ingredients

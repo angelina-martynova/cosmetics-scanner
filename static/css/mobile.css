@@ -1,0 +1,122 @@
+/* Мобільні стилі */
+@media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .input-methods {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .method-card {
+        padding: 1.5rem;
+    }
+
+    .method-card .icon {
+        font-size: 2.5rem;
+    }
+
+    .auth-buttons,
+    .user-menu {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
+        margin: 0.25rem 0;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .result {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    /* Камера */
+    .camera-preview {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .camera-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Особливості для дуже малих екранів */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.3rem;
+    }
+
+    .method-card {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        padding: 1rem;
+    }
+
+    button {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Покращення для тач-інтерфейсу */
+@media (hover: none) and (pointer: coarse) {
+    button {
+        min-height: 44px;
+        padding: 1rem 1.5rem;
+    }
+
+    .method-card {
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    input,
+    textarea {
+        font-size: 16px;
+        /* Запобігає масштабуванню в iOS */
+    }
+}
+
+/* Темна тема (опційно) */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        color: #e2e8f0;
+    }
+
+    .method-card,
+    .result,
+    .modal-content {
+        background: #4a5568;
+        color: #e2e8f0;
+    }
+
+    .method-card p {
+        color: #cbd5e0;
+    }
+}

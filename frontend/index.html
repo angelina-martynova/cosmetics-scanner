@@ -6,103 +6,87 @@
     <title>Сканер косметичних інгредієнтів</title>
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='styles.css') }}"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/mobile.css') }}"
     />
   </head>
   <body>
-    <h1>Сканер косметичних інгредієнтів</h1>
+    <div class="container">
+      <header>
+        <h1>🧴 Сканер косметичних інгредієнтів</h1>
+        <div class="auth-buttons" id="authButtons">
+          <button id="loginBtn">Увійти</button>
+          <button id="registerBtn">Реєстрація</button>
+        </div>
+        <div class="user-menu hidden" id="userMenu">
+          <span>Вітаємо, <span id="userEmail"></span></span>
+          <button id="myScansBtn">Мої сканування</button>
+          <button id="logoutBtn">Вийти</button>
+        </div>
+      </header>
 
-    <form id="upload-form">
-      <input type="file" id="image" accept="image/*" required />
-      <button type="submit">Аналізувати</button>
-    </form>
+      <main>
+        <!-- Вибір методу введення -->
+        <div class="input-methods">
+          <div class="method-card" onclick="openCamera()">
+            <div class="icon">📷</div>
+            <h3>Сканувати камерою</h3>
+            <p>Сфотографуйте етикетку</p>
+          </div>
 
-    <div class="result" id="result"></div>
+          <div class="method-card" onclick="openTextInput()">
+            <div class="icon">📝</div>
+            <h3>Ввести текст</h3>
+            <p>Скопіюйте склад вручну</p>
+          </div>
 
-    <!-- Кнопка для збереження результату у PDF -->
-    <div class="button-container">
-      <button id="download-pdf">Зберегти як PDF</button>
+          <div class="method-card" onclick="openGallery()">
+            <div class="icon">🖼️</div>
+            <h3>З галереї</h3>
+            <p>Виберіть фото з пристрою</p>
+          </div>
+        </div>
+
+        <!-- Приховані інпути -->
+        <input
+          type="file"
+          id="cameraInput"
+          accept="image/*"
+          capture="environment"
+          style="display: none"
+        />
+        <input
+          type="file"
+          id="galleryInput"
+          accept="image/*"
+          style="display: none"
+        />
+
+        <!-- Результати -->
+        <div class="result" id="result"></div>
+      </main>
     </div>
 
-    <script>
-      const form = document.getElementById("upload-form");
-      const resultDiv = document.getElementById("result");
-      let results = [];
+    <!-- Модальне вікно для введення тексту -->
+    <div id="textInputModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Введіть склад косметики</h3>
+        <textarea
+          id="manualTextInput"
+          placeholder="Наприклад: Aqua, Glycerin, Sodium Laureth Sulfate..."
+          rows="8"
+        ></textarea>
+        <div class="modal-actions">
+          <button onclick="processManualText()">Аналізувати</button>
+          <button onclick="closeTextInput()">Скасувати</button>
+        </div>
+      </div>
+    </div>
 
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        resultDiv.innerHTML = "<p>⏳ Аналізуємо...</p>";
-
-        const formData = new FormData();
-        const file = document.getElementById("image").files[0];
-        formData.append("image", file);
-
-        try {
-          const response = await fetch("http://127.0.0.1:5000/analyze", {
-            method: "POST",
-            body: formData,
-          });
-
-          const data = await response.json();
-
-          if (data.status === "success") {
-            let html = `<h3>🔍 Розпізнаний текст:</h3><div>${data.text}</div>`;
-
-            if (data.ingredients.length === 0) {
-              html +=
-                '<p class="safe">✅ Шкідливих інгредієнтів не знайдено.</p>';
-            } else {
-              html += "<h3>⚠️ Виявлені інгредієнти:</h3>";
-              results = data.ingredients; // Зберігаємо інгредієнти для збереження у PDF
-              data.ingredients.forEach((ing) => {
-                let className = "";
-                if (ing.risk === "High") className = "danger";
-                else if (ing.risk === "Medium") className = "neutral";
-                else if (ing.risk === "Safe") className = "safe";
-
-                html += `<div class="${className}">
-                  <strong>${ing.name}</strong><br>
-                  Категорія: ${ing.category || "Невідомо"}<br>
-                  Ризик: ${ing.risk}<br>
-                  ${ing.description}
-                </div>`;
-              });
-            }
-
-            resultDiv.innerHTML = html;
-          } else {
-            resultDiv.innerHTML =
-              '<p class="danger">🚫 Помилка: ' + data.message + "</p>";
-          }
-        } catch (err) {
-          resultDiv.innerHTML =
-            '<p class="danger">🚫 Не вдалося з\'єднатись з сервером.</p>';
-          console.error(err);
-        }
-      });
-
-      // Функція для завантаження результату як PDF
-      const downloadPdfButton = document.getElementById("download-pdf");
-      downloadPdfButton.addEventListener("click", async () => {
-        const response = await fetch("http://127.0.0.1:5000/download_pdf", {
-          method: "POST",
-          body: JSON.stringify({
-            text: resultDiv.querySelector("div").innerText, // Отримуємо текст
-            ingredients: results, // Використовуємо знайдені інгредієнти
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.status === 200) {
-          const blob = await response.blob();
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = "results.pdf";
-          link.click();
-        }
-      });
-    </script>
+    <script src="static/js/app.js"></script>
+    <script src="static/js/camera.js"></script>
   </body>
 </html>

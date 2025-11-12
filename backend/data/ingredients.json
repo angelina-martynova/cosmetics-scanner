@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "last_updated": "2024-01-01",
+  "ingredients": [
+    {
+      "id": 1,
+      "name": "Sodium Laureth Sulfate",
+      "aliases": ["SLES", "Sodium Lauryl Ether Sulfate"],
+      "risk_level": "high",
+      "category": "surfactant",
+      "description": "Може викликати подразнення, пересушення шкіри",
+      "safety_score": 4,
+      "common_uses": ["shampoos", "cleansers"],
+      "restrictions": []
+    },
+    {
+      "id": 2,
+      "name": "Methylparaben",
+      "aliases": ["Methyl Paraben", "E218"],
+      "risk_level": "medium", 
+      "category": "preservative",
+      "description": "Консервант, що може впливати на гормональну систему",
+      "safety_score": 3,
+      "common_uses": ["creams", "lotions"],
+      "restrictions": ["EU regulated"]
+    }
+  ]
+}
