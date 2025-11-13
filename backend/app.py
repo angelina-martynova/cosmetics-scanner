@@ -256,6 +256,15 @@ def init_db():
         db.create_all()
         print("✅ База даних створена")
 
+@app.route('/api/status', methods=['GET'])
+@login_required
+def api_status():
+    """Проверка статуса аутентификации пользователя"""
+    return jsonify({
+        "status": "authenticated",
+        "user": current_user.to_dict()
+    })
+
 if __name__ == '__main__':
     init_db()  # ✅ Без аргументів!
     print("🚀 Запуск додатка...")

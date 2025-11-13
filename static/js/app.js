@@ -12,8 +12,8 @@ class CosmeticsScanner {
 
     bindEvents() {
         // Кнопки аутентифікації
-        document.getElementById('loginBtn').addEventListener('click', () => this.showLoginModal());
-        document.getElementById('registerBtn').addEventListener('click', () => this.showRegisterModal());
+        document.getElementById('loginBtn').addEventListener('click', () => window.location.href = "/login"); // Переход на страницу входа
+        document.getElementById('registerBtn').addEventListener('click', () => window.location.href = "/register"); // Переход на страницу регистрации
         document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
         document.getElementById('myScansBtn').addEventListener('click', () => this.showMyScans());
 
@@ -254,19 +254,6 @@ class CosmeticsScanner {
                 this.updateUI();
             });
     }
-}
-
-// Глобальні функції для HTML
-function openTextInput() {
-    app.openTextInput();
-}
-
-function closeTextInput() {
-    app.closeTextInput();
-}
-
-function processManualText() {
-    app.processManualText();
 }
 
 // Ініціалізація додатка
