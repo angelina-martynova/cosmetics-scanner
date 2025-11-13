@@ -5,13 +5,16 @@ class CameraManager {
         this.video = null;
         this.canvas = null;
         this.isCameraActive = false;
+        this.modal = null;
     }
 
     async initCamera() {
         try {
-            // Створюємо елементи для камери
-            this.createCameraUI();
-            
+            // Створюємо елементи для камери тільки один раз
+            if (!this.modal) {
+                this.createCameraUI();
+            }
+
             // Запитуємо доступ до камери
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: { 
@@ -35,7 +38,7 @@ class CameraManager {
     }
 
     createCameraUI() {
-        // Створюємо інтерфейс камери
+        // Створюємо інтерфейс камери лише один раз
         const cameraHTML = `
             <div id="cameraInterface" class="modal">
                 <div class="modal-content">
@@ -53,8 +56,10 @@ class CameraManager {
                 </div>
             </div>
         `;
-
-        document.body.insertAdjacentHTML('beforeend', cameraHTML);
+        
+        this.modal = document.createElement('div');
+        this.modal.innerHTML = cameraHTML;
+        document.body.appendChild(this.modal);
         
         this.video = document.getElementById('cameraVideo');
         this.canvas = document.getElementById('cameraCanvas');
@@ -66,6 +71,7 @@ class CameraManager {
     }
 
     showCameraInterface() {
+        // Показуємо інтерфейс камери
         document.getElementById('cameraInterface').classList.remove('hidden');
     }
 
@@ -93,19 +99,16 @@ class CameraManager {
     }
 
     retakePhoto() {
-        // Останавливаем старую камеру
-        this.stopCamera();
-
-        // Показуємо знову відеопотік
-        this.video.style.display = 'block';
+        // Скидаємо зроблене фото
         this.canvas.style.display = 'none';
+        this.video.style.display = 'block';
         
-        // Ховаємо кнопки підтвердження
+        // Показуємо кнопки підтвердження
         document.getElementById('captureBtn').classList.remove('hidden');
         document.getElementById('retakeBtn').classList.add('hidden');
         document.getElementById('usePhotoBtn').classList.add('hidden');
         
-        // Запускаємо камеру знову
+        // Перезапускаємо камеру
         this.initCamera();
     }
 

@@ -6,9 +6,9 @@ from datetime import datetime
 import os
 
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
-static_folder = os.path.join(os.getcwd(), 'static')
+static_css_folder = os.path.join(os.getcwd(), 'static')
 
-app = Flask(__name__, template_folder=frontend_folder)
+app = Flask(__name__, template_folder=frontend_folder, static_folder=static_css_folder)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('backend/data/cosmetics.db')}"
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

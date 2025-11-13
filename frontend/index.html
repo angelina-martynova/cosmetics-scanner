@@ -16,7 +16,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>🧴 Сканер косметичних інгредієнтів</h1>
+        <h1>Сканер косметичних інгредієнтів</h1>
         <div class="auth-buttons" id="authButtons">
           <button id="loginBtn">Увійти</button>
           <button id="registerBtn">Реєстрація</button>
@@ -29,8 +29,8 @@
       </header>
 
       <main>
-        <!-- Вибір методу введення -->
-        <div class="input-methods">
+        <div id="inputMethods">
+          <!-- Вибір методу введення -->
           <div class="method-card" onclick="openCamera()">
             <div class="icon">📷</div>
             <h3>Сканувати камерою</h3>
@@ -67,6 +67,21 @@
 
         <!-- Результати -->
         <div class="result" id="result"></div>
+
+        <!-- Кнопка для загрузки текстового файла -->
+        <button
+          id="fileUploadBtn"
+          style="display: none"
+          onclick="triggerFileInput()"
+        >
+          Завантажити файл
+        </button>
+        <input
+          type="file"
+          id="fileInput"
+          accept=".txt, .pdf, .doc, .docx"
+          style="display: none"
+        />
       </main>
     </div>
 
