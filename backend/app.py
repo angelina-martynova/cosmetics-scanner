@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify, send_file, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 
+# Инициализация путей для шаблонов и статических файлов
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
 
@@ -13,15 +14,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('backend/da
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Ініціалізація розширень
+# Инициализация базы данных и авторизации
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-from database import init_db, save_uploaded_file
-
-# Моделі мають бути ОДРАЗУ після ініціалізації db
+# Модели базы данных
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -73,13 +72,9 @@ class Scan(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-# Функції для роботи з файлами
+# Загрузка файлов
 def save_uploaded_file(file):
-    """Зберігає завантажений файл"""
+    """Сохраняет загруженный файл"""
     import uuid
     from datetime import datetime
     
@@ -93,13 +88,8 @@ def save_uploaded_file(file):
     file.save(filepath)
     return filename
 
-# Прості функції для тесту (поки без OCR)
-def extract_text(file):
-    """Проста заглушка для OCR"""
-    return "Aqua, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Parfum, Methylparaben"
-
+# Простой анализ текста
 def check_ingredients(text):
-    """Проста заглушка для перевірки інгредієнтів"""
     ingredients = []
     
     if "sodium laureth sulfate" in text.lower():
@@ -128,100 +118,49 @@ def check_ingredients(text):
     
     return ingredients
 
-# Маршрути
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/login')
-def login():
-    return render_template('login.html')
-
-@app.route('/register')
-def register():
-    return render_template('register.html')
-
-@app.route('/scans')
+# Загрузка текстовых файлов
+@app.route('/api/upload_text_file', methods=['POST'])
 @login_required
-def my_scans():
-    return render_template('scans.html')
-
-@app.route('/camera')
-def camera():
-    return render_template('camera.html')
-
-@app.route('/api/register', methods=['POST'])
-def api_register():
+def upload_text_file():
     try:
-        data = request.get_json()
-        if User.query.filter_by(email=data['email']).first():
-            return jsonify({"status": "error", "message": "Користувач вже існує"}), 400
+        file = request.files.get('file')
+        if not file:
+            return jsonify({"status": "error", "message": "Файл не загружен"}), 400
         
-        user = User(email=data['email'])
-        user.set_password(data['password'])
-        db.session.add(user)
-        db.session.commit()
-        
-        return jsonify({"status": "success", "message": "Користувач створений"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        text = file.read().decode('utf-8')
+        ingredients = check_ingredients(text)
 
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    try:
-        data = request.get_json()
-        user = User.query.filter_by(email=data['email']).first()
-
-        if user and user.check_password(data['password']):
-            user.last_login = datetime.utcnow()
+        scan_id = None
+        if current_user.is_authenticated:
+            scan = Scan(
+                user_id=current_user.id,
+                input_type='manual',
+                input_method='file',
+                original_text=text,
+                ingredients_detected=ingredients
+            )
+            db.session.add(scan)
             db.session.commit()
-            login_user(user)
-            return jsonify({"status": "success", "user": user.to_dict()})
-        return jsonify({"status": "error", "message": "Невірний логін або пароль"}), 400
+            scan_id = scan.id
+
+        return jsonify({
+            "status": "success", 
+            "text": text,
+            "ingredients": ingredients,
+            "scan_id": scan_id
+        })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route('/api/logout', methods=['POST'])
-@login_required
-def logout():
-    logout_user()
-    return jsonify({"status": "success"}), 200
-
+# Анализ изображений
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
-        if request.is_json:
-            data = request.get_json() or {}
-            text = data.get('text', '').strip()
-            if not text:
-                return jsonify({"status": "error", "message": "Пустий текст"}), 400
-
-            ingredients = check_ingredients(text)
-
-            scan_id = None
-            if current_user.is_authenticated:
-                scan = Scan(
-                    user_id=current_user.id,
-                    input_type='manual',
-                    input_method='text',
-                    original_text=text,
-                    ingredients_detected=ingredients
-                )
-                db.session.add(scan)
-                db.session.commit()
-                scan_id = scan.id
-            
-            return jsonify({
-                "status": "success",
-                "text": text,
-                "ingredients": ingredients,
-                "scan_id": scan_id
-            })
-
         file = request.files.get('image')
         if not file:
             return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
 
+        # Пример обработки изображения (заменить на OCR)
         text = extract_text(file)
         ingredients = check_ingredients(text)
 
@@ -246,29 +185,10 @@ def analyze():
             "ingredients": ingredients,
             "scan_id": scan_id
         })
-            
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Обробка завантаження текстових файлів
-@app.route('/api/upload_text_file', methods=['POST'])
-def upload_text_file():
-    file = request.files.get('file')
-    if not file:
-        return jsonify({'status': 'error', 'message': 'Файл не выбран'}), 400
-    
-    # Обработка файла (например, анализ текста)
-    text = file.read().decode('utf-8')  # Пример чтения текстового файла
-    ingredients = check_ingredients(text)
-
-    # Возвращаем результат
-    return jsonify({
-        'status': 'success',
-        'message': 'Файл успешно загружен и проанализирован',
-        'ingredients': ingredients
-    })
-
-# Ініціалізація бази даних
+# Инициализация базы данных
 def init_db():
     with app.app_context():
         db.create_all()
@@ -283,7 +203,17 @@ def api_status():
         "user": current_user.to_dict()
     })
 
+# Функция для загрузки главной страницы
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Функция user_loader, необходимая для Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 if __name__ == '__main__':
-    init_db()  # ✅ Без аргументів!
+    init_db()  # Инициализация базы данных при старте
     print("🚀 Запуск додатка...")
     app.run(debug=True)

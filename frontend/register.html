@@ -4,23 +4,42 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Реєстрація</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/mobile.css') }}"
+    />
   </head>
   <body>
-    <h1>Реєстрація</h1>
-    <form id="registerForm">
-      <input
-        type="email"
-        id="registerEmail"
-        placeholder="Електронна пошта"
-        required
-      />
-      <input
-        type="password"
-        id="registerPassword"
-        placeholder="Пароль"
-        required
-      />
-      <button type="submit">Зареєструватися</button>
-    </form>
+    <div class="container">
+      <header>
+        <h1>Реєстрація</h1>
+      </header>
+
+      <main>
+        <form id="registerForm">
+          <input
+            type="email"
+            id="emailRegister"
+            placeholder="Електронна пошта"
+            required
+          />
+          <input
+            type="password"
+            id="passwordRegister"
+            placeholder="Пароль"
+            required
+          />
+          <button type="submit">Реєструватися</button>
+        </form>
+      </main>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
   </body>
 </html>
