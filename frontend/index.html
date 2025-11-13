@@ -42,12 +42,6 @@
             <h3>Ввести текст</h3>
             <p>Скопіюйте склад вручну</p>
           </div>
-
-          <div class="method-card" onclick="openGallery()">
-            <div class="icon">🖼️</div>
-            <h3>З галереї</h3>
-            <p>Виберіть фото з пристрою</p>
-          </div>
         </div>
 
         <!-- Приховані інпути -->
@@ -67,22 +61,25 @@
 
         <!-- Результати -->
         <div class="result" id="result"></div>
-
-        <!-- Кнопка для загрузки текстового файла -->
-        <button
-          id="fileUploadBtn"
-          style="display: none"
-          onclick="triggerFileInput()"
-        >
-          Завантажити файл
-        </button>
-        <input
-          type="file"
-          id="fileInput"
-          accept=".txt, .pdf, .doc, .docx"
-          style="display: none"
-        />
       </main>
+    </div>
+
+    <!-- Модальне вікно для камери -->
+    <div id="cameraModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Сканування камерою</h3>
+        <div class="camera-preview">
+          <video id="cameraVideo" autoplay playsinline></video>
+          <canvas id="cameraCanvas" style="display: none"></canvas>
+        </div>
+        <div class="camera-controls">
+          <button id="captureBtn">📸 Зробити знімок</button>
+          <button id="retakeBtn" class="hidden">🔄 Перезняти</button>
+          <button id="usePhotoBtn" class="hidden">✅ Використати фото</button>
+          <button onclick="openGallery()">📂 Вибрати з галереї</button>
+          <button onclick="closeCamera()">❌ Скасувати</button>
+        </div>
+      </div>
     </div>
 
     <!-- Модальне вікно для введення тексту -->
@@ -97,11 +94,21 @@
         <div class="modal-actions">
           <button onclick="processManualText()">Аналізувати</button>
           <button onclick="closeTextInput()">Скасувати</button>
+          <!-- Добавляем кнопку для загрузки текстового файла -->
+          <button id="fileUploadBtn" onclick="triggerFileInput()">
+            Завантажити файл
+          </button>
+          <input
+            type="file"
+            id="fileInput"
+            accept=".txt,.pdf,.doc,.docx"
+            style="display: none"
+            onchange="handleFileSelect(event)"
+          />
         </div>
       </div>
     </div>
 
     <script src="static/js/app.js"></script>
-    <script src="static/js/camera.js"></script>
   </body>
 </html>

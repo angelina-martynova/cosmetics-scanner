@@ -250,6 +250,24 @@ def analyze():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# Обробка завантаження текстових файлів
+@app.route('/api/upload_text_file', methods=['POST'])
+def upload_text_file():
+    file = request.files.get('file')
+    if not file:
+        return jsonify({'status': 'error', 'message': 'Файл не выбран'}), 400
+    
+    # Обработка файла (например, анализ текста)
+    text = file.read().decode('utf-8')  # Пример чтения текстового файла
+    ingredients = check_ingredients(text)
+
+    # Возвращаем результат
+    return jsonify({
+        'status': 'success',
+        'message': 'Файл успешно загружен и проанализирован',
+        'ingredients': ingredients
+    })
+
 # Ініціалізація бази даних
 def init_db():
     with app.app_context():
