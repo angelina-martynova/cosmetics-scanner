@@ -59,6 +59,33 @@
         flex-direction: column;
         gap: 0.5rem;
     }
+
+    /* Форми аутентифікації */
+    .auth-form {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
+
+    .password-toggle {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .password-group input {
+        padding-right: 45px;
+    }
+
+    .message {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .back-button {
+        top: 10px;
+        left: 10px;
+    }
 }
 
 /* Особливості для дуже малих екранів */
@@ -77,6 +104,15 @@
 
     button {
         padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .auth-form {
+        padding: 1rem;
+    }
+
+    .message {
+        padding: 10px 15px;
         font-size: 0.9rem;
     }
 }
@@ -98,11 +134,20 @@
     input,
     textarea {
         font-size: 16px;
-        /* Запобігає масштабуванню в iOS */
+    }
+
+    .password-toggle {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .back-button {
+        min-height: 44px;
+        min-width: 44px;
     }
 }
 
-/* Темна тема (опційно) */
+/* Темна тема - исправления для мобильных */
 @media (prefers-color-scheme: dark) {
     body {
         background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
@@ -111,12 +156,57 @@
 
     .method-card,
     .result,
-    .modal-content {
+    .modal-content,
+    .auth-form {
         background: #4a5568;
         color: #e2e8f0;
     }
 
     .method-card p {
         color: #cbd5e0;
+    }
+
+    .form-group input {
+        background: #2d3748 !important;
+        border-color: #4a5568;
+        color: #e2e8f0 !important;
+    }
+
+    .form-group input::placeholder {
+        color: #a0aec0;
+    }
+
+    .form-group input:focus {
+        border-color: #e91e63;
+    }
+
+    .password-toggle {
+        background: none;
+        color: #e2e8f0;
+    }
+
+    .back-button {
+        background: #4a5568;
+        border: 1px solid #6c757d;
+        color: #e2e8f0;
+    }
+
+    .back-button:hover {
+        background: #5a6268;
+    }
+
+    /* Стили для предотвращения автозаполнения в темной теме */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px #2d3748 inset !important;
+        -webkit-text-fill-color: #e2e8f0 !important;
+    }
+
+    input[autocomplete="off"],
+    input[autocomplete="new-password"] {
+        background-color: #2d3748 !important;
+        color: #e2e8f0 !important;
     }
 }

@@ -2,7 +2,6 @@ class CosmeticsScanner {
     constructor() {
         this.currentUser = null;
         this.currentScan = null;
-        this.init();
     }
 
     init() {
@@ -11,43 +10,55 @@ class CosmeticsScanner {
     }
 
     bindEvents() {
-        // Инициализация событий
         this.initAuthEvents();
-        this.initCameraEvents();
-        this.initFileEvents();
+        this.initNavigationEvents();
     }
 
-    // Инициализация событий аутентификации
     initAuthEvents() {
-        document.getElementById('loginBtn').addEventListener('click', () => login());
-        document.getElementById('registerBtn').addEventListener('click', () => register());
-        document.getElementById('logoutBtn').addEventListener('click', () => logout());
-        document.getElementById('myScansBtn').addEventListener('click', () => showMyScans());
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const myScansBtn = document.getElementById('myScansBtn');
+
+        if (loginBtn) loginBtn.addEventListener('click', () => this.navigateToLogin());
+        if (registerBtn) registerBtn.addEventListener('click', () => this.navigateToRegister());
+        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+        if (myScansBtn) myScansBtn.addEventListener('click', () => this.showMyScans());
     }
 
-    // Инициализация событий для камеры
-    initCameraEvents() {
-        document.getElementById('openCameraBtn').addEventListener('click', () => openCamera());
+    initNavigationEvents() {
+        // Навигация уже обрабатывается в auth.js
     }
 
-    // Методы для камеры 
-    openCamera() {
-        this.cameraManager.initCamera();
-    }
-    closeCamera() {
-        this.cameraManager.closeCamera();
+    navigateToLogin() {
+        window.location.href = '/login';
     }
 
-    // Инициализация событий для работы с файлами
-    initFileEvents() {
-        document.getElementById('galleryInput').addEventListener('change', (e) => handleFileSelect(e));
-        document.getElementById('uploadFileBtn').addEventListener('click', () => triggerFileInput());
-        document.getElementById('fileInput').addEventListener('change', (e) => handleFileSelect(e));
+    navigateToRegister() {
+        window.location.href = '/register';
+    }
+
+    logout() {
+        if (window.logout) {
+            window.logout();
+        }
+    }
+
+    showMyScans() {
+        // Перенаправляем на страницу истории сканирований
+        window.location.href = '/scans';
     }
 
     checkAuthStatus() {
         fetch('/api/status')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    this.currentUser = null;
+                    this.updateUI();
+                    throw new Error('Not authenticated');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.status === 'authenticated') {
                     this.currentUser = data.user;
@@ -60,23 +71,23 @@ class CosmeticsScanner {
             });
     }
 
-    // Обновление UI при изменении состояния аутентификации
     updateUI() {
         const authButtons = document.getElementById('authButtons');
         const userMenu = document.getElementById('userMenu');
         const userEmail = document.getElementById('userEmail');
 
-        if (this.currentUser) {
-            authButtons.classList.add('hidden');
-            userMenu.classList.remove('hidden');
-            userEmail.textContent = this.currentUser.email;
-        } else {
-            authButtons.classList.remove('hidden');
-            userMenu.classList.add('hidden');
+        if (authButtons && userMenu && userEmail) {
+            if (this.currentUser) {
+                authButtons.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                userEmail.textContent = this.currentUser.email;
+            } else {
+                authButtons.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+            }
         }
     }
 
-    // Показ сообщений
     showMessage(message, type) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
@@ -87,5 +98,8 @@ class CosmeticsScanner {
     }
 }
 
-// Инициализация приложения
-const app = new CosmeticsScanner();
+document.addEventListener('DOMContentLoaded', function() {
+    window.app = new CosmeticsScanner();
+    window.app.init();
+    console.log('CosmeticsScanner initialized');
+});

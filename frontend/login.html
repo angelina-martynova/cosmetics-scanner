@@ -20,26 +20,50 @@
       </header>
 
       <main>
-        <form id="loginForm">
-          <input
-            type="email"
-            id="emailLogin"
-            placeholder="Електронна пошта"
-            required
-          />
-          <input
-            type="password"
-            id="passwordLogin"
-            placeholder="Пароль"
-            required
-          />
-          <button type="submit">Увійти</button>
+        <form id="loginForm" class="auth-form" autocomplete="off" novalidate>
+          <div class="form-group">
+            <input
+              type="email"
+              id="emailLogin"
+              name="email"
+              placeholder="Електронна пошта"
+              required
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+          </div>
+          <div class="form-group password-group">
+            <input
+              type="password"
+              id="passwordLogin"
+              name="password"
+              placeholder="Пароль"
+              required
+              autocomplete="new-password"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              onclick="togglePasswordVisibility('passwordLogin')"
+              tabindex="-1"
+            >
+              👁️
+            </button>
+          </div>
+          <button type="submit" class="auth-submit">Увійти</button>
         </form>
+        <div class="auth-links">
+          <p>Ще не маєте акаунту? <a href="/register">Зареєструватися</a></p>
+        </div>
       </main>
     </div>
 
     <!-- Подключаем скрипты -->
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
   </body>
 </html>

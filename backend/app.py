@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -20,7 +20,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login_page'
 
 # Модели базы данных
 class User(UserMixin, db.Model):
@@ -89,6 +89,177 @@ def save_uploaded_file(file):
     
     file.save(filepath)
     return filename
+
+# Аутентификация
+@app.route('/login')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/register')
+def register_page():
+    return render_template('register.html')
+
+@app.route('/scans')
+@login_required
+def scans_page():
+    return render_template('scans.html')
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({"status": "error", "message": "Електронна пошта та пароль обов'язкові"}), 400
+        
+        # Проверяем существует ли пользователь
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({"status": "error", "message": "Користувач з такою поштою вже існує"}), 400
+        
+        # Создаем нового пользователя
+        new_user = User(email=email)
+        new_user.set_password(password)
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Реєстрація успішна! Тепер ви можете увійти."
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({"status": "error", "message": "Електронна пошта та пароль обов'язкові"}), 400
+        
+        # Ищем пользователя
+        user = User.query.filter_by(email=email).first()
+        
+        if not user or not user.check_password(password):
+            return jsonify({"status": "error", "message": "Невірна електронна пошта або пароль"}), 401
+        
+        # Обновляем время последнего входа
+        user.last_login = datetime.utcnow()
+        db.session.commit()
+        
+        # Логиним пользователя
+        login_user(user)
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Вхід успішний!",
+            "user": user.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/logout', methods=['POST'])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"status": "success", "message": "Вихід успішний"})
+
+# API для управления сканированиями
+@app.route('/api/scans', methods=['GET'])
+@login_required
+def get_user_scans():
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        scans = Scan.query.filter_by(user_id=current_user.id)\
+                         .order_by(Scan.created_at.desc())\
+                         .paginate(page=page, per_page=per_page, error_out=False)
+        
+        return jsonify({
+            "status": "success",
+            "scans": [scan.to_dict() for scan in scans.items],
+            "total": scans.total,
+            "pages": scans.pages,
+            "current_page": page
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/scans/<int:scan_id>', methods=['GET'])
+@login_required
+def get_scan(scan_id):
+    try:
+        scan = Scan.query.filter_by(id=scan_id, user_id=current_user.id).first()
+        
+        if not scan:
+            return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
+            
+        return jsonify({
+            "status": "success",
+            "scan": scan.to_dict()
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/scans/<int:scan_id>', methods=['DELETE'])
+@login_required
+def delete_scan(scan_id):
+    try:
+        scan = Scan.query.filter_by(id=scan_id, user_id=current_user.id).first()
+        
+        if not scan:
+            return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
+        
+        db.session.delete(scan)
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Сканування успішно видалено"
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/scans/bulk-delete', methods=['POST'])
+@login_required
+def bulk_delete_scans():
+    try:
+        data = request.get_json()
+        scan_ids = data.get('scan_ids', [])
+        
+        if not scan_ids:
+            return jsonify({"status": "error", "message": "Не вказано сканувань для видалення"}), 400
+        
+        # Удаляем только сканирования принадлежащие текущему пользователю
+        scans_to_delete = Scan.query.filter(
+            Scan.id.in_(scan_ids),
+            Scan.user_id == current_user.id
+        ).all()
+        
+        for scan in scans_to_delete:
+            db.session.delete(scan)
+        
+        db.session.commit()
+        
+        return jsonify({
+            "status": "success",
+            "message": f"Успішно видалено {len(scans_to_delete)} сканувань"
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Загрузка текстовых файлов
 @app.route('/api/upload_text_file', methods=['POST'])

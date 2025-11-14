@@ -3,10 +3,104 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Історія сканувань</title>
+    <title>Мої сканування</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/mobile.css') }}"
+    />
   </head>
   <body>
-    <h1>Історія сканувань</h1>
-    <div id="scansList"></div>
+    <div class="container">
+      <header>
+        <h1>Мої сканування</h1>
+        <div class="header-actions">
+          <button onclick="window.location.href='/'" class="back-button">
+            ← На головну
+          </button>
+          <div id="userMenu" class="user-menu">
+            <span id="userEmail"></span>
+            <button onclick="logout()">Вийти</button>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <!-- Фильтры и управление -->
+        <div class="scans-controls">
+          <div class="filters">
+            <select id="filterType" onchange="loadScans()">
+              <option value="">Всі типи</option>
+              <option value="manual">Текст</option>
+              <option value="camera">Фото</option>
+            </select>
+            <select id="filterMethod" onchange="loadScans()">
+              <option value="">Всі методи</option>
+              <option value="text">Ручний ввід</option>
+              <option value="file">Файл</option>
+              <option value="photo">Фото</option>
+            </select>
+          </div>
+          <div class="bulk-actions">
+            <button
+              onclick="toggleSelectAll()"
+              class="secondary"
+              id="selectAllBtn"
+            >
+              Обрати всі
+            </button>
+            <button
+              onclick="deleteSelectedScans()"
+              class="danger"
+              id="deleteSelectedBtn"
+              disabled
+            >
+              Видалити обрані
+            </button>
+          </div>
+        </div>
+
+        <!-- Состояние загрузки -->
+        <div id="loadingState" class="loading hidden">
+          <p>Завантаження сканувань...</p>
+        </div>
+
+        <!-- Состояние пустого списка -->
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon">📄</div>
+          <h3>Немає сканувань</h3>
+          <p>Тут будуть зберігатися всі ваші сканування косметики</p>
+          <button onclick="window.location.href='/'" class="primary">
+            Зробити перше сканування
+          </button>
+        </div>
+
+        <!-- Список сканирований -->
+        <div id="scansList" class="scans-list"></div>
+
+        <!-- Пагинация -->
+        <div id="pagination" class="pagination hidden"></div>
+      </main>
+    </div>
+
+    <!-- Модальное окно деталей сканирования -->
+    <div id="scanDetailsModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Деталі сканування</h3>
+        <div id="scanDetailsContent"></div>
+        <div class="modal-actions">
+          <button onclick="closeScanDetails()" class="secondary">
+            Закрити
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scans.js') }}"></script>
   </body>
 </html>
