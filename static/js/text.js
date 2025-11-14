@@ -239,14 +239,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('fileInput element not found!');
     }
     
-    // Проверяем все кнопки в модальном окне
-    const modal = document.getElementById('textInputModal');
-    if (modal) {
-        const buttons = modal.querySelectorAll('button');
-        console.log('Buttons in modal:', buttons.length);
-        buttons.forEach((btn, index) => {
-            console.log(`Button ${index}:`, btn.textContent, btn.onclick);
-        });
+    // Привязка кнопки "Скасувати" в модальном окне
+    const cancelButton = document.querySelector('#textInputModal .modal-actions button:last-child');
+    if (cancelButton && cancelButton.textContent.includes('Скасувати')) {
+        cancelButton.addEventListener('click', closeTextInput);
     }
 });
 

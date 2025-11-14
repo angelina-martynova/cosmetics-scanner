@@ -781,3 +781,45 @@ button.danger:hover {
         background: #5a6268;
     }
 }
+
+/* Добавляем в styles.css */
+
+/* Бейдж типа сканирования */
+.scan-type-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+/* Темная тема для бейджей */
+@media (prefers-color-scheme: dark) {
+    .scan-type-badge {
+        background: #2d3748;
+        color: #90cdf4;
+    }
+}
+
+/* Улучшаем отображение метода и типа */
+.scan-method {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Адаптивность для карточек */
+@media (max-width: 768px) {
+    .scan-method {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .scan-type-badge {
+        margin-left: 0;
+    }
+}

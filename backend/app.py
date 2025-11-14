@@ -179,22 +179,37 @@ def get_user_scans():
     try:
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+        filter_type = request.args.get('type', '')
+        filter_method = request.args.get('method', '')
         
-        scans = Scan.query.filter_by(user_id=current_user.id)\
-                         .order_by(Scan.created_at.desc())\
-                         .paginate(page=page, per_page=per_page, error_out=False)
+        # Базовый запрос
+        query = Scan.query.filter_by(user_id=current_user.id)
+        
+        # Применяем фильтры
+        if filter_type:
+            query = query.filter(Scan.input_type == filter_type)
+        if filter_method:
+            query = query.filter(Scan.input_method == filter_method)
+        
+        # Сортировка и пагинация
+        scans = query.order_by(Scan.created_at.desc())\
+                     .paginate(page=page, per_page=per_page, error_out=False)
         
         return jsonify({
             "status": "success",
             "scans": [scan.to_dict() for scan in scans.items],
             "total": scans.total,
             "pages": scans.pages,
-            "current_page": page
+            "current_page": page,
+            "filters": {
+                "type": filter_type,
+                "method": filter_method
+            }
         })
         
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
+    
 @app.route('/api/scans/<int:scan_id>', methods=['GET'])
 @login_required
 def get_scan(scan_id):
@@ -311,14 +326,13 @@ def upload_text_file():
             scan = Scan(
                 user_id=current_user.id,
                 input_type='manual',
-                input_method='file',
+                input_method='device',
                 original_text=text,
                 ingredients_detected=ingredients
             )
             db.session.add(scan)
             db.session.commit()
             scan_id = scan.id
-            print(f"Scan saved with ID: {scan_id}")
 
         return jsonify({
             "status": "success", 
@@ -328,7 +342,6 @@ def upload_text_file():
         })
         
     except Exception as e:
-        print(f"Error in upload_text_file: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500  
 
 # Aнализ текста Checker.py
@@ -374,7 +387,7 @@ def analyze_text():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
   
-# Анализ изображений
+# Анализ изображений(камера и галерея)
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
@@ -382,6 +395,9 @@ def analyze():
         if not file:
             return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
 
+         # Определяем метод ввода по источнику файла
+        input_method = request.form.get('input_method', 'camera')  # По умолчанию камера
+        
         # OCR обработка изображения
         text = extract_text(file)
         ingredients = check_ingredients(text)
@@ -391,10 +407,10 @@ def analyze():
             # Сохраняем только информацию о сканировании, НЕ сохраняем файл
             scan = Scan(
                 user_id=current_user.id,
-                input_type='camera',
-                input_method='photo', 
+                input_type='camera',  # Тип для всех изображений
+                input_method=input_method,  # Метод: 'camera' или 'device'
                 original_text=text,
-                image_filename=None,  # Не сохраняем файл
+                image_filename=None,
                 ingredients_detected=ingredients
             )
             db.session.add(scan)

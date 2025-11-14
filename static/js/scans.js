@@ -7,25 +7,76 @@ class ScansManager {
         this.totalPages = 1;
         this.selectedScans = new Set();
         this.allScansSelected = false;
+        this.filters = {
+            type: '',
+            method: ''
+        };
     }
 
     init() {
+        this.bindEvents();
+        this.bindFilterEvents();
         this.loadScans();
         this.checkAuthStatus();
+    }
+
+    // Привязка всех событий
+    bindEvents() {
+        // Кнопка "Закрити" в модальном окне
+        const closeDetailsBtn = document.getElementById('closeDetailsBtn');
+        if (closeDetailsBtn) {
+            closeDetailsBtn.addEventListener('click', () => this.closeScanDetails());
+        }
+
+        // Кнопка "Обрати всі"
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => this.toggleSelectAll());
+        }
+
+        // Кнопка "Видалити обрані"
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        if (deleteSelectedBtn) {
+            deleteSelectedBtn.addEventListener('click', () => this.deleteSelectedScans());
+        }
+    }
+
+    // Привязка событий фильтров
+    bindFilterEvents() {
+        const filterType = document.getElementById('filterType');
+        const filterMethod = document.getElementById('filterMethod');
+
+        if (filterType) {
+            filterType.addEventListener('change', (e) => {
+                this.filters.type = e.target.value;
+                this.currentPage = 1;
+                this.loadScans();
+            });
+        }
+
+        if (filterMethod) {
+            filterMethod.addEventListener('change', (e) => {
+                this.filters.method = e.target.value;
+                this.currentPage = 1;
+                this.loadScans();
+            });
+        }
     }
 
     // Загрузка списка сканирований
     async loadScans(page = 1) {
         this.currentPage = page;
-        
-        const filterType = document.getElementById('filterType').value;
-        const filterMethod = document.getElementById('filterMethod').value;
-        
-        // Показываем состояние загрузки
         this.showLoadingState();
         
         try {
             let url = `/api/scans?page=${page}&per_page=${this.perPage}`;
+            
+            if (this.filters.type) {
+                url += `&type=${encodeURIComponent(this.filters.type)}`;
+            }
+            if (this.filters.method) {
+                url += `&method=${encodeURIComponent(this.filters.method)}`;
+            }
             
             const response = await fetch(url);
             
@@ -58,17 +109,16 @@ class ScansManager {
         const emptyState = document.getElementById('emptyState');
         const loadingState = document.getElementById('loadingState');
         
-        // Скрываем состояния загрузки и пустого списка
         loadingState.classList.add('hidden');
         
         if (scans.length === 0) {
             scansList.innerHTML = '';
             emptyState.classList.remove('hidden');
+            this.updateEmptyStateText();
             return;
         }
         
         emptyState.classList.add('hidden');
-        
         scansList.innerHTML = scans.map(scan => this.createScanCard(scan)).join('');
     }
 
@@ -84,6 +134,7 @@ class ScansManager {
                     <div class="scan-method">
                         <span class="method-icon">${methodIcon}</span>
                         <span class="method-text">${this.getMethodText(scan.input_method)}</span>
+                        <span class="scan-type-badge">${this.getTypeText(scan.input_type)}</span>
                     </div>
                     <div class="scan-actions">
                         <input type="checkbox" class="scan-checkbox" onchange="scansManager.toggleScanSelection(${scan.id})">
@@ -149,6 +200,10 @@ class ScansManager {
         
         content.innerHTML = `
             <div class="scan-details">
+                <div class="detail-row">
+                    <strong>Тип введення:</strong>
+                    <span>${this.getTypeText(scan.input_type)}</span>
+                </div>
                 <div class="detail-row">
                     <strong>Метод введення:</strong>
                     <span>${this.getMethodText(scan.input_method)}</span>
@@ -293,16 +348,20 @@ class ScansManager {
         const deleteBtn = document.getElementById('deleteSelectedBtn');
         const selectAllBtn = document.getElementById('selectAllBtn');
         
-        deleteBtn.disabled = this.selectedScans.size === 0;
-        selectAllBtn.textContent = this.allScansSelected ? 'Зняти виділення' : 'Обрати всі';
+        if (deleteBtn) {
+            deleteBtn.disabled = this.selectedScans.size === 0;
+        }
+        if (selectAllBtn) {
+            selectAllBtn.textContent = this.allScansSelected ? 'Зняти виділення' : 'Обрати всі';
+        }
     }
 
     // Вспомогательные методы
     getMethodIcon(method) {
         const icons = {
             'text': '📝',
-            'file': '📄',
-            'photo': '📷'
+            'device': '📱',
+            'camera': '📷'
         };
         return icons[method] || '🔍';
     }
@@ -310,10 +369,18 @@ class ScansManager {
     getMethodText(method) {
         const texts = {
             'text': 'Ручний ввід',
-            'file': 'Завантаження файлу',
-            'photo': 'Фото з камери'
+            'device': 'З пристрою',
+            'camera': 'Камера'
         };
         return texts[method] || 'Невідомий метод';
+    }
+
+    getTypeText(type) {
+        const texts = {
+            'manual': 'Текст',
+            'camera': 'Фото'
+        };
+        return texts[type] || 'Невідомий тип';
     }
 
     calculateRiskLevel(ingredients) {
@@ -340,6 +407,31 @@ class ScansManager {
     truncateText(text, maxLength) {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
+    }
+
+    // Обновление текста пустого состояния в зависимости от фильтров
+    updateEmptyStateText() {
+        const emptyState = document.getElementById('emptyState');
+        const emptyTitle = emptyState.querySelector('h3');
+        const emptyText = emptyState.querySelector('p');
+        
+        if (this.filters.type || this.filters.method) {
+            let filterText = '';
+            
+            if (this.filters.type && this.filters.method) {
+                filterText = `за типом "${this.getTypeText(this.filters.type)}" та методом "${this.getMethodText(this.filters.method)}"`;
+            } else if (this.filters.type) {
+                filterText = `за типом "${this.getTypeText(this.filters.type)}"`;
+            } else if (this.filters.method) {
+                filterText = `за методом "${this.getMethodText(this.filters.method)}"`;
+            }
+            
+            emptyTitle.textContent = 'Сканування не знайдено';
+            emptyText.textContent = `Не знайдено сканувань ${filterText}. Спробуйте змінити критерії пошуку.`;
+        } else {
+            emptyTitle.textContent = 'Немає сканувань';
+            emptyText.textContent = 'Тут будуть зберігатися всі ваші сканування косметики';
+        }
     }
 
     // Пагинация
@@ -424,19 +516,6 @@ class ScansManager {
     updateUI() {
         // Дополнительные обновления UI при необходимости
     }
-}
-
-// Глобальные функции
-function closeScanDetails() {
-    window.scansManager.closeScanDetails();
-}
-
-function toggleSelectAll() {
-    window.scansManager.toggleSelectAll();
-}
-
-function deleteSelectedScans() {
-    window.scansManager.deleteSelectedScans();
 }
 
 // Инициализация при загрузке страницы

@@ -32,32 +32,21 @@
         <!-- Фильтры и управление -->
         <div class="scans-controls">
           <div class="filters">
-            <select id="filterType" onchange="loadScans()">
+            <select id="filterType">
               <option value="">Всі типи</option>
               <option value="manual">Текст</option>
               <option value="camera">Фото</option>
             </select>
-            <select id="filterMethod" onchange="loadScans()">
+            <select id="filterMethod">
               <option value="">Всі методи</option>
               <option value="text">Ручний ввід</option>
-              <option value="file">Файл</option>
-              <option value="photo">Фото</option>
+              <option value="device">З пристрою</option>
+              <option value="camera">Камера</option>
             </select>
           </div>
           <div class="bulk-actions">
-            <button
-              onclick="toggleSelectAll()"
-              class="secondary"
-              id="selectAllBtn"
-            >
-              Обрати всі
-            </button>
-            <button
-              onclick="deleteSelectedScans()"
-              class="danger"
-              id="deleteSelectedBtn"
-              disabled
-            >
+            <button id="selectAllBtn" class="secondary">Обрати всі</button>
+            <button id="deleteSelectedBtn" class="danger" disabled>
               Видалити обрані
             </button>
           </div>
@@ -92,9 +81,7 @@
         <h3>Деталі сканування</h3>
         <div id="scanDetailsContent"></div>
         <div class="modal-actions">
-          <button onclick="closeScanDetails()" class="secondary">
-            Закрити
-          </button>
+          <button id="closeDetailsBtn" class="secondary">Закрити</button>
         </div>
       </div>
     </div>

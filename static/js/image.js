@@ -120,7 +120,7 @@ class CameraManager {
         this.canvas.toBlob(async (blob) => {
             const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
             
-            // НЕ закрываем камеру сразу - закрываем только после успешной отправки
+            // Передаем метод ввода "camera"
             await processImageFile(file, 'camera');
             
             // Закрываем камеру после анализа
@@ -168,6 +168,13 @@ async function processImageFile(file, source) {
         
         const formData = new FormData();
         formData.append('image', file);
+        
+        // Передаем метод ввода в зависимости от источника
+        if (source === 'camera') {
+            formData.append('input_method', 'camera');
+        } else {
+            formData.append('input_method', 'device'); // Для галереи
+        }
 
         console.log('📤 Отправка изображения на сервер...');
         const response = await fetch('/api/analyze', {
