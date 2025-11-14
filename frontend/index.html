@@ -30,13 +30,11 @@
 
       <main>
         <div id="inputMethods">
-          <!-- Вибір методу введення -->
           <div class="method-card" onclick="openCamera()">
             <div class="icon">📷</div>
             <h3>Сканувати камерою</h3>
             <p>Сфотографуйте етикетку</p>
           </div>
-
           <div class="method-card" onclick="openTextInput()">
             <div class="icon">📝</div>
             <h3>Ввести текст</h3>
@@ -58,9 +56,13 @@
           accept="image/*"
           style="display: none"
         />
-        <input type="file" id="fileInput" style="display: none" />
+        <input
+          type="file"
+          id="fileInput"
+          style="display: none"
+          accept=".txt,.doc,.docx,.pdf"
+        />
 
-        <!-- Результати -->
         <div class="result" id="result"></div>
       </main>
     </div>
@@ -76,7 +78,7 @@
         <div class="camera-controls">
           <button id="captureBtn">📸 Зробити знімок</button>
           <button id="retakeBtn" class="hidden">🔄 Перезняти</button>
-          <button id="usePhotoBtn" class="hidden">✅ Використати фото</button>
+          <button id="usePhotoBtn" class="hidden">✅ Аналізувати</button>
           <button onclick="openGallery()">📂 Вибрати з галереї</button>
           <button onclick="closeCamera()">❌ Скасувати</button>
         </div>
@@ -93,6 +95,7 @@
           rows="8"
         ></textarea>
         <div class="modal-actions">
+          <button onclick="triggerFileInput()">📂 Завантажити файл</button>
           <button onclick="processManualText()">Аналізувати</button>
           <button onclick="closeTextInput()">Скасувати</button>
         </div>

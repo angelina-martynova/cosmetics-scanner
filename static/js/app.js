@@ -30,6 +30,14 @@ class CosmeticsScanner {
         document.getElementById('openCameraBtn').addEventListener('click', () => openCamera());
     }
 
+    // Методы для камеры 
+    openCamera() {
+        this.cameraManager.initCamera();
+    }
+    closeCamera() {
+        this.cameraManager.closeCamera();
+    }
+
     // Инициализация событий для работы с файлами
     initFileEvents() {
         document.getElementById('galleryInput').addEventListener('change', (e) => handleFileSelect(e));

@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from ocr import extract_text
+from checker import IngredientChecker
 import os
 
 # Инициализация путей для шаблонов и статических файлов
@@ -88,47 +90,50 @@ def save_uploaded_file(file):
     file.save(filepath)
     return filename
 
-# Простой анализ текста
-def check_ingredients(text):
-    ingredients = []
-    
-    if "sodium laureth sulfate" in text.lower():
-        ingredients.append({
-            "name": "Sodium Laureth Sulfate",
-            "risk_level": "medium",
-            "category": "surfactant",
-            "description": "Пінник, може викликати подразнення шкіри"
-        })
-    
-    if "methylparaben" in text.lower():
-        ingredients.append({
-            "name": "Methylparaben", 
-            "risk_level": "medium",
-            "category": "preservative",
-            "description": "Консервант з можливим гормональним впливом"
-        })
-    
-    if "parfum" in text.lower():
-        ingredients.append({
-            "name": "Parfum",
-            "risk_level": "high", 
-            "category": "fragrance",
-            "description": "Ароматизатор, може викликати алергії"
-        })
-    
-    return ingredients
-
 # Загрузка текстовых файлов
 @app.route('/api/upload_text_file', methods=['POST'])
-@login_required
 def upload_text_file():
     try:
-        file = request.files.get('file')
-        if not file:
+        print("Received file upload request")
+        
+        if 'file' not in request.files:
+            print("No file in request")
             return jsonify({"status": "error", "message": "Файл не загружен"}), 400
         
-        text = file.read().decode('utf-8')
+        file = request.files['file']
+        print(f"File received: {file.filename}, {file.content_type}")
+        
+        if file.filename == '':
+            print("Empty filename")
+            return jsonify({"status": "error", "message": "Файл не выбран"}), 400
+        
+        # Проверяем расширение файла
+        allowed_extensions = {'.txt', '.doc', '.docx', '.pdf'}
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        
+        if file_ext not in allowed_extensions:
+            print(f"Unsupported file extension: {file_ext}")
+            return jsonify({"status": "error", "message": f"Неподдерживаемый формат файла: {file_ext}"}), 400
+        
+        # Читаем содержимое файла
+        try:
+            if file_ext == '.txt':
+                text = file.read().decode('utf-8')
+            elif file_ext in {'.doc', '.docx', '.pdf'}:
+                # Пока возвращаем заглушку для нетекстовых форматов
+                text = f"[Файл {file.filename} - для обработки .doc/.docx/.pdf нужны дополнительные библиотеки]"
+            else:
+                text = file.read().decode('utf-8', errors='ignore')
+                
+            print(f"File content length: {len(text)}")
+            
+        except Exception as e:
+            print(f"Error reading file: {e}")
+            return jsonify({"status": "error", "message": f"Ошибка чтения файла: {str(e)}"}), 400
+        
+        # Анализируем ингредиенты
         ingredients = check_ingredients(text)
+        print(f"Found ingredients: {len(ingredients)}")
 
         scan_id = None
         if current_user.is_authenticated:
@@ -142,6 +147,7 @@ def upload_text_file():
             db.session.add(scan)
             db.session.commit()
             scan_id = scan.id
+            print(f"Scan saved with ID: {scan_id}")
 
         return jsonify({
             "status": "success", 
@@ -149,30 +155,39 @@ def upload_text_file():
             "ingredients": ingredients,
             "scan_id": scan_id
         })
+        
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"Error in upload_text_file: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500  
 
-# Анализ изображений
-@app.route('/api/analyze', methods=['POST'])
-def analyze():
+# Aнализ текста Checker.py
+ingredient_checker = IngredientChecker()
+
+def check_ingredients(text):
+    """Проверка текста на наличие опасных ингредиентов"""
+    if not text:
+        return []
+    
+    return ingredient_checker.find_ingredients(text)
+
+# Анализ текста (ручной ввод)
+@app.route('/api/analyze_text', methods=['POST'])
+def analyze_text():
     try:
-        file = request.files.get('image')
-        if not file:
-            return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
-
-        # Пример обработки изображения (заменить на OCR)
-        text = extract_text(file)
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({"status": "error", "message": "Текст не предоставлен"}), 400
+        
+        text = data['text']
         ingredients = check_ingredients(text)
 
         scan_id = None
         if current_user.is_authenticated:
-            file.stream.seek(0)
             scan = Scan(
                 user_id=current_user.id,
-                input_type='camera',
-                input_method='photo', 
+                input_type='manual',
+                input_method='text',
                 original_text=text,
-                image_filename=save_uploaded_file(file),
                 ingredients_detected=ingredients
             )
             db.session.add(scan)
@@ -187,7 +202,43 @@ def analyze():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+  
+# Анализ изображений
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
+    try:
+        file = request.files.get('image')
+        if not file:
+            return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
 
+        # OCR обработка изображения
+        text = extract_text(file)
+        ingredients = check_ingredients(text)
+
+        scan_id = None
+        if current_user.is_authenticated:
+            # Сохраняем только информацию о сканировании, НЕ сохраняем файл
+            scan = Scan(
+                user_id=current_user.id,
+                input_type='camera',
+                input_method='photo', 
+                original_text=text,
+                image_filename=None,  # Не сохраняем файл
+                ingredients_detected=ingredients
+            )
+            db.session.add(scan)
+            db.session.commit()
+            scan_id = scan.id
+
+        return jsonify({
+            "status": "success", 
+            "text": text,
+            "ingredients": ingredients,
+            "scan_id": scan_id
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 # Инициализация базы данных
 def init_db():
     with app.app_context():

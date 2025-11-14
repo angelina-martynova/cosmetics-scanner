@@ -1,59 +1,54 @@
-// Логика для регистрации пользователя
-async function register() {
-    const email = document.getElementById('emailRegister').value;
-    const password = document.getElementById('passwordRegister').value;
+// auth.js
 
-    try {
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-        if (data.status === 'success') {
-            app.showMessage('Реєстрація успішна! Тепер увійдіть.', 'success');
-            window.location.href = "/login";
-        } else {
-            app.showMessage(data.message, 'error');
-        }
-    } catch (error) {
-        app.showMessage('Помилка з\'єднання', 'error');
-    }
-}
-
-// Логика для входа пользователя
-async function login() {
+// Функция для входа
+function login() {
     const email = document.getElementById('emailLogin').value;
     const password = document.getElementById('passwordLogin').value;
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
+    
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(response => response.json())
+    .then(data => {
         if (data.status === 'success') {
-            app.showMessage('Успішний вхід!', 'success');
-            window.location.href = "/";
+            app.showMessage('Вход выполнен успешно!', 'success');
+            app.checkAuthStatus();
         } else {
             app.showMessage(data.message, 'error');
         }
-    } catch (error) {
-        app.showMessage('Помилка з\'єднання', 'error');
-    }
+    })
+    .catch(err => app.showMessage('Ошибка: ' + err.message, 'error'));
 }
 
-// Логика для выхода пользователя
+// Функция для регистрации
+function register() {
+    const email = document.getElementById('emailRegister').value;
+    const password = document.getElementById('passwordRegister').value;
+    
+    fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            app.showMessage('Регистрация успешна!', 'success');
+        } else {
+            app.showMessage(data.message, 'error');
+        }
+    })
+    .catch(err => app.showMessage('Ошибка: ' + err.message, 'error'));
+}
+
+// Функция для выхода
 function logout() {
     fetch('/api/logout', { method: 'POST' })
         .then(() => {
-            app.showMessage('Ви вийшли з системи', 'success');
-            window.location.href = '/login';
+            app.showMessage('Вы вышли из системы!', 'success');
+            app.checkAuthStatus();
         })
-        .catch(() => {
-            app.showMessage('Помилка при виході', 'error');
-        });
+        .catch(err => app.showMessage('Ошибка: ' + err.message, 'error'));
 }
