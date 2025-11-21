@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -7,6 +8,7 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=True)  # Добавляем поле имени
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255))
     role = db.Column(db.String(20), default='user')
@@ -26,6 +28,7 @@ class User(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "name": self.name,  # Добавляем имя в словарь
             "email": self.email,
             "role": self.role,
             "created_at": self.created_at.isoformat() if self.created_at else None,

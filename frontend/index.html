@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Сканер косметичних інгредієнтів</title>
+    <title>Skipley - Сканер косметичних інгредієнтів</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/styles.css') }}"
@@ -12,33 +12,55 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/mobile.css') }}"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>Сканер косметичних інгредієнтів</h1>
+        <h1>Skipley</h1>
         <div class="auth-buttons" id="authButtons">
           <button id="loginBtn">Увійти</button>
           <button id="registerBtn">Реєстрація</button>
         </div>
         <div class="user-menu hidden" id="userMenu">
-          <span>Вітаємо, <span id="userEmail"></span></span>
+          <span style="display: none">Вітаємо, </span>
+          <span id="userEmail"></span>
           <button id="myScansBtn">Мої сканування</button>
           <button id="logoutBtn">Вийти</button>
         </div>
       </header>
 
       <main>
-        <div id="inputMethods">
+        <!-- Герой-секція -->
+        <section class="hero-section">
+          <h1>Скануй безпеку своєї косметики</h1>
+          <p class="hero-subtitle">
+            Просто сфотографуйте етикетку або введіть склад - ми проаналізуємо
+            небезпечні інгредієнти
+          </p>
+        </section>
+
+        <!-- Методи введення -->
+        <div id="inputMethods" class="input-methods">
           <div class="method-card" onclick="openCamera()">
             <div class="icon">📷</div>
             <h3>Сканувати камерою</h3>
-            <p>Сфотографуйте етикетку</p>
+            <p>Сфотографуйте етикетку продукту</p>
           </div>
           <div class="method-card" onclick="openTextInput()">
             <div class="icon">📝</div>
             <h3>Ввести текст</h3>
             <p>Скопіюйте склад вручну</p>
+          </div>
+        </div>
+
+        <!-- Прогрес бар -->
+        <div class="scan-progress hidden">
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
           </div>
         </div>
 
@@ -76,11 +98,11 @@
           <canvas id="cameraCanvas" style="display: none"></canvas>
         </div>
         <div class="camera-controls">
-          <button id="captureBtn">📸 Зробити знімок</button>
-          <button id="retakeBtn" class="hidden">🔄 Перезняти</button>
-          <button id="usePhotoBtn" class="hidden">✅ Аналізувати</button>
-          <button onclick="openGallery()">📂 Вибрати з галереї</button>
-          <button onclick="closeCamera()">❌ Скасувати</button>
+          <button id="captureBtn">Зробити знімок</button>
+          <button id="retakeBtn" class="hidden">Перезняти</button>
+          <button id="usePhotoBtn" class="hidden">Аналізувати</button>
+          <button onclick="openGallery()">Вибрати з галереї</button>
+          <button onclick="closeCamera()">Скасувати</button>
         </div>
       </div>
     </div>
@@ -95,7 +117,7 @@
           rows="8"
         ></textarea>
         <div class="modal-actions">
-          <button onclick="triggerFileInput()">📂 Завантажити файл</button>
+          <button onclick="triggerFileInput()">Завантажити файл</button>
           <button onclick="processManualText()">Аналізувати</button>
           <button onclick="closeTextInput()">Скасувати</button>
         </div>

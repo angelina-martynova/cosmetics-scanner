@@ -2,45 +2,72 @@
 @media (max-width: 768px) {
     .container {
         padding: 0.5rem;
+        padding-top: 4rem;
+        /* Додаємо відступ для фіксованих кнопок */
     }
 
     header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+        padding: 0.5rem 0;
+        margin-bottom: 1rem;
+        position: relative;
     }
 
     h1 {
         font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        order: 2;
+        margin-top: 0.5rem;
     }
 
     .input-methods {
         grid-template-columns: 1fr;
         gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .method-card {
         padding: 1.5rem;
+        margin: 0.5rem 0;
     }
 
     .method-card .icon {
         font-size: 2.5rem;
     }
 
-    .auth-buttons,
-    .user-menu {
-        flex-direction: column;
+    .auth-buttons {
+        flex-direction: row;
         width: 100%;
+        gap: 0.5rem;
+        justify-content: center;
+        order: 1;
+    }
+
+    .user-menu {
+        justify-content: flex-end;
+        margin-left: auto;
+        order: 3;
+    }
+
+    .user-menu span:first-child {
+        display: none;
+        /* Приховуємо "Вітаємо" на мобільних */
     }
 
     button {
-        width: 100%;
+        width: auto;
         margin: 0.25rem 0;
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
     }
 
     .modal-content {
         margin: 1rem;
         padding: 1.5rem;
+        width: 95%;
+        max-height: 85vh;
     }
 
     .result {
@@ -60,31 +87,166 @@
         gap: 0.5rem;
     }
 
-    /* Форми аутентифікації */
+    .camera-controls button {
+        width: 100%;
+    }
+
+    /* Форми аутентифікації - ЦЕНТРИРОВАНИЕ */
     .auth-form {
         padding: 1.5rem;
-        margin: 0 1rem;
+        margin: 0 auto;
+        margin-top: 2rem;
+        width: 90%;
+        max-width: 400px;
     }
 
     .password-toggle {
-        width: 35px;
-        height: 35px;
+        width: 40px;
+        height: 40px;
         font-size: 1rem;
     }
 
     .password-group input {
-        padding-right: 45px;
+        padding-right: 50px;
     }
 
     .message {
         right: 10px;
         left: 10px;
         max-width: none;
+        top: 80px;
+        /* Зміщуємо повідомлення нижче кнопок */
     }
 
     .back-button {
-        top: 10px;
-        left: 10px;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+        z-index: 1001;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        font-weight: 600;
+    }
+
+    /* Герой-секція */
+    .hero-section {
+        padding: 2rem 1rem;
+        margin: 1rem 0;
+        margin-top: 0.5rem;
+    }
+
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        color: var(--accent-color);
+        font-weight: 500;
+        opacity: 0.9;
+        line-height: 1.4;
+    }
+
+    /* Елементи керування скануваннями */
+    .scans-controls {
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .filters {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filters select {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .bulk-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .bulk-actions button {
+        flex: 1;
+    }
+
+    /* Пагінація */
+    .pagination {
+        gap: 0.25rem;
+    }
+
+    .pagination button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    /* Сторінка "Мої сканування" - заголовок по центру */
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        min-height: 60px;
+    }
+
+    .header-actions h1 {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        margin: 0;
+        order: 2;
+        margin-top: 0;
+        font-size: 1.5rem;
+    }
+
+    /* Кнопка На головну - фиксированная позиция слева */
+    .header-actions .back-button {
+        position: relative;
+        top: auto;
+        left: auto;
+        order: 1;
+        align-self: center;
+        margin: 0;
+    }
+
+    /* Кнопка Вийти - фиксированная позиция справа */
+    .header-actions .user-menu {
+        position: relative;
+        top: auto;
+        right: auto;
+        order: 3;
+        align-self: center;
+        margin: 0;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* Картки сканувань - дії залишаються праворуч */
+    .scan-card-header {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .scan-method {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .scan-actions {
+        align-self: flex-start;
+        margin-top: 0;
+        flex-shrink: 0;
     }
 }
 
@@ -100,20 +262,76 @@
 
     .modal-content {
         padding: 1rem;
+        margin: 0.5rem;
     }
 
     button {
-        padding: 0.6rem 1rem;
+        padding: 0.8rem 1rem;
         font-size: 0.9rem;
     }
 
     .auth-form {
         padding: 1rem;
+        width: 95%;
     }
 
     .message {
-        padding: 10px 15px;
+        padding: 0.8rem 1rem;
         font-size: 0.9rem;
+        top: 70px;
+    }
+
+    .hero-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .hero-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .scan-card {
+        padding: 1rem;
+    }
+
+    .scan-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Для страницы Мої сканування на маленьких экранах */
+    .header-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .header-actions h1 {
+        position: static;
+        transform: none;
+        order: 1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .header-actions .back-button {
+        order: 2;
+        flex: 1;
+    }
+
+    .header-actions .user-menu {
+        order: 3;
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    /* На малих екранах зменшуємо відступи в картках */
+    .scan-card-header {
+        gap: 0.5rem;
+    }
+
+    .scan-actions {
+        gap: 0.25rem;
     }
 }
 
@@ -122,6 +340,7 @@
     button {
         min-height: 44px;
         padding: 1rem 1.5rem;
+        border-radius: 12px;
     }
 
     .method-card {
@@ -129,70 +348,131 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
+        border-radius: 16px;
     }
 
     input,
     textarea {
         font-size: 16px;
+        padding: 1rem;
+        border-radius: 12px;
     }
 
     .password-toggle {
         min-height: 44px;
         min-width: 44px;
+        border-radius: 8px;
     }
 
     .back-button {
         min-height: 44px;
         min-width: 44px;
+        border-radius: 10px;
+    }
+
+    /* Покращення для скролу */
+    .scans-list,
+    .ingredients-list,
+    .original-text {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Кращі відступи для тач-інтерфейсу */
+    .modal-actions button {
+        margin: 0.25rem;
     }
 }
 
 /* Темна тема - исправления для мобильных */
 @media (prefers-color-scheme: dark) {
     body {
-        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-        color: #e2e8f0;
+        background: linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%);
+        color: #F5F5F5;
     }
 
     .method-card,
     .result,
     .modal-content,
     .auth-form {
-        background: #4a5568;
-        color: #e2e8f0;
+        background: #1A1A1A;
+        color: #F5F5F5;
+        border-color: #404040;
+    }
+
+    /* Текст карточек методов ввода - белый для заголовков, розовый для описания */
+    .method-card h3 {
+        color: #FFFFFF !important;
     }
 
     .method-card p {
-        color: #cbd5e0;
+        color: #D991BA !important;
     }
 
     .form-group input {
-        background: #2d3748 !important;
-        border-color: #4a5568;
-        color: #e2e8f0 !important;
+        background: #2D2D2D !important;
+        border-color: #404040;
+        color: #F5F5F5 !important;
     }
 
     .form-group input::placeholder {
-        color: #a0aec0;
+        color: #8A8887;
     }
 
     .form-group input:focus {
-        border-color: #e91e63;
+        border-color: #D991BA;
     }
 
     .password-toggle {
         background: none;
-        color: #e2e8f0;
+        color: #F5F5F5;
     }
 
     .back-button {
-        background: #4a5568;
-        border: 1px solid #6c757d;
-        color: #e2e8f0;
+        background: #D991BA;
+        border: 1px solid #404040;
+        color: white;
+        font-weight: 600;
     }
 
     .back-button:hover {
-        background: #5a6268;
+        background: #C97AA5;
+    }
+
+    /* Заголовки бежевим у темній темі */
+    h1 {
+        color: #D7C9AA !important;
+    }
+
+    .auth-form h1 {
+        color: #D7C9AA !important;
+    }
+
+    .modal-content h3 {
+        color: #D7C9AA !important;
+    }
+
+    /* Рожевий текст для темної теми на мобільних */
+    .hero-subtitle,
+    .detail-section h4,
+    .scan-details h4 {
+        color: #D991BA !important;
+    }
+
+    /* Кнопки массовых действий в темной теме */
+    .bulk-actions button {
+        background: linear-gradient(135deg, #D7C9AA, #C5B89B);
+        color: #330036 !important;
+        font-weight: 600;
+    }
+
+    .bulk-actions button.secondary {
+        background: linear-gradient(135deg, #D7C9AA, #C5B89B);
+        color: #330036 !important;
+        font-weight: 600;
+    }
+
+    .icon-btn.delete {
+        color: #D7C9AA;
     }
 
     /* Стили для предотвращения автозаполнения в темной теме */
@@ -200,13 +480,122 @@
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     input:-webkit-autofill:active {
-        -webkit-box-shadow: 0 0 0 30px #2d3748 inset !important;
-        -webkit-text-fill-color: #e2e8f0 !important;
+        -webkit-box-shadow: 0 0 0 30px #2D2D2D inset !important;
+        -webkit-text-fill-color: #F5F5F5 !important;
     }
 
     input[autocomplete="off"],
     input[autocomplete="new-password"] {
-        background-color: #2d3748 !important;
-        color: #e2e8f0 !important;
+        background-color: #2D2D2D !important;
+        color: #F5F5F5 !important;
+    }
+
+    /* Покращення для мобільних елементів у темній темі */
+    .filters select {
+        background: #2D2D2D;
+        border-color: #404040;
+        color: #F5F5F5;
+    }
+
+    .scan-card {
+        background: #1A1A1A;
+        border-left-color: #D991BA;
+    }
+
+    .icon-btn:hover {
+        background: #2D2D2D;
+    }
+
+    .pagination button {
+        background: #2D2D2D;
+        color: #F5F5F5;
+        border-color: #404040;
+    }
+
+    .empty-state {
+        color: #B0B0B0;
+    }
+
+    .empty-state h3 {
+        color: #F5F5F5;
+    }
+
+    .hero-subtitle {
+        color: #F5F5F5;
+        opacity: 0.9;
+    }
+}
+
+/* Вертикальна орієнтація для високих екранів */
+@media (max-width: 768px) and (min-height: 1000px) {
+    .container {
+        padding: 2rem 1rem;
+        padding-top: 5rem;
+    }
+
+    .method-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .hero-section {
+        padding: 3rem 2rem;
+    }
+
+    .auth-form {
+        padding: 2rem 1.5rem;
+    }
+
+    .back-button {
+        top: 25px;
+        left: 25px;
+    }
+
+    .user-menu {
+        top: 25px;
+        right: 25px;
+    }
+}
+
+/* Горизонтальна орієнтація для планшетів */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .input-methods {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .method-card {
+        padding: 1.5rem;
+    }
+
+    header {
+        flex-direction: row;
+        text-align: left;
+    }
+
+    .auth-buttons,
+    .user-menu {
+        flex-direction: row;
+        width: auto;
+    }
+
+    button {
+        width: auto;
+        margin: 0;
+    }
+
+    .container {
+        padding-top: 1rem;
+    }
+
+    .back-button {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+    }
+
+    /* Для горизонтальної орієнтації заголовок залишається по центру */
+    .header-actions h1 {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
