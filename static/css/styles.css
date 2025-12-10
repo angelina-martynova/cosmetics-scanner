@@ -427,6 +427,60 @@ button.danger {
     flex-wrap: wrap;
 }
 
+/* СТИЛИ ДЛЯ КАМЕРЫ НА ДЕСКТОПЕ */
+.camera-preview {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 1.5rem auto;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #000;
+    aspect-ratio: 4/3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid var(--border-color);
+}
+
+.camera-preview video,
+.camera-preview canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    align-items: center;
+}
+
+.camera-controls button {
+    width: 100%;
+    max-width: 300px;
+    margin: 0.25rem 0;
+}
+
+/* Для больших экранов - кнопки в ряд */
+@media (min-width: 768px) {
+    .camera-controls {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .camera-controls button {
+        flex: 1;
+        min-width: 150px;
+        max-width: 200px;
+    }
+}
+
 /* Статуси */
 .loading {
     text-align: center;
@@ -1185,6 +1239,12 @@ input[autocomplete="new-password"] {
         background-color: var(--background-secondary) !important;
         color: #FFFFFF !important;
         /* БЕЛЫЙ ТЕКСТ для textarea в модальном окне */
+    }
+
+    /* Камера в темной теме */
+    .camera-preview {
+        background: #000;
+        border-color: #404040;
     }
 }
 

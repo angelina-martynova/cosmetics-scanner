@@ -75,20 +75,55 @@
         margin-top: 1rem;
     }
 
-    /* Камера */
+    /* Камера - ВЫРАВНИВАНИЕ ЭЛЕМЕНТОВ */
     .camera-preview {
         width: 100%;
         max-width: 400px;
-        margin: 0 auto;
+        margin: 0 auto 1.5rem auto;
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #000;
+        aspect-ratio: 4/3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .camera-preview video,
+    .camera-preview canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
     }
 
     .camera-controls {
+        display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.8rem;
+        width: 100%;
+        align-items: center;
     }
 
     .camera-controls button {
         width: 100%;
+        max-width: 300px;
+        margin: 0.25rem 0;
+    }
+
+    /* Кнопки камеры в ряд при горизонтальной ориентации */
+    @media (orientation: landscape) {
+        .camera-controls {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .camera-controls button {
+            flex: 1;
+            min-width: 120px;
+        }
     }
 
     /* Форми аутентифікації - ЦЕНТРИРОВАНИЕ */
@@ -333,6 +368,17 @@
     .scan-actions {
         gap: 0.25rem;
     }
+
+    /* Камера на очень маленьких экранах */
+    .camera-preview {
+        max-width: 100%;
+        margin: 0 auto 1rem auto;
+    }
+
+    .camera-controls button {
+        max-width: 100%;
+        padding: 0.9rem;
+    }
 }
 
 /* Покращення для тач-інтерфейсу */
@@ -380,6 +426,13 @@
     /* Кращі відступи для тач-інтерфейсу */
     .modal-actions button {
         margin: 0.25rem;
+    }
+
+    /* Камера для тач-интерфейса */
+    .camera-controls button {
+        min-height: 50px;
+        font-size: 1rem;
+        margin: 0.3rem 0;
     }
 }
 
@@ -524,6 +577,12 @@
         color: #F5F5F5;
         opacity: 0.9;
     }
+
+    /* Камера в темной теме */
+    .camera-preview {
+        background: #000;
+        border: 2px solid #404040;
+    }
 }
 
 /* Вертикальна орієнтація для високих екранів */
@@ -553,6 +612,11 @@
     .user-menu {
         top: 25px;
         right: 25px;
+    }
+
+    /* Камера на высоких экранах */
+    .camera-preview {
+        max-height: 50vh;
     }
 }
 
@@ -597,5 +661,47 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
+    }
+
+    /* Камера в горизонтальной ориентации */
+    .camera-preview {
+        max-height: 60vh;
+        max-width: 70vh;
+    }
+
+    .camera-controls {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .camera-controls button {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+
+/* Дополнительные стили для камеры */
+@media (max-width: 768px) {
+    .camera-modal-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .camera-modal-content h3 {
+        width: 100%;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .camera-preview {
+        order: 2;
+    }
+
+    .camera-controls {
+        order: 3;
+        margin-top: 1rem;
     }
 }
