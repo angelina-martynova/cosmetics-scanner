@@ -398,6 +398,7 @@ button.danger {
     font-weight: 600;
 }
 
+/* ТОЛЬКО ДЛЯ TEXTAREA В МОДАЛЬНОМ ОКНЕ */
 .modal-content textarea {
     width: 100%;
     padding: 1.2rem;
@@ -409,6 +410,8 @@ button.danger {
     transition: border-color 0.3s ease;
     font-family: inherit;
     background: var(--background-secondary);
+    color: var(--text-primary);
+    /* Цвет текста для светлой темы */
 }
 
 .modal-content textarea:focus {
@@ -1077,6 +1080,22 @@ input[autocomplete="new-password"] {
         color: var(--text-tertiary);
     }
 
+    /* ВАЖНО: Белый текст ТОЛЬКО для textarea в модальном окне скана текста */
+    .modal-content textarea {
+        background: var(--background-secondary);
+        border-color: var(--border-color);
+        color: #FFFFFF !important;
+        /* БЕЛЫЙ ТЕКСТ в темной теме ТОЛЬКО для textarea */
+    }
+
+    .modal-content textarea::placeholder {
+        color: #B0B0B0;
+    }
+
+    .modal-content textarea:focus {
+        border-color: #D991BA;
+    }
+
     .password-toggle {
         color: var(--text-primary);
     }
@@ -1150,19 +1169,22 @@ input[autocomplete="new-password"] {
         color: #FFFFFF !important;
     }
 
-    /* Стили для предотвращения автозаполнения в темной теме */
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
+    /* Стили для предотвращения автозаполнения в темной теме - ТОЛЬКО для textarea */
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    textarea:-webkit-autofill:active {
         -webkit-box-shadow: 0 0 0 30px var(--background-secondary) inset !important;
-        -webkit-text-fill-color: var(--text-primary) !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        /* БЕЛЫЙ ТЕКСТ для автозаполнения textarea */
     }
 
-    input[autocomplete="off"],
-    input[autocomplete="new-password"] {
+    /* ТОЛЬКО для textarea в модальном окне */
+    .modal-content textarea[autocomplete="off"],
+    .modal-content textarea {
         background-color: var(--background-secondary) !important;
-        color: var(--text-primary) !important;
+        color: #FFFFFF !important;
+        /* БЕЛЫЙ ТЕКСТ для textarea в модальном окне */
     }
 }
 
