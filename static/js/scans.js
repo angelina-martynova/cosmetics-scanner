@@ -1,4 +1,4 @@
-// scans.js - Управление историей сканирований
+// Управление историей сканирований
 
 class ScansManager {
     constructor() {
@@ -121,7 +121,7 @@ class ScansManager {
         emptyState.classList.add('hidden');
         scansList.innerHTML = scans.map(scan => this.createScanCard(scan)).join('');
         
-        // Добавляем обработчики событий для кликов по карточкам
+        // Добавляем обработчики событий для кликов по карточкам и кнопкам
         this.bindScanCardEvents();
     }
 
@@ -140,8 +140,8 @@ class ScansManager {
                         <span class="scan-type-badge">${this.getTypeText(scan.input_type)}</span>
                     </div>
                     <div class="scan-actions">
-                        <input type="checkbox" class="scan-checkbox" onclick="event.stopPropagation()">
-                        <button class="icon-btn delete" onclick="scansManager.handleDeleteClick(event, ${scan.id})" title="Видалити">
+                        <input type="checkbox" class="scan-checkbox" data-scan-id="${scan.id}" onclick="event.stopPropagation(); scansManager.handleCheckboxClick(${scan.id})">
+                        <button class="icon-btn delete" data-scan-id="${scan.id}" title="Видалити">
                             <img src="/static/images/delete.svg" alt="Видалити" width="16" height="16">
                         </button>
                     </div>
@@ -172,21 +172,35 @@ class ScansManager {
     // Привязка событий к карточкам сканирования
     bindScanCardEvents() {
         const scanCards = document.querySelectorAll('.scan-card');
+        
         scanCards.forEach(card => {
+            // Клик по всей карточке для просмотра деталей
             card.addEventListener('click', (e) => {
                 // Проверяем, не кликнули ли по чекбоксу или кнопке удаления
-                if (!e.target.closest('.scan-checkbox') && !e.target.closest('.icon-btn.delete')) {
+                if (!e.target.closest('.scan-checkbox') && 
+                    !e.target.closest('.icon-btn.delete') && 
+                    e.target.className !== 'icon-btn delete') {
+                    
                     const scanId = parseInt(card.dataset.scanId);
                     this.viewScanDetails(scanId);
                 }
             });
+            
+            // Обработчик для кнопки удаления
+            const deleteBtn = card.querySelector('.icon-btn.delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Останавливаем всплытие события
+                    const scanId = parseInt(deleteBtn.dataset.scanId);
+                    this.deleteScan(scanId);
+                });
+            }
         });
     }
 
-    // Обработчик клика по кнопке удаления
-    handleDeleteClick(event, scanId) {
-        event.stopPropagation(); // Останавливаем всплытие события
-        this.deleteScan(scanId);
+    // Обработчик клика по чекбоксу
+    handleCheckboxClick(scanId) {
+        this.toggleScanSelection(scanId);
     }
 
     // Просмотр деталей сканирования
@@ -332,10 +346,15 @@ class ScansManager {
 
     // Управление выделением
     toggleScanSelection(scanId) {
-        if (this.selectedScans.has(scanId)) {
-            this.selectedScans.delete(scanId);
-        } else {
-            this.selectedScans.add(scanId);
+        const checkbox = document.querySelector(`.scan-checkbox[data-scan-id="${scanId}"]`);
+        
+        if (checkbox) {
+            if (checkbox.checked) {
+                this.selectedScans.add(scanId);
+            } else {
+                this.selectedScans.delete(scanId);
+                this.allScansSelected = false;
+            }
         }
         
         this.updateBulkActions();
@@ -348,13 +367,14 @@ class ScansManager {
             // Снимаем выделение
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
+                const scanId = parseInt(checkbox.dataset.scanId);
+                this.selectedScans.delete(scanId);
             });
-            this.selectedScans.clear();
             this.allScansSelected = false;
         } else {
             // Выделяем все
             checkboxes.forEach(checkbox => {
-                const scanId = parseInt(checkbox.closest('.scan-card').dataset.scanId);
+                const scanId = parseInt(checkbox.dataset.scanId);
                 checkbox.checked = true;
                 this.selectedScans.add(scanId);
             });

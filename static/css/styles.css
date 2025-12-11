@@ -1440,3 +1440,149 @@ input[autocomplete="new-password"] {
 .delete-btn:hover {
     transform: none;
 }
+
+/* ====== ИСПРАВЛЕНИЕ ДВОЙНОЙ ПОЛОСЫ ПРОКРУТКИ ====== */
+
+/* 1. Убираем ограничение высоты у .scan-details */
+.scan-details {
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+}
+
+/* 2. Убираем внутреннюю прокрутку у элементов внутри .scan-details */
+.scan-details .original-text,
+.scan-details .ingredients-list {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* 3. Сделаем один стильный скроллбар для всего модального окна */
+.modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+    /* Стилизованный скроллбар */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--border-color);
+}
+
+/* Для WebKit браузеров */
+.modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: var(--background-secondary);
+    border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* 4. Для длинных текстов делаем ограничение по высоте */
+.original-text.long-text {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+    position: relative;
+}
+
+.original-text.long-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+.original-text.long-text::-webkit-scrollbar-thumb {
+    background: rgba(217, 145, 186, 0.4);
+    border-radius: 3px;
+}
+
+/* 5. Для списка ингредиентов тоже ограничение */
+.ingredients-list.long-list {
+    max-height: 300px !important;
+    overflow-y: auto !important;
+}
+
+.ingredients-list.long-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ingredients-list.long-list::-webkit-scrollbar-thumb {
+    background: rgba(217, 145, 186, 0.4);
+    border-radius: 3px;
+}
+
+/* 6. Кнопка "Показать больше" для длинного текста */
+.show-more-btn {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(217, 145, 186, 0.1);
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.show-more-btn:hover {
+    background: rgba(217, 145, 186, 0.2);
+}
+
+/* 7. Адаптация для мобильных */
+@media (max-width: 768px) {
+    .modal-content {
+        max-height: 90vh;
+        margin: 0.5rem;
+        padding: 1.5rem;
+    }
+
+    .modal-content::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .original-text.long-text {
+        max-height: 200px !important;
+    }
+
+    .ingredients-list.long-list {
+        max-height: 250px !important;
+    }
+}
+
+/* 8. Темная тема */
+@media (prefers-color-scheme: dark) {
+    .modal-content::-webkit-scrollbar-track {
+        background: #2D2D2D;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+        background: #D991BA;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #C97AA5;
+    }
+
+    .original-text.long-text::-webkit-scrollbar-thumb,
+    .ingredients-list.long-list::-webkit-scrollbar-thumb {
+        background: rgba(217, 145, 186, 0.5);
+    }
+
+    .show-more-btn {
+        background: rgba(217, 145, 186, 0.15);
+        border-color: #D991BA;
+        color: #D991BA;
+    }
+
+    .show-more-btn:hover {
+        background: rgba(217, 145, 186, 0.25);
+    }
+}
