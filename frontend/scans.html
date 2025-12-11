@@ -17,8 +17,7 @@
     <div class="container">
       <header>
         <div class="header-actions">
-        <h1>Мої сканування</h1>
-        <div class="header-actions">
+          <h1>Мої сканування</h1>
           <button onclick="window.location.href='/'" class="back-button">
             ← На головну
           </button>
@@ -60,7 +59,9 @@
 
         <!-- Состояние пустого списка -->
         <div id="emptyState" class="empty-state hidden">
-          <div class="empty-icon">📄</div>
+          <div class="empty-icon">
+            <img src="{{ url_for('static', filename='images/empty.svg') }}" />
+          </div>
           <h3>Немає сканувань</h3>
           <p>Тут будуть зберігатися всі ваші сканування косметики</p>
           <button onclick="window.location.href='/'" class="primary">

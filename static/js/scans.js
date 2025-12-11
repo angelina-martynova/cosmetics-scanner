@@ -120,6 +120,9 @@ class ScansManager {
         
         emptyState.classList.add('hidden');
         scansList.innerHTML = scans.map(scan => this.createScanCard(scan)).join('');
+        
+        // Добавляем обработчики событий для кликов по карточкам
+        this.bindScanCardEvents();
     }
 
     // Создание карточки сканирования
@@ -137,12 +140,9 @@ class ScansManager {
                         <span class="scan-type-badge">${this.getTypeText(scan.input_type)}</span>
                     </div>
                     <div class="scan-actions">
-                        <input type="checkbox" class="scan-checkbox" onchange="scansManager.toggleScanSelection(${scan.id})">
-                        <button onclick="scansManager.viewScanDetails(${scan.id})" class="icon-btn" title="Переглянути деталі">
-                            👁️
-                        </button>
-                        <button onclick="scansManager.deleteScan(${scan.id})" class="icon-btn danger" title="Видалити">
-                            🗑️
+                        <input type="checkbox" class="scan-checkbox" onclick="event.stopPropagation()">
+                        <button class="icon-btn delete" onclick="scansManager.handleDeleteClick(event, ${scan.id})" title="Видалити">
+                            <img src="/static/images/delete.svg" alt="Видалити" width="16" height="16">
                         </button>
                     </div>
                 </div>
@@ -167,6 +167,26 @@ class ScansManager {
                 </div>
             </div>
         `;
+    }
+
+    // Привязка событий к карточкам сканирования
+    bindScanCardEvents() {
+        const scanCards = document.querySelectorAll('.scan-card');
+        scanCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Проверяем, не кликнули ли по чекбоксу или кнопке удаления
+                if (!e.target.closest('.scan-checkbox') && !e.target.closest('.icon-btn.delete')) {
+                    const scanId = parseInt(card.dataset.scanId);
+                    this.viewScanDetails(scanId);
+                }
+            });
+        });
+    }
+
+    // Обработчик клика по кнопке удаления
+    handleDeleteClick(event, scanId) {
+        event.stopPropagation(); // Останавливаем всплытие события
+        this.deleteScan(scanId);
     }
 
     // Просмотр деталей сканирования
@@ -359,11 +379,11 @@ class ScansManager {
     // Вспомогательные методы
     getMethodIcon(method) {
         const icons = {
-            'text': '📝',
-            'device': '📱',
-            'camera': '📷'
+            'text': `<img src="/static/images/scan_verification.svg" alt="Ручний ввід" width="24" height="24">`,
+            'device': `<img src="/static/images/scan_devices.svg" alt="З пристрою" width="24" height="24">`,
+            'camera': `<img src="/static/images/scan_eye.svg" alt="Камера" width="24" height="24">`
         };
-        return icons[method] || '🔍';
+        return icons[method] || `<img src="/static/images/default_icon.svg" alt="Іконка" width="24" height="24">`;
     }
 
     getMethodText(method) {

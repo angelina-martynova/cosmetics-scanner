@@ -139,6 +139,23 @@
         width: 40px;
         height: 40px;
         font-size: 1rem;
+        transform: translateY(-50%) !important;
+        /* Фиксируем позицию */
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+    }
+
+    /* ЯВНО отключаем все эффекты при наведении */
+    .password-toggle:hover,
+    .password-toggle:focus,
+    .password-toggle:active {
+        background: none !important;
+        transform: translateY(-50%) !important;
+        /* Сохраняем позицию при наведении */
+        box-shadow: none !important;
+        outline: none !important;
     }
 
     .password-group input {
@@ -436,7 +453,7 @@
     }
 }
 
-/* Темна тема - исправления для мобильных */
+/* Темная тема - исправления для мобильных */
 @media (prefers-color-scheme: dark) {
     body {
         background: linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%);
@@ -583,6 +600,11 @@
         background: #000;
         border: 2px solid #404040;
     }
+
+    /* Для темной темы - белые иконки удаления через CSS фильтр */
+    .icon-btn.delete img {
+        filter: brightness(0) invert(1) !important;
+    }
 }
 
 /* Вертикальна орієнтація для високих екранів */
@@ -703,5 +725,71 @@
     .camera-controls {
         order: 3;
         margin-top: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .scan-card {
+        padding: 1rem;
+    }
+
+    .scan-card-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .scan-actions {
+        align-self: flex-end;
+        margin-top: 0.5rem;
+    }
+}
+
+/* КНОПКА ПОКАЗА ПАРОЛЯ - ОТКЛЮЧЕНИЕ ВСЕХ ЭФФЕКТОВ И ТЕМНАЯ ТЕМА */
+.password-toggle {
+    transition: none !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: translateY(-50%) !important;
+    /* Фиксируем позицию */
+}
+
+/* ЯВНО отключаем все эффекты при наведении */
+.password-toggle:hover,
+.password-toggle:focus,
+.password-toggle:active {
+    background: none !important;
+    transform: translateY(-50%) !important;
+    /* Сохраняем позицию при наведении */
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.password-toggle::before {
+    content: none !important;
+}
+
+.password-toggle img {
+    transition: none !important;
+    filter: none !important;
+    display: block;
+    margin: 0;
+}
+
+.password-toggle:hover img {
+    transform: none !important;
+}
+
+/* Для темной темы - белые иконки через CSS фильтр */
+@media (prefers-color-scheme: dark) {
+    .password-toggle img {
+        filter: brightness(0) invert(1) !important;
+    }
+}
+
+/* Для тач-интерфейсов - только минимальный эффект */
+@media (hover: none) and (pointer: coarse) {
+    .password-toggle:active {
+        opacity: 0.7;
     }
 }

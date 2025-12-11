@@ -610,13 +610,15 @@ button.danger {
     padding-right: 60px;
 }
 
+/* Стили для кнопки показа пароля - ОТКЛЮЧЕНИЕ ВСЕХ ЭФФЕКТОВ И ТЕМНАЯ ТЕМА */
 .password-toggle {
     position: absolute;
     right: 8px;
     top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
+    transform: translateY(-50%) !important;
+    /* Фиксируем позицию */
+    background: none !important;
+    border: none !important;
     cursor: pointer;
     font-size: 1.2rem;
     padding: 0.5rem;
@@ -626,12 +628,51 @@ button.danger {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.3s ease;
-    color: var(--text-secondary);
+    transition: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
 }
 
-.password-toggle:hover {
-    background: var(--background-secondary);
+/* ЯВНО отключаем все эффекты при наведении для .password-toggle */
+.password-toggle:hover,
+.password-toggle:focus,
+.password-toggle:active {
+    background: none !important;
+    transform: translateY(-50%) !important;
+    /* Сохраняем позицию при наведении */
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.password-toggle::before {
+    content: none !important;
+}
+
+.password-toggle img {
+    width: 24px;
+    height: 24px;
+    transition: none !important;
+    filter: none !important;
+    display: block;
+    margin: 0;
+}
+
+.password-toggle:hover img {
+    transform: none !important;
+}
+
+/* Для темной темы - белые иконки через CSS фильтр */
+@media (prefers-color-scheme: dark) {
+    .password-toggle img {
+        filter: brightness(0) invert(1) !important;
+    }
+}
+
+/* Для тач-интерфейсов - только минимальный эффект */
+@media (hover: none) and (pointer: coarse) {
+    .password-toggle:active {
+        opacity: 0.7;
+    }
 }
 
 .auth-submit {
@@ -989,6 +1030,16 @@ input[autocomplete="new-password"] {
     color: var(--text-primary);
 }
 
+/* Добавляем расстояние между абзацем и кнопкой в состоянии пустого списка */
+.empty-state p {
+    margin-bottom: 2rem;
+    /* Увеличен отступ до 2rem */
+}
+
+.empty-state button {
+    margin-top: 1rem;
+}
+
 /* Детали сканирования в модальном окне */
 .scan-details {
     max-height: 60vh;
@@ -1246,6 +1297,16 @@ input[autocomplete="new-password"] {
         background: #000;
         border-color: #404040;
     }
+
+    /* Для темной темы - белые иконки удаления через CSS фильтр */
+    .icon-btn.delete img {
+        filter: brightness(0) invert(1) !important;
+    }
+
+    /* Иконка empty.svg - делаем белой в темной теме */
+    .empty-icon img {
+        filter: brightness(0) invert(1) !important;
+    }
 }
 
 /* Адаптивность */
@@ -1325,4 +1386,57 @@ input[autocomplete="new-password"] {
         min-height: 44px;
         min-width: 44px;
     }
+}
+
+/* Стили для иконок методов - УБРАТЬ ВСЕ ФИЛЬТРЫ */
+.scan-method img {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 8px;
+    /* УБРАТЬ filter: invert() и другие изменения цвета */
+}
+
+/* Стили для иконок действий в кнопках */
+.icon-btn img {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    /* УБРАТЬ filter: invert() и другие изменения цвета */
+}
+
+/* Для темной темы - не применять фильтры к иконкам методов и действий */
+@media (prefers-color-scheme: dark) {
+
+    .scan-method img,
+    .icon-btn img {
+        /* Не применять фильтры - оставить оригинальный вид */
+        filter: none !important;
+    }
+}
+
+/* Делаем карточки сканирования кликабельными */
+.scan-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.scan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    background-color: rgba(217, 145, 186, 0.05);
+}
+
+/* Запрещаем клики по чекбоксам и кнопкам удаления */
+.scan-checkbox,
+.delete-btn {
+    cursor: pointer;
+    pointer-events: auto;
+    /* Разрешаем события мыши */
+}
+
+/* Отключаем эффекты при наведении на элементы управления */
+.scan-checkbox:hover,
+.delete-btn:hover {
+    transform: none;
 }

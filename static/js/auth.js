@@ -88,8 +88,8 @@ function resetLoginForm() {
         
         // Сбрасываем состояние кнопки показа пароля
         const toggleButton = document.querySelector('#loginForm .password-toggle');
-        if (toggleButton) {
-            toggleButton.textContent = '👁️';
+        if (toggleButton && toggleButton.querySelector('img')) {
+            toggleButton.querySelector('img').src = '/static/images/visible.svg';
             toggleButton.title = 'Показати пароль';
         }
         const passwordInput = document.getElementById('passwordLogin');
@@ -110,8 +110,8 @@ function resetRegisterForm() {
         
         // Сбрасываем состояние кнопки показа пароля
         const toggleButton = document.querySelector('#registerForm .password-toggle');
-        if (toggleButton) {
-            toggleButton.textContent = '👁️';
+        if (toggleButton && toggleButton.querySelector('img')) {
+            toggleButton.querySelector('img').src = '/static/images/visible.svg';
             toggleButton.title = 'Показати пароль';
         }
         const passwordInput = document.getElementById('passwordRegister');
@@ -125,14 +125,15 @@ function resetRegisterForm() {
 function togglePasswordVisibility(inputId) {
     const passwordInput = document.getElementById(inputId);
     const toggleButton = passwordInput.parentElement.querySelector('.password-toggle');
+    const icon = toggleButton.querySelector('img');
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleButton.textContent = '🙈';
+        icon.src = '/static/images/unvisible.svg';
         toggleButton.title = 'Приховати пароль';
     } else {
         passwordInput.type = 'password';
-        toggleButton.textContent = '👁️';
+        icon.src = '/static/images/visible.svg';
         toggleButton.title = 'Показати пароль';
     }
 }
@@ -195,6 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
             login();
         });
         
+        // Заменяем текстовые эмодзи на SVG иконки для кнопки показа пароля
+        const loginToggleButton = loginForm.querySelector('.password-toggle');
+        if (loginToggleButton && !loginToggleButton.querySelector('img')) {
+            loginToggleButton.innerHTML = '<img src="/static/images/visible.svg" alt="Показати пароль" width="24" height="24">';
+            loginToggleButton.title = 'Показати пароль';
+        }
+        
         // Сбрасываем форму входа при загрузке с задержкой
         setTimeout(() => {
             resetLoginForm();
@@ -213,6 +221,13 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             register();
         });
+        
+        // Заменяем текстовые эмодзи на SVG иконки для кнопки показа пароля
+        const registerToggleButton = registerForm.querySelector('.password-toggle');
+        if (registerToggleButton && !registerToggleButton.querySelector('img')) {
+            registerToggleButton.innerHTML = '<img src="/static/images/visible.svg" alt="Показати пароль" width="24" height="24">';
+            registerToggleButton.title = 'Показати пароль';
+        }
         
         // Сбрасываем форму регистрации при загрузке с задержкой
         setTimeout(() => {
