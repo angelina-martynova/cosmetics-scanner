@@ -69,16 +69,7 @@ class ScansManager {
         this.showLoadingState();
         
         try {
-            let url = `/api/scans?page=${page}&per_page=${this.perPage}`;
-            
-            if (this.filters.type) {
-                url += `&type=${encodeURIComponent(this.filters.type)}`;
-            }
-            if (this.filters.method) {
-                url += `&method=${encodeURIComponent(this.filters.method)}`;
-            }
-            
-            const response = await fetch(url);
+            const response = await fetch('/api/scans');
             
             if (!response.ok) {
                 if (response.status === 401) {
@@ -91,8 +82,25 @@ class ScansManager {
             const data = await response.json();
             
             if (data.status === 'success') {
-                this.displayScans(data.scans);
-                this.updatePagination(data);
+                // Фильтруем сканы на клиенте если нужно
+                let filteredScans = data.scans;
+                
+                if (this.filters.type) {
+                    filteredScans = filteredScans.filter(scan => scan.input_type === this.filters.type);
+                }
+                
+                if (this.filters.method) {
+                    filteredScans = filteredScans.filter(scan => scan.input_method === this.filters.method);
+                }
+                
+                // Пагинация на клиенте
+                const startIndex = (page - 1) * this.perPage;
+                const endIndex = startIndex + this.perPage;
+                const paginatedScans = filteredScans.slice(startIndex, endIndex);
+                this.totalPages = Math.ceil(filteredScans.length / this.perPage);
+                
+                this.displayScans(paginatedScans);
+                this.updatePagination(filteredScans.length);
                 this.updateUI();
             } else {
                 throw new Error(data.message);
@@ -129,7 +137,7 @@ class ScansManager {
     createScanCard(scan) {
         const date = new Date(scan.created_at).toLocaleString('uk-UA');
         const methodIcon = this.getMethodIcon(scan.input_method);
-        const riskLevel = this.calculateRiskLevel(scan.ingredients_detected);
+        const riskLevel = scan.safety_status || this.calculateRiskLevel(scan.ingredients || []);
         
         return `
             <div class="scan-card" data-scan-id="${scan.id}">
@@ -157,7 +165,7 @@ class ScansManager {
                             ${this.getRiskText(riskLevel)}
                         </span>
                         <span class="ingredients-count">
-                            ${scan.ingredients_detected ? scan.ingredients_detected.length : 0} інгредієнтів
+                            ${scan.ingredients_count || 0} інгредієнтів
                         </span>
                     </div>
                 </div>
@@ -224,13 +232,19 @@ class ScansManager {
             this.showError(error.message);
         }
     }
-
+    
     // Показ деталей сканирования в модальном окне
     showScanDetails(scan) {
         const modal = document.getElementById('scanDetailsModal');
         const content = document.getElementById('scanDetailsContent');
         const date = new Date(scan.created_at).toLocaleString('uk-UA');
-        const riskLevel = this.calculateRiskLevel(scan.ingredients_detected);
+        const riskLevel = scan.safety_status || this.calculateRiskLevel(scan.ingredients_detailed || scan.ingredients || []);
+        
+        // Определяем длину текста и списка ингредиентов
+        const isLongText = scan.original_text && scan.original_text.length > 500;
+        const isLongList = (scan.ingredients_detailed && scan.ingredients_detailed.length > 15) || 
+                        (scan.ingredients && scan.ingredients.length > 15);
+        const ingredients = scan.ingredients_detailed || scan.ingredients || [];
         
         content.innerHTML = `
             <div class="scan-details">
@@ -253,22 +267,37 @@ class ScansManager {
                 
                 <div class="detail-section">
                     <h4>Оригінальний текст:</h4>
-                    <div class="original-text">${scan.original_text || 'Текст не знайдено'}</div>
+                    <div class="original-text ${isLongText ? 'long-text' : ''}">
+                        ${scan.original_text || 'Текст не знайдено'}
+                    </div>
+                    ${isLongText ? `<button class="show-more-btn" onclick="this.previousElementSibling.classList.toggle('long-text'); this.textContent = this.previousElementSibling.classList.contains('long-text') ? 'Показати більше' : 'Показати менше';">Показати більше</button>` : ''}
                 </div>
                 
                 <div class="detail-section">
-                    <h4>Знайдені інгредієнти (${scan.ingredients_detected ? scan.ingredients_detected.length : 0}):</h4>
-                    <div class="ingredients-list">
-                        ${scan.ingredients_detected && scan.ingredients_detected.length > 0 
-                            ? scan.ingredients_detected.map(ing => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <h4 style="margin: 0;">Знайдені інгредієнти (${ingredients.length}):</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="scansManager.exportSingleScanToTxt(${scan.id})" class="export-pdf-btn" title="Експортувати в TXT">
+                                TXT
+                            </button>
+                            <button onclick="scansManager.exportSingleScanToPdf(${scan.id})" class="export-pdf-btn" title="Експортувати в PDF">
+                                PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ingredients-list ${isLongList ? 'long-list' : ''}">
+                        ${ingredients.length > 0 
+                            ? ingredients.map(ing => `
                                 <div class="ingredient-item ${ing.risk_level || 'safe'}">
-                                    <strong>${ing.name}</strong>
+                                    <strong>${ing.name || 'Невідомий інгредієнт'}</strong>
                                     ${ing.description ? `<br><small>${ing.description}</small>` : ''}
+                                    ${ing.risk_level ? `<br><small>Рівень ризику: ${this.getRiskText(ing.risk_level)}</small>` : ''}
                                 </div>
                             `).join('')
                             : '<p>Не знайдено небезпечних інгредієнтів</p>'
                         }
                     </div>
+                    ${isLongList ? `<button class="show-more-btn" onclick="this.previousElementSibling.classList.toggle('long-list'); this.textContent = this.previousElementSibling.classList.contains('long-list') ? 'Показати більше' : 'Показати менше';">Показати більше</button>` : ''}
                 </div>
             </div>
         `;
@@ -276,6 +305,33 @@ class ScansManager {
         modal.classList.remove('hidden');
     }
 
+    // Экспорт одного сканирования в PDF
+    exportSingleScanToPdf(scanId) {
+        try {
+            this.showMessage('Створення PDF...', 'success');
+            
+            // Проверьте этот URL
+            const url = `/api/scans/${scanId}/export/pdf`;
+            console.log('Opening PDF URL:', url); // Добавьте эту строку для отладки
+            window.open(url, '_blank');
+            
+        } catch (error) {
+            console.error('Помилка при експорті в PDF:', error);
+            this.showMessage(`Помилка: ${error.message}`, 'error');
+        }
+    }
+    
+    exportSingleScanToTxt(scanId) {
+    try {
+        this.showMessage('Створення TXT...', 'success');
+        const url = `/api/scans/${scanId}/export/txt`;
+        window.open(url, '_blank');
+    } catch (error) {
+        console.error('Помилка при експорті в TXT:', error);
+        this.showMessage(`Помилка: ${error.message}`, 'error');
+    }
+    }
+    
     // Удаление сканирования
     async deleteScan(scanId) {
         if (!confirm('Ви впевнені, що хочете видалити це сканування?')) {
@@ -390,6 +446,9 @@ class ScansManager {
         
         if (deleteBtn) {
             deleteBtn.disabled = this.selectedScans.size === 0;
+            deleteBtn.textContent = this.selectedScans.size > 0 
+                ? `Видалити обрані (${this.selectedScans.size})` 
+                : 'Видалити обрані';
         }
         if (selectAllBtn) {
             selectAllBtn.textContent = this.allScansSelected ? 'Зняти виділення' : 'Обрати всі';
@@ -426,10 +485,15 @@ class ScansManager {
     calculateRiskLevel(ingredients) {
         if (!ingredients || ingredients.length === 0) return 'safe';
         
-        const riskLevels = ingredients.map(ing => ing.risk_level);
+        const riskLevels = ingredients.map(ing => {
+            if (typeof ing === 'object') {
+                return ing.risk_level || 'safe';
+            }
+            return 'safe';
+        });
         
-        if (riskLevels.includes('high')) return 'high';
-        if (riskLevels.includes('medium')) return 'medium';
+        if (riskLevels.includes('high') || riskLevels.includes('danger')) return 'high';
+        if (riskLevels.includes('medium') || riskLevels.includes('warning')) return 'medium';
         if (riskLevels.includes('low')) return 'low';
         return 'safe';
     }
@@ -437,14 +501,17 @@ class ScansManager {
     getRiskText(riskLevel) {
         const texts = {
             'high': 'Високий ризик',
+            'danger': 'Високий ризик',
             'medium': 'Середній ризик',
+            'warning': 'Середній ризик',
             'low': 'Низький ризик',
-            'safe': 'Безпечно'
+            'safe': 'Безпечно',
         };
         return texts[riskLevel] || 'Невідомо';
     }
 
     truncateText(text, maxLength) {
+        if (!text) return '';
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     }
@@ -475,10 +542,11 @@ class ScansManager {
     }
 
     // Пагинация
-    updatePagination(data) {
+    updatePagination(totalItems) {
         const pagination = document.getElementById('pagination');
+        const totalPages = Math.ceil(totalItems / this.perPage);
         
-        if (data.pages <= 1) {
+        if (totalPages <= 1) {
             pagination.classList.add('hidden');
             return;
         }
@@ -487,20 +555,20 @@ class ScansManager {
         
         let paginationHTML = '';
         
-        if (data.current_page > 1) {
-            paginationHTML += `<button onclick="scansManager.loadScans(${data.current_page - 1})">← Попередня</button>`;
+        if (this.currentPage > 1) {
+            paginationHTML += `<button onclick="scansManager.loadScans(${this.currentPage - 1})">← Попередня</button>`;
         }
         
-        for (let i = 1; i <= data.pages; i++) {
-            if (i === data.current_page) {
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === this.currentPage) {
                 paginationHTML += `<span class="current-page">${i}</span>`;
             } else {
                 paginationHTML += `<button onclick="scansManager.loadScans(${i})">${i}</button>`;
             }
         }
         
-        if (data.current_page < data.pages) {
-            paginationHTML += `<button onclick="scansManager.loadScans(${data.current_page + 1})">Наступна →</button>`;
+        if (this.currentPage < totalPages) {
+            paginationHTML += `<button onclick="scansManager.loadScans(${this.currentPage + 1})">Наступна →</button>`;
         }
         
         pagination.innerHTML = paginationHTML;
@@ -523,6 +591,41 @@ class ScansManager {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
         messageDiv.textContent = message;
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            animation: fadeInOut 5s;
+        `;
+        
+        if (type === 'success') {
+            messageDiv.style.backgroundColor = '#4CAF50';
+        } else if (type === 'error') {
+            messageDiv.style.backgroundColor = '#f44336';
+        } else {
+            messageDiv.style.backgroundColor = '#2196F3';
+        }
+        
+        // Добавляем анимацию в стили если ее нет
+        if (!document.querySelector('#message-animation')) {
+            const style = document.createElement('style');
+            style.id = 'message-animation';
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translateY(-20px); }
+                    10% { opacity: 1; transform: translateY(0); }
+                    90% { opacity: 1; transform: translateY(0); }
+                    100% { opacity: 0; transform: translateY(-20px); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
         
         document.body.appendChild(messageDiv);
         setTimeout(() => messageDiv.remove(), 5000);
@@ -545,11 +648,14 @@ class ScansManager {
             const data = await response.json();
             
             if (data.status === 'authenticated') {
-                document.getElementById('userEmail').textContent = data.user.email;
+                const userEmailElement = document.getElementById('userEmail');
+                if (userEmailElement) {
+                    userEmailElement.textContent = data.user.email;
+                }
             }
             
         } catch (error) {
-            window.location.href = '/login';
+            console.error('Auth error:', error);
         }
     }
 

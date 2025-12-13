@@ -1,39 +1,30 @@
-from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for
+from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from ocr import extract_text
 from checker import IngredientChecker
+from export import ScanExporter
 import os
 import json
 
-# ============================================
-# КОНФИГУРАЦИЯ ПРИЛОЖЕНИЯ
-# ============================================
-
-# Инициализация путей для шаблонов и статических файлов
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
 
 app = Flask(__name__, template_folder=frontend_folder, static_folder=static_css_folder)
 
-# Конфигурация PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:AdminPostgres123!@localhost:5432/cosmetics_db'
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# ============================================
-# ИНИЦИАЛИЗАЦИЯ РАСШИРЕНИЙ
-# ============================================
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
 
-# ============================================
-# МОДЕЛИ БАЗЫ ДАННЫХ
-# ============================================
+scan_exporter = ScanExporter()
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -95,39 +86,31 @@ class Scan(db.Model):
     image_filename = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Основное поле для хранения ингредиентов
     ingredients_detected = db.Column(db.JSON)
 
     def get_ingredients_list(self):
-        """Получить список ингредиентов из JSON поля"""
         if not self.ingredients_detected:
             return []
         
         try:
-            # Если это строка, пытаемся распарсить JSON
             if isinstance(self.ingredients_detected, str):
                 ingredients = json.loads(self.ingredients_detected)
             else:
                 ingredients = self.ingredients_detected
             
-            # Если это список словарей, возвращаем как есть
             if isinstance(ingredients, list):
                 return ingredients
             
-            # Если это что-то другое, возвращаем пустой список
             return []
             
         except (json.JSONDecodeError, TypeError):
             return []
 
     def to_dict(self):
-        """Преобразовать сканирование в словарь для API"""
         ingredients_list = self.get_ingredients_list()
         
-        # Определяем статус безопасности на основе ингредиентов
         safety_status = self.safety_status
         if not safety_status and ingredients_list:
-            # Автоматически определяем статус если он не задан
             high_risk_count = sum(1 for ing in ingredients_list 
                                 if isinstance(ing, dict) and ing.get('risk_level') == 'high')
             if high_risk_count > 0:
@@ -150,12 +133,7 @@ class Scan(db.Model):
             'ingredients_count': len(ingredients_list)
         }
 
-# ============================================
-# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# ============================================
-
 def save_uploaded_file(file):
-    """Сохраняет загруженный файл"""
     import uuid
     from datetime import datetime
     
@@ -169,27 +147,20 @@ def save_uploaded_file(file):
     file.save(filepath)
     return filename
 
-# Анализ ингредиентов
 ingredient_checker = IngredientChecker()
 
 def check_ingredients(text):
-    """Проверка текста на наличие опасных ингредиентов"""
     if not text:
         return []
     return ingredient_checker.find_ingredients(text)
 
 def create_scan(user_id, text, detected_ingredients, input_type='manual', input_method='text'):
-    """Создать сканирование - ИСПРАВЛЕННАЯ ВЕРСИЯ"""
-    # Определяем статус безопасности
     safety_status = 'safe'
     
-    # Преобразуем detected_ingredients в правильный формат для JSON
     ingredients_for_json = []
     if detected_ingredients:
         for ing in detected_ingredients:
-            # Проверяем тип ing
             if isinstance(ing, dict):
-                # Если это уже словарь, создаем упрощенную версию
                 ingredients_for_json.append({
                     'id': ing.get('id', 0),
                     'name': ing.get('name', 'Unknown'),
@@ -198,7 +169,6 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
                     'description': ing.get('description', '')
                 })
             else:
-                # Если это строка или другой тип
                 ingredients_for_json.append({
                     'id': 0,
                     'name': str(ing),
@@ -207,7 +177,6 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
                     'description': ''
                 })
         
-        # Определяем статус безопасности на основе ингредиентов
         high_risk_count = sum(1 for ing in ingredients_for_json 
                             if ing.get('risk_level') == 'high')
         
@@ -218,10 +187,8 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
         else:
             safety_status = 'safe'
     
-    # Сохраняем изображение если нужно
     image_filename = None
     
-    # Создаем сканирование с правильным JSON
     scan = Scan(
         user_id=user_id,
         input_type=input_type,
@@ -229,7 +196,7 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
         original_text=text,
         safety_status=safety_status,
         image_filename=image_filename,
-        ingredients_detected=ingredients_for_json  # Теперь это список словарей
+        ingredients_detected=ingredients_for_json
     )
     
     db.session.add(scan)
@@ -238,11 +205,6 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
     print(f"✅ Создан скан ID: {scan.id} с {len(ingredients_for_json)} ингредиентами")
     return scan.id
 
-# ============================================
-# ОБНОВЛЕННЫЕ МАРШРУТЫ ДЛЯ АНАЛИЗА
-# ============================================
-
-# Загрузка текстовых файлов
 @app.route('/api/upload_text_file', methods=['POST'])
 def upload_text_file():
     try:
@@ -254,14 +216,12 @@ def upload_text_file():
         if file.filename == '':
             return jsonify({"status": "error", "message": "Файл не выбран"}), 400
         
-        # Проверяем расширение файла
         allowed_extensions = {'.txt', '.doc', '.docx', '.pdf'}
         file_ext = os.path.splitext(file.filename)[1].lower()
         
         if file_ext not in allowed_extensions:
             return jsonify({"status": "error", "message": f"Неподдерживаемый формат файла: {file_ext}"}), 400
         
-        # Читаем содержимое файла
         try:
             if file_ext == '.txt':
                 text = file.read().decode('utf-8')
@@ -273,10 +233,8 @@ def upload_text_file():
         except Exception as e:
             return jsonify({"status": "error", "message": f"Ошибка чтения файла: {str(e)}"}), 400
         
-        # Анализируем ингредиенты
         detected_ingredients = check_ingredients(text)
         
-        # Отладочная информация
         print(f"\n📁 Загружен текстовый файл: {file.filename}")
         print(f"📄 Текст: {text[:100]}...")
         print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
@@ -303,7 +261,6 @@ def upload_text_file():
         print(f"❌ Ошибка в upload_text_file: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Анализ текста (ручной ввод)
 @app.route('/api/analyze_text', methods=['POST'])
 def analyze_text():
     try:
@@ -314,7 +271,6 @@ def analyze_text():
         text = data['text']
         detected_ingredients = check_ingredients(text)
         
-        # Отладочная информация
         print(f"\n⌨️ Ручной ввод текста")
         print(f"📄 Текст: {text[:100]}...")
         print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
@@ -340,7 +296,6 @@ def analyze_text():
         print(f"❌ Ошибка в analyze_text: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
   
-# Анализ изображений (камера и галерея)
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     try:
@@ -350,11 +305,9 @@ def analyze():
 
         input_method = request.form.get('input_method', 'camera')
         
-        # OCR обработка изображения
         text = extract_text(file)
         detected_ingredients = check_ingredients(text)
         
-        # Отладочная информация
         print(f"\n📸 Анализ изображения (метод: {input_method})")
         print(f"📄 Текст из OCR: {text[:100]}...")
         print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
@@ -383,13 +336,8 @@ def analyze():
         print(f"❌ Ошибка в analyze: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ============================================
-# API ДЛЯ РАБОТЫ С ИНГРЕДИЕНТАМИ
-# ============================================
-
 @app.route('/api/ingredients', methods=['GET'])
 def get_ingredients():
-    """Получить список ингредиентов"""
     try:
         risk_level = request.args.get('risk_level')
         search = request.args.get('search')
@@ -412,28 +360,20 @@ def get_ingredients():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ============================================
-# МАРШРУТЫ ДЛЯ УПРАВЛЕНИЯ СКАНИРОВАНИЯМИ
-# ============================================
-
 @app.route('/api/scans', methods=['GET'])
 @login_required
 def get_user_scans():
-    """Получить сканирования пользователя - ИСПРАВЛЕННАЯ ВЕРСИЯ"""
     try:
         print(f"\n📋 Запрос сканов пользователя: {current_user.email}")
         
-        # Получаем все сканы пользователя
         scans = Scan.query.filter_by(user_id=current_user.id)\
                          .order_by(Scan.created_at.desc())\
                          .all()
         
-        # Преобразуем в словари
         scans_data = []
         for scan in scans:
             scan_dict = scan.to_dict()
             
-            # Добавляем отладочную информацию
             ingredients_list = scan.get_ingredients_list()
             print(f"  Скан {scan.id}: {len(ingredients_list)} ингредиентов, статус: {scan.safety_status}")
             
@@ -461,10 +401,8 @@ def get_scan(scan_id):
         if not scan:
             return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
         
-        # Получаем детальную информацию
         scan_data = scan.to_dict()
         
-        # Добавляем информацию об ингредиентах
         ingredients_list = scan.get_ingredients_list()
         scan_data['ingredients_detailed'] = ingredients_list
         scan_data['ingredients_count'] = len(ingredients_list)
@@ -507,7 +445,6 @@ def bulk_delete_scans():
         if not scan_ids:
             return jsonify({"status": "error", "message": "Не вказано сканувань для видалення"}), 400
         
-        # Удаляем только сканирования принадлежащие текущему пользователю
         scans_to_delete = Scan.query.filter(
             Scan.id.in_(scan_ids),
             Scan.user_id == current_user.id
@@ -526,14 +463,51 @@ def bulk_delete_scans():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ============================================
-# ДОПОЛНИТЕЛЬНЫЕ МАРШРУТЫ
-# ============================================
-
+@app.route('/api/scans/<int:scan_id>/export/pdf', methods=['GET'])
+@login_required
+def export_scan_to_pdf(scan_id):
+    """Экспорт одного скана в PDF"""
+    try:
+        scan = Scan.query.filter_by(id=scan_id, user_id=current_user.id).first()
+        
+        if not scan:
+            return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
+        
+        # Подготавливаем данные
+        scan_data = scan.to_dict()
+        ingredients_list = scan.get_ingredients_list()
+        
+        export_data = {
+            'id': scan_data['id'],
+            'created_at': scan_data['created_at'],
+            'input_type': scan_data['input_type'],
+            'input_method': scan_data['input_method'],
+            'safety_status': scan_data['safety_status'],
+            'original_text': scan_data['original_text'],
+            'ingredients_count': scan_data['ingredients_count'],
+            'ingredients_detailed': ingredients_list
+        }
+        
+        print(f"📋 Экспорт скана {scan_id} в PDF")
+        
+        # Создаем PDF в памяти
+        pdf_bytes = scan_exporter.create_pdf_bytes(export_data, current_user.email)
+        
+        # Отправляем PDF как ответ
+        response = make_response(pdf_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=scan_{scan_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        
+        print(f"✅ PDF отправлен пользователю, размер: {len(pdf_bytes)} байт")
+        return response
+        
+    except Exception as e:
+        print(f"❌ Ошибка при экспорте в PDF: {str(e)}")
+        return jsonify({"status": "error", "message": f"Помилка при створенні PDF: {str(e)}"}), 500
+    
 @app.route('/api/status', methods=['GET'])
 @login_required
 def api_status():
-    """Проверка статуса аутентификации пользователя"""
     return jsonify({
         "status": "authenticated",
         "user": current_user.to_dict()
@@ -541,7 +515,6 @@ def api_status():
 
 @app.route('/api/health')
 def health_check():
-    """Проверка здоровья приложения"""
     return jsonify({
         "status": "healthy",
         "service": "Cosmetics Scanner API",
@@ -550,15 +523,12 @@ def health_check():
 
 @app.route('/api/db-check')
 def db_check():
-    """Проверка подключения к базе данных"""
     try:
         from sqlalchemy import text
         
-        # Проверяем версию PostgreSQL
         result = db.session.execute(text("SELECT version()"))
         postgres_version = result.fetchone()[0]
         
-        # Получаем список всех сканов с количеством ингредиентов
         scans = Scan.query.all()
         scans_with_ingredients = 0
         total_ingredients = 0
@@ -595,7 +565,6 @@ def db_check():
 
 @app.route('/api/simple-check')
 def simple_check():
-    """Простая проверка API и БД"""
     return jsonify({
         "service": "Cosmetics Scanner API",
         "status": "running",
@@ -607,23 +576,19 @@ def simple_check():
             "analyze": "/api/analyze",
             "analyze_text": "/api/analyze_text",
             "ingredients": "/api/ingredients",
-            "scans": "/api/scans"
+            "scans": "/api/scans",
+            "export_pdf": "/api/scans/{id}/export/pdf",
+            "export_multiple": "/api/scans/export-multiple/pdf"
         }
     })
 
-# ============================================
-# НОВЫЕ МАРШРУТЫ ДЛЯ ОТЛАДКИ И ТЕСТИРОВАНИЯ
-# ============================================
-
 @app.route('/api/test-checker', methods=['POST'])
 def test_checker():
-    """Тестирование работы IngredientChecker"""
     try:
         data = request.get_json()
         text = data.get('text', '')
         
         if not text:
-            # Тестовый текст
             text = "Состав: Aqua, Sodium Laureth Sulfate, Parfum, Methylparaben, Formaldehyde"
         
         detected = check_ingredients(text)
@@ -645,7 +610,6 @@ def test_checker():
 @app.route('/api/debug-scans/<email>', methods=['GET'])
 @login_required
 def debug_scans(email):
-    """Отладка сканов пользователя (только для админов)"""
     if current_user.role != 'admin':
         return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
     
@@ -659,7 +623,6 @@ def debug_scans(email):
         scans_data = []
         for scan in scans:
             scan_dict = scan.to_dict()
-            # Добавляем дополнительную информацию
             scan_dict['ingredients_detected_raw'] = scan.ingredients_detected
             scan_dict['ingredients_list_length'] = len(scan.get_ingredients_list())
             scans_data.append(scan_dict)
@@ -677,7 +640,6 @@ def debug_scans(email):
 @app.route('/api/fix-all-scans', methods=['POST'])
 @login_required
 def fix_all_scans():
-    """Исправить ВСЕ сканы в базе (только для админов)"""
     if current_user.role != 'admin':
         return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
     
@@ -689,11 +651,9 @@ def fix_all_scans():
         
         for scan in scans:
             if scan.original_text:
-                # Анализируем текст заново
                 detected_ingredients = check_ingredients(scan.original_text)
                 
                 if detected_ingredients:
-                    # Преобразуем в правильный формат
                     ingredients_for_json = []
                     for ing in detected_ingredients:
                         if isinstance(ing, dict):
@@ -705,10 +665,8 @@ def fix_all_scans():
                                 'description': ing.get('description', '')
                             })
                     
-                    # Обновляем сканирование
                     scan.ingredients_detected = ingredients_for_json
                     
-                    # Обновляем статус безопасности
                     high_risk_count = sum(1 for ing in ingredients_for_json 
                                         if ing.get('risk_level') == 'high')
                     
@@ -722,7 +680,6 @@ def fix_all_scans():
                     fixed_count += 1
                     print(f"  ✅ Исправлен скан {scan.id}: {len(detected_ingredients)} ингредиентов")
                 else:
-                    # Если ингредиентов нет, ставим безопасный статус
                     scan.safety_status = 'safe'
                     scan.ingredients_detected = []
                     fixed_count += 1
@@ -739,10 +696,6 @@ def fix_all_scans():
     except Exception as e:
         print(f"❌ Ошибка при исправлении сканов: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
-
-# ============================================
-# ОСНОВНЫЕ МАРШРУТЫ
-# ============================================
 
 @app.route('/login')
 def login_page():
@@ -771,12 +724,10 @@ def register():
         if not email or not password:
             return jsonify({"status": "error", "message": "Електронна пошта та пароль обов'язкові"}), 400
         
-        # Проверяем существует ли пользователь
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             return jsonify({"status": "error", "message": "Користувач з такою поштою вже існує"}), 400
         
-        # Создаем нового пользователя
         new_user = User(email=email)
         new_user.set_password(password)
         
@@ -801,17 +752,14 @@ def login():
         if not email or not password:
             return jsonify({"status": "error", "message": "Електронна пошта та пароль обов'язкові"}), 400
         
-        # Ищем пользователя
         user = User.query.filter_by(email=email).first()
         
         if not user or not user.check_password(password):
             return jsonify({"status": "error", "message": "Невірна електронна пошта або пароль"}), 401
         
-        # Обновляем время последнего входа
         user.last_login = datetime.utcnow()
         db.session.commit()
         
-        # Логиним пользователя
         login_user(user)
         
         return jsonify({
@@ -829,38 +777,25 @@ def logout():
     logout_user()
     return jsonify({"status": "success", "message": "Вихід успішний"})
 
-# ============================================
-# ФУНКЦИИ FLASK-LOGIN
-# ============================================
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# ============================================
-# ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
-# ============================================
-
 def init_db():
-    """Инициализация базы данных"""
     with app.app_context():
         print("🔄 Инициализация базы данных...")
         
-        # Создаем папки если нет
         os.makedirs('uploads', exist_ok=True)
         os.makedirs('static', exist_ok=True)
         
-        # Создаем таблицы если их нет
         db.create_all()
         print("✅ Структура базы данных проверена")
         
-        # Создаем тестового администратора если нет пользователей
         if User.query.count() == 0:
             admin = User(email="admin@cosmetics.com", role="admin")
             admin.set_password("admin123")
             db.session.add(admin)
             
-            # Тестовый пользователь
             user = User(email="user@example.com", role="user")
             user.set_password("user123")
             db.session.add(user)
@@ -869,11 +804,9 @@ def init_db():
             print("👤 Создан администратор: admin@cosmetics.com / admin123")
             print("👤 Создан пользователь: user@example.com / user123")
         
-        # Выводим статистику
         users_count = User.query.count()
         scans_count = Scan.query.count()
         
-        # Подсчитываем сканы с ингредиентами
         scans_with_ingredients = 0
         total_ingredients = 0
         
@@ -894,10 +827,6 @@ def init_db():
             print(f"   📊 Среднее ингредиентов на скан: {round(total_ingredients / scans_count, 2)}")
         
         print("✅ Инициализация завершена")
-
-# ============================================
-# ЗАПУСК ПРИЛОЖЕНИЯ
-# ============================================
 
 if __name__ == '__main__':
     init_db()
