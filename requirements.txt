@@ -6,17 +6,17 @@ flask-login==0.6.3
 werkzeug==2.3.7
 
 # База данных PostgreSQL
-psycopg2-binary==2.9.7
-sqlalchemy==2.0.19
+psycopg2==2.9.11
+sqlalchemy==1.4.50
 
 # OCR и обработка изображений
 pytesseract==0.3.10
 opencv-python-headless==4.8.1.78
-pillow==10.0.0
+pillow>=10.0.0
 
 # Анализ текста
 fuzzywuzzy==0.18.0
-python-levenshtein==0.21.1
+rapidfuzz==3.14.3
 
 # PDF и документы
 reportlab==4.0.6
@@ -24,3 +24,9 @@ python-docx==1.1.0
 
 # Утилиты
 python-dotenv==1.0.0
+
+# Новые зависимости для внешних источников
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml>=4.9.3
+cachetools==5.3.1

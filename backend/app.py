@@ -8,6 +8,9 @@ from checker import IngredientChecker
 from export import ScanExporter
 import os
 import json
+import requests
+from functools import lru_cache
+import time
 
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
@@ -147,7 +150,7 @@ def save_uploaded_file(file):
     file.save(filepath)
     return filename
 
-ingredient_checker = IngredientChecker()
+ingredient_checker = IngredientChecker(use_cache=True, fallback_to_local=True)
 
 def check_ingredients(text):
     if not text:
@@ -697,6 +700,199 @@ def fix_all_scans():
         print(f"❌ Ошибка при исправлении сканов: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/external/search', methods=['POST'])
+def external_search():
+    """Поиск ингредиента во внешних источниках"""
+    try:
+        data = request.get_json()
+        ingredient_name = data.get('name', '').strip()
+        
+        if not ingredient_name:
+            return jsonify({"status": "error", "message": "Не указано название ингредиента"}), 400
+        
+        # Используем обновленный checker
+        ingredient_data = ingredient_checker.search_ingredient(ingredient_name)
+        
+        return jsonify({
+            "status": "success",
+            "ingredient": ingredient_data,
+            "source": ingredient_data.get('source', 'unknown')
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/external/sources', methods=['GET'])
+def get_external_sources():
+    """Получение списка доступных внешних источников"""
+    sources = [
+        {
+            "name": "CosIng (EC)",
+            "description": "База данных косметических ингредиентов Европейской комиссии",
+            "url": "https://ec.europa.eu/growth/tools-databases/cosing/",
+            "status": "available",
+            "rate_limit": "Требуется регистрация"
+        },
+        {
+            "name": "Open Food Facts",
+            "description": "Открытая база данных пищевых продуктов и ингредиентов",
+            "url": "https://world.openfoodfacts.org/",
+            "status": "available",
+            "rate_limit": "30 запросов/минута"
+        },
+        {
+            "name": "PubChem",
+            "description": "База химических соединений NIH",
+            "url": "https://pubchem.ncbi.nlm.nih.gov/",
+            "status": "available",
+            "rate_limit": "5 запросов/секунда"
+        }
+    ]
+    
+    return jsonify({
+        "status": "success",
+        "sources": sources,
+        "cache_info": {
+            "cache_dir": "data_cache",
+            "cache_enabled": True
+        }
+    })
+
+
+@app.route('/api/external/cache/stats', methods=['GET'])
+@login_required
+def get_cache_stats():
+    """Статистика кэша внешних источников"""
+    try:
+        if current_user.role != 'admin':
+            return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+        
+        import sqlite3
+        import os
+        
+        cache_file = 'data_cache/external_cache.db'
+        
+        if not os.path.exists(cache_file):
+            return jsonify({
+                "status": "success",
+                "cache_exists": False,
+                "message": "Кэш не инициализирован"
+            })
+        
+        conn = sqlite3.connect(cache_file)
+        cursor = conn.cursor()
+        
+        # Получаем статистику
+        cursor.execute("SELECT COUNT(*) FROM ingredients_cache")
+        total_items = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT COUNT(*) FROM ingredients_cache WHERE last_updated > datetime('now', '-1 day')")
+        recent_items = cursor.fetchone()[0]
+        
+        cursor.execute("SELECT source, COUNT(*) FROM ingredients_cache GROUP BY source")
+        sources_stats = cursor.fetchall()
+        
+        cursor.execute("SELECT name, last_updated FROM ingredients_cache ORDER BY last_updated DESC LIMIT 5")
+        recent_entries = cursor.fetchall()
+        
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "cache_exists": True,
+            "statistics": {
+                "total_items": total_items,
+                "recent_items": recent_items,
+                "sources": dict(sources_stats),
+                "recent_entries": [
+                    {"name": name, "last_updated": last_updated}
+                    for name, last_updated in recent_entries
+                ]
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/external/cache/clear', methods=['POST'])
+@login_required
+def clear_cache():
+    """Очистка кэша внешних источников"""
+    try:
+        if current_user.role != 'admin':
+            return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+        
+        import sqlite3
+        import os
+        
+        cache_file = 'data_cache/external_cache.db'
+        
+        if os.path.exists(cache_file):
+            conn = sqlite3.connect(cache_file)
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM ingredients_cache")
+            conn.commit()
+            conn.close()
+            
+            return jsonify({
+                "status": "success",
+                "message": "Кэш очищен"
+            })
+        else:
+            return jsonify({
+                "status": "success",
+                "message": "Кэш не существует"
+            })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route('/api/ingredients/enhanced', methods=['GET'])
+def get_enhanced_ingredients():
+    """Получение ингредиентов с возможностью расширения из внешних источников"""
+    try:
+        search = request.args.get('search')
+        limit = int(request.args.get('limit', 50))
+        include_external = request.args.get('external', 'false').lower() == 'true'
+        
+        # Начинаем с локальной базы
+        query = Ingredient.query
+        
+        if search:
+            query = query.filter(Ingredient.name.ilike(f'%{search}%'))
+        
+        local_ingredients = query.order_by(Ingredient.name).limit(limit).all()
+        result = [ing.to_dict() for ing in local_ingredients]
+        
+        # Если нужно и во внешних источниках
+        if include_external and search:
+            # Здесь можно добавить поиск во внешних источниках
+            # Для демо просто добавляем сообщение
+            result.append({
+                "id": "external_search",
+                "name": f"Поиск '{search}' во внешних источниках",
+                "risk_level": "info",
+                "category": "external",
+                "description": "Нажмите для поиска в CosIng, Open Food Facts и PubChem",
+                "source": "external_search"
+            })
+        
+        return jsonify({
+            "status": "success",
+            "count": len(result),
+            "ingredients": result,
+            "sources": {
+                "local": len(local_ingredients),
+                "external": 1 if include_external and search else 0
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 @app.route('/login')
 def login_page():
     return render_template('login.html')
@@ -830,6 +1026,10 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
+    os.makedirs('data_cache', exist_ok=True)
     print("🚀 Запуск приложения...")
     print("🌐 Откройте: http://localhost:5000")
+    print("💾 Кэш внешних источников включен")
+    print("🔍 Для поиска во внешних источниках используйте /api/external/search")
+    
     app.run(debug=True, port=5000)
