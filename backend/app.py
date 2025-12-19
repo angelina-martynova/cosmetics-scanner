@@ -11,6 +11,7 @@ import json
 import requests
 from functools import lru_cache
 import time
+import traceback
 
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
@@ -20,6 +21,7 @@ app = Flask(__name__, template_folder=frontend_folder, static_folder=static_css_
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:AdminPostgres123!@localhost:5432/cosmetics_db'
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB максимум
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -210,38 +212,89 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
 
 @app.route('/api/upload_text_file', methods=['POST'])
 def upload_text_file():
+    """Загрузка и обработка текстового файла"""
     try:
+        print(f"\n📁 API upload_text_file вызван")
+        
         if 'file' not in request.files:
+            print("❌ Файл не найден в запросе")
             return jsonify({"status": "error", "message": "Файл не загружен"}), 400
         
         file = request.files['file']
         
         if file.filename == '':
+            print("❌ Пустое имя файла")
             return jsonify({"status": "error", "message": "Файл не выбран"}), 400
         
+        print(f"📄 Получен файл: {file.filename}")
+        print(f"📊 Content-Type: {file.content_type}")
+        
+        # Сохраняем оригинальное имя для расширения
+        original_filename = file.filename
+        file_ext = os.path.splitext(original_filename)[1].lower() if '.' in original_filename else ''
+        
+        # Проверка расширения
         allowed_extensions = {'.txt', '.doc', '.docx', '.pdf'}
-        file_ext = os.path.splitext(file.filename)[1].lower()
-        
         if file_ext not in allowed_extensions:
-            return jsonify({"status": "error", "message": f"Неподдерживаемый формат файла: {file_ext}"}), 400
+            print(f"❌ Неподдерживаемое расширение: {file_ext}")
+            return jsonify({"status": "error", "message": f"Неподдерживаемый формат файла: {file_ext}. Поддерживаются: {', '.join(allowed_extensions)}"}), 400
         
-        try:
-            if file_ext == '.txt':
-                text = file.read().decode('utf-8')
-            elif file_ext in {'.doc', '.docx', '.pdf'}:
-                text = f"[Файл {file.filename} - для обработки .doc/.docx/.pdf нужны дополнительные библиотеки]"
-            else:
-                text = file.read().decode('utf-8', errors='ignore')
-                
-        except Exception as e:
-            return jsonify({"status": "error", "message": f"Ошибка чтения файла: {str(e)}"}), 400
+        # ВАЖНО: Читаем файл ОДИН РАЗ в память
+        file.seek(0)
+        file_bytes = file.read()
+        file_size = len(file_bytes)
         
+        print(f"📏 Размер файла: {file_size} байт")
+        
+        # Проверка размера (макс 5MB)
+        if file_size > 5 * 1024 * 1024:
+            print(f"❌ Файл слишком большой: {file_size} байт")
+            return jsonify({"status": "error", "message": "Файл слишком большой. Максимальный размер: 5MB"}), 400
+        
+        if file_size == 0:
+            print("❌ Файл пустой")
+            return jsonify({"status": "error", "message": "Файл пустой"}), 400
+        
+        # Декодируем содержимое файла
+        text = ""
+        
+        if file_ext == '.txt':
+            # Пробуем разные кодировки для .txt файлов
+            encodings = ['utf-8', 'cp1251', 'cp1252', 'iso-8859-1', 'windows-1251']
+            for encoding in encodings:
+                try:
+                    text = file_bytes.decode(encoding)
+                    print(f"✅ Успешно декодирован как {encoding}")
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if not text:
+                # Если все кодировки не подошли, используем игнорирование ошибок
+                text = file_bytes.decode('utf-8', errors='ignore')
+                print("⚠️ Файл декодирован с игнорированием ошибок")
+        
+        elif file_ext in {'.doc', '.docx', '.pdf'}:
+            # Для бинарных форматов возвращаем сообщение
+            text = f"[Файл {original_filename} - это бинарный формат {file_ext.upper()}. Для анализа скопируйте текст вручную или конвертируйте в TXT.]"
+            print(f"ℹ️ Получен бинарный файл: {file_ext}")
+        else:
+            # Для остальных пробуем декодировать
+            try:
+                text = file_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                text = file_bytes.decode('utf-8', errors='ignore')
+        
+        print(f"📝 Извлечено текста: {len(text)} символов")
+        if text and len(text) > 100:
+            print(f"📄 Начало текста: {text[:100]}...")
+        
+        # Проверяем ингредиенты
         detected_ingredients = check_ingredients(text)
         
-        print(f"\n📁 Загружен текстовый файл: {file.filename}")
-        print(f"📄 Текст: {text[:100]}...")
         print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
-
+        
+        # Создаем запись в базе данных
         scan_id = None
         if current_user.is_authenticated:
             scan_id = create_scan(
@@ -254,15 +307,24 @@ def upload_text_file():
 
         return jsonify({
             "status": "success", 
-            "text": text,
+            "text": text[:10000],  # Ограничиваем для ответа
             "ingredients": detected_ingredients,
             "ingredients_count": len(detected_ingredients),
-            "scan_id": scan_id
+            "scan_id": scan_id,
+            "file_info": {
+                "name": original_filename,
+                "size": file_size,
+                "extension": file_ext
+            }
         })
         
     except Exception as e:
-        print(f"❌ Ошибка в upload_text_file: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА в upload_text_file:")
+        traceback.print_exc()
+        return jsonify({
+            "status": "error", 
+            "message": f"Внутренняя ошибка сервера: {str(e)}"
+        }), 500
 
 @app.route('/api/analyze_text', methods=['POST'])
 def analyze_text():
@@ -297,6 +359,7 @@ def analyze_text():
         })
     except Exception as e:
         print(f"❌ Ошибка в analyze_text: {str(e)}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
   
 @app.route('/api/analyze', methods=['POST'])
@@ -304,20 +367,56 @@ def analyze():
     try:
         file = request.files.get('image')
         if not file:
-            return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
+            print("❌ Изображение не предоставлено")
+            return jsonify({"status": "error", "message": "Файл изображения не найден"}), 400
 
         input_method = request.form.get('input_method', 'camera')
         
+        print(f"\n📸 Начало обработки изображения (метод: {input_method})")
+        print(f"📄 Имя файла: {file.filename}")
+        
+        # Проверка размера файла
+        file.seek(0, 2)  # Перейти в конец
+        file_size = file.tell()  # Получить размер
+        file.seek(0)  # Вернуться в начало
+        
+        print(f"📏 Размер изображения: {file_size} байт")
+        
+        # Ограничение размера (макс 10MB)
+        MAX_IMAGE_SIZE = 10 * 1024 * 1024
+        if file_size > MAX_IMAGE_SIZE:
+            print(f"❌ Изображение слишком большое: {file_size} байт")
+            return jsonify({
+                "status": "error", 
+                "message": f"Изображение слишком большое. Максимальный размер: {MAX_IMAGE_SIZE//1024//1024}MB"
+            }), 400
+        
+        if file_size == 0:
+            print("❌ Изображение пустое")
+            return jsonify({"status": "error", "message": "Файл изображения пустой"}), 400
+        
+        # Извлекаем текст с помощью OCR
         text = extract_text(file)
+        
+        if not text or text.strip() == "":
+            print("⚠️ OCR не распознал текст")
+            return jsonify({
+                "status": "warning",
+                "message": "Не удалось распознать текст на изображении. Попробуйте другое изображение или убедитесь, что текст четкий.",
+                "text": "",
+                "ingredients": [],
+                "ingredients_count": 0
+            })
+        
+        print(f"✅ OCR распознал {len(text)} символов")
+        print(f"📝 Текст из OCR: {text[:150]}...")
+        
+        # Проверяем ингредиенты
         detected_ingredients = check_ingredients(text)
         
-        print(f"\n📸 Анализ изображения (метод: {input_method})")
-        print(f"📄 Текст из OCR: {text[:100]}...")
         print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
         
-        for ing in detected_ingredients:
-            print(f"  • {ing.get('name')} (риск: {ing.get('risk_level')})")
-
+        # Создаем запись в базе данных
         scan_id = None
         if current_user.is_authenticated:
             scan_id = create_scan(
@@ -330,14 +429,18 @@ def analyze():
 
         return jsonify({
             "status": "success", 
-            "text": text,
+            "text": text[:5000],  # Ограничиваем длину ответа
             "ingredients": detected_ingredients,
             "ingredients_count": len(detected_ingredients),
             "scan_id": scan_id
         })
     except Exception as e:
-        print(f"❌ Ошибка в analyze: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА в analyze:")
+        traceback.print_exc()
+        return jsonify({
+            "status": "error", 
+            "message": f"Ошибка обработки изображения: {str(e)}"
+        }), 500
 
 @app.route('/api/ingredients', methods=['GET'])
 def get_ingredients():
@@ -602,7 +705,7 @@ def test_checker():
             "ingredients_found": len(detected),
             "ingredients": detected,
             "checker_info": {
-                "total_ingredients_in_checker": len(ingredient_checker.ingredients),
+                "total_ingredients_in_checker": len(ingredient_checker.local_ingredients),
                 "common_fixes_count": len(ingredient_checker.common_fixes)
             }
         })
@@ -936,6 +1039,8 @@ def register():
         })
         
     except Exception as e:
+        print(f"❌ Ошибка регистрации: {str(e)}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
@@ -965,6 +1070,8 @@ def login():
         })
         
     except Exception as e:
+        print(f"❌ Ошибка входа: {str(e)}")
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/logout', methods=['POST'])
@@ -983,6 +1090,7 @@ def init_db():
         
         os.makedirs('uploads', exist_ok=True)
         os.makedirs('static', exist_ok=True)
+        os.makedirs('data_cache', exist_ok=True)
         
         db.create_all()
         print("✅ Структура базы данных проверена")
@@ -1026,10 +1134,9 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    os.makedirs('data_cache', exist_ok=True)
     print("🚀 Запуск приложения...")
     print("🌐 Откройте: http://localhost:5000")
     print("💾 Кэш внешних источников включен")
-    print("🔍 Для поиска во внешних источниках используйте /api/external/search")
+    print("🔧 Режим отладки включен")
     
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, threaded=True)
