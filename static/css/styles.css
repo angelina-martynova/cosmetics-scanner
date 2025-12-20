@@ -1146,6 +1146,14 @@ input[autocomplete="new-password"] {
         --background-primary: #1A1A1A;
         --background-secondary: #2D2D2D;
         --border-color: #404040;
+        --primary-color: #D991BA;
+        /* Розовый вместо фиолетового */
+        --primary-dark: #C97AA5;
+        /* Более темный розовый */
+        --accent-color: #D991BA;
+        /* Розовый вместо #330036 */
+        --accent-light: #E6B0D2;
+        /* Светлый розовый */
     }
 
     body {
@@ -1246,11 +1254,11 @@ input[autocomplete="new-password"] {
         color: #D991BA;
     }
 
-    /* Білий текст для темної теми */
+    /* Розовый текст для темної теми */
     .hero-subtitle,
     .detail-section h4,
     .scan-details h4 {
-        color: #FFFFFF !important;
+        color: #D991BA !important;
     }
 
     /* Кнопки массовых действий в темной теме - ТЕМНЫЙ ТЕКСТ */
@@ -1271,7 +1279,7 @@ input[autocomplete="new-password"] {
     }
 
     .user-name {
-        color: #FFFFFF !important;
+        color: #D991BA !important;
     }
 
     /* Стили для предотвращения автозаполнения в темной теме - ТОЛЬКО для textarea */
@@ -1306,6 +1314,53 @@ input[autocomplete="new-password"] {
     /* Иконка empty.svg - делаем белой в темной теме */
     .empty-icon img {
         filter: brightness(0) invert(1) !important;
+    }
+
+    /* Кнопки с градиентом в темной теме */
+    button {
+        background: linear-gradient(135deg, #D991BA, #C97AA5);
+        color: white;
+    }
+
+    button.secondary {
+        background: linear-gradient(135deg, #D7C9AA, #C5B89B);
+        color: #1A1A1A;
+    }
+
+    button.danger {
+        background: linear-gradient(135deg, #D991BA, #C97AA5);
+        color: white;
+    }
+
+    /* Элементы с акцентным цветом */
+    .error {
+        background: #2D1A24;
+        color: #D991BA;
+        border-left-color: #D991BA;
+    }
+
+    .ingredient-item.high-risk {
+        background-color: #2D1A24;
+        border-left-color: #D991BA;
+        color: #E6B0D2;
+    }
+
+    .ingredient-item.medium-risk {
+        background-color: #2D2A24;
+        border-left-color: #D7C9AA;
+        color: #E6D8B0;
+    }
+
+    .ingredient-item.low-risk {
+        background-color: #2D2424;
+        border-left-color: #D991BA;
+        color: #E6B0D2;
+    }
+
+    .ingredient-item.safe {
+        background-color: #242D24;
+        border-left-color: #D7C9AA;
+        color: #B0E6B0;
     }
 }
 

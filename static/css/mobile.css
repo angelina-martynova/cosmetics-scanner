@@ -476,6 +476,7 @@
 
     .method-card p {
         color: #D991BA !important;
+        /* Розовый */
     }
 
     .form-group input {
@@ -490,6 +491,7 @@
 
     .form-group input:focus {
         border-color: #D991BA;
+        /* Розовый */
     }
 
     .password-toggle {
@@ -499,6 +501,7 @@
 
     .back-button {
         background: #D991BA;
+        /* Розовый */
         border: 1px solid #404040;
         color: white;
         font-weight: 600;
@@ -506,6 +509,7 @@
 
     .back-button:hover {
         background: #C97AA5;
+        /* Более темный розовый */
     }
 
     /* Заголовки бежевим у темній темі */
@@ -526,18 +530,22 @@
     .detail-section h4,
     .scan-details h4 {
         color: #D991BA !important;
+        /* Розовый */
     }
 
     /* Кнопки массовых действий в темной теме */
     .bulk-actions button {
-        background: linear-gradient(135deg, #D7C9AA, #C5B89B);
-        color: #330036 !important;
+        background: linear-gradient(135deg, #D991BA, #C97AA5);
+        /* Розовый градиент */
+        color: white !important;
+        /* Белый текст */
         font-weight: 600;
     }
 
     .bulk-actions button.secondary {
         background: linear-gradient(135deg, #D7C9AA, #C5B89B);
         color: #330036 !important;
+        /* Темный текст */
         font-weight: 600;
     }
 
@@ -570,6 +578,7 @@
     .scan-card {
         background: #1A1A1A;
         border-left-color: #D991BA;
+        /* Розовый */
     }
 
     .icon-btn:hover {
@@ -591,7 +600,8 @@
     }
 
     .hero-subtitle {
-        color: #F5F5F5;
+        color: #D991BA !important;
+        /* Розовый */
         opacity: 0.9;
     }
 
