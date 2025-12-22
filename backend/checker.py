@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import sqlite3
 import os
 import traceback
-import string
 
 
 class IngredientChecker:
@@ -22,453 +21,153 @@ class IngredientChecker:
         # Кэш для результатов поиска
         self.search_cache = {}
         
-        # Стоп-слова (не искать эти слова как ингредиенты)
+        # ОПТИМИЗИРОВАННЫЙ СПИСОК СТОП-СЛОВ
+        # Теперь содержит только самые частые украинские слова с этикеток, не являющиеся ингредиентами
         self.stop_words = {
-            'россия', 'рф', 'russia', 'адрес', 'address', 'производитель',
-            'manufacturer', 'изготовитель', 'воронежская', 'область', 'район',
-            'улица', 'ул', 'д', 'дом', 'строение', 'корпус', 'офис', 'оф',
-            'телефон', 'phone', 'факс', 'fax', 'email', 'почта', 'mail',
-            'сайт', 'website', 'индекс', 'zip', 'postal', 'код', 'code',
-            'страна', 'country', 'регион', 'region', 'город', 'city',
-            'поселок', 'пос', 'пгт', 'село', 'деревня', 'дер',
-            'по', 'вопросам', 'questions', 'для', 'for', 'контакты',
-            'contacts', 'хранить', 'store', 'температура', 'temperature',
-            'срок', 'годности', 'expiry', 'date', 'избегать', 'avoid',
-            'прямых', 'солнечных', 'лучей', 'sunlight', 'солнца', 'sun',
-            'попадания', 'попадание', 'entry', 'глаза', 'eyes',
-            'промыть', 'промывать', 'rinse', 'водой', 'water', 'чистой',
-            'чистый', 'clean', 'использовать', 'use', 'использование',
-            'наружного', 'наружное', 'external', 'применения', 'application',
-            'аллергической', 'аллергия', 'allergic', 'reaction', 'реакции',
-            'раздражения', 'irritation', 'случай', 'case', 'случае', 'если',
-            'if', 'предназначено', 'intended', 'только', 'only', 'лишь',
-            'just', 'гигиены', 'hygiene', 'личной', 'personal', 'целях',
-            'purposes', 'цель', 'purpose', 'хранения', 'storage', 'conditions',
-            'условия', 'conditions', 'при', 'at', 'не', 'not', 'ниже', 'below',
-            'выше', 'above', 'и', 'and', 'или', 'or', 'с', 'with', 'без',
-            'without', 'на', 'on', 'в', 'in', 'из', 'from', 'к', 'to',
-            'от', 'from', 'до', 'to', 'за', 'for', 'под', 'under', 'над',
-            'over', 'перед', 'before', 'после', 'after', 'между', 'between',
-            'среди', 'among', 'через', 'through', 'внутри', 'inside',
-            'вне', 'outside', 'около', 'near', 'против', 'against',
-            'благодаря', 'thanks', 'ввиду', 'due', 'вследствие', 'because',
-            'вроде', 'like', 'включая', 'including', 'исключая', 'excluding',
-            'конечно', 'of course', 'может', 'may', 'может быть', 'maybe',
-            'вероятно', 'probably', 'возможно', 'possibly', 'скорее всего',
-            'most likely', 'очевидно', 'obviously', 'кажется', 'seems',
-            'видимо', 'apparently', 'наверное', 'perhaps', 'пожалуй',
-            'perhaps', 'должно быть', 'must be', 'надо', 'should',
-            'нужно', 'need', 'необходимо', 'necessary', 'требуется',
-            'required', 'обязательно', 'mandatory', 'желательно',
-            'desirable', 'рекомендуется', 'recommended', 'советуется',
-            'advised', 'предлагается', 'suggested', 'предполагается',
-            'assumed', 'ожидается', 'expected', 'планируется', 'planned',
-            'готовится', 'prepared', 'создается', 'created', 'разрабатывается',
-            'developed', 'производится', 'produced', 'выпускается', 'released',
-            'продается', 'sold', 'покупается', 'bought', 'используется',
-            'used', 'применяется', 'applied', 'работает', 'works',
-            'функционирует', 'functions', 'действует', 'acts', 'влияет',
-            'affects', 'помогает', 'helps', 'мешает', 'hinders', 'препятствует',
-            'prevents', 'защищает', 'protects', 'сохраняет', 'preserves',
-            'улучшает', 'improves', 'ухудшает', 'worsens', 'меняет', 'changes',
-            'трансформирует', 'transforms', 'конвертирует', 'converts',
-            'генерирует', 'generates', 'создает', 'creates', 'уничтожает',
-            'destroys', 'удаляет', 'removes', 'добавляет', 'adds', 'вводит',
-            'introduces', 'исключает', 'excludes', 'ограничивает', 'limits',
-            'расширяет', 'expands', 'сокращает', 'reduces', 'увеличивает',
-            'increases', 'уменьшает', 'decreases', 'стабилизирует', 'stabilizes',
-            'балансирует', 'balances', 'регулирует', 'regulates', 'контролирует',
-            'controls', 'управляет', 'manages', 'руководит', 'directs',
-            'координирует', 'coordinates', 'организует', 'organizes',
-            'планирует', 'plans', 'разрабатывает', 'develops', 'проектирует',
-            'designs', 'конструирует', 'constructs', 'строит', 'builds',
-            'создает', 'creates', 'производит', 'produces', 'изготавливает',
-            'manufactures', 'выпускает', 'releases', 'продает', 'sells',
-            'покупает', 'buys', 'использует', 'uses', 'применяет', 'applies',
-            'работает', 'works', 'функционирует', 'functions', 'действует',
-            'acts', 'влияет', 'affects', 'помогает', 'helps', 'мешает',
-            'hinders', 'препятствует', 'prevents', 'защищает', 'protects',
-            'сохраняет', 'preserves', 'улучшает', 'improves', 'ухудшает',
-            'worsens', 'меняет', 'changes', 'трансформирует', 'transforms',
-            'конвертирует', 'converts', 'генерирует', 'generates', 'создает',
-            'creates', 'уничтожает', 'destroys', 'удаляет', 'removes',
-            'добавляет', 'adds', 'вводит', 'introduces', 'исключает',
-            'excludes', 'ограничивает', 'limits', 'расширяет', 'expands',
-            'сокращает', 'reduces', 'увеличивает', 'increases', 'уменьшает',
-            'decreases', 'стабилизирует', 'stabilizes', 'балансирует',
-            'balances', 'регулирует', 'regulates', 'контролирует', 'controls',
-            'управляет', 'manages', 'руководит', 'directs', 'координирует',
-            'coordinates', 'организует', 'organizes', 'планирует', 'plans',
-            'разрабатывает', 'develops', 'проектирует', 'designs',
-            'конструирует', 'constructs', 'строит', 'builds', 'создает',
-            'creates', 'производит', 'produces', 'изготавливает',
-            'manufactures', 'выпускает', 'releases', 'продает', 'sells',
-            'покупает', 'buys', 'использует', 'uses', 'применяет', 'applies',
-            'aqua', 'вода', 'water', 'состав', 'ingredients', 'inci',
-            'продукция', 'product', 'косметическая', 'cosmetic',
-            'гигиеническая', 'hygienic', 'моющее', 'cleaning', 'мыло', 'soap',
-            'крем', 'cream', 'мягкое', 'soft', 'глицерин', 'glycerin',
-            'предназначено', 'intended', 'наружного', 'external',
-            'применения', 'application', 'попадании', 'getting',
-            'промыть', 'rinse', 'чистой', 'clean', 'аллергической', 'allergic',
-            'реакции', 'reaction', 'раздражения', 'irritation', 'использовать',
-            'use', 'случае', 'case', 'возникновения', 'occurrence',
-            'лиц', 'face', 'тела', 'body', 'рук', 'hands', 'уход', 'care',
-            'очищение', 'cleansing', 'увлажнение', 'moisturizing',
-            'питание', 'nourishing', 'защита', 'protection', 'восстановление',
-            'restoration', 'омоложение', 'rejuvenation', 'тонизирование',
-            'toning', 'смягчение', 'softening', 'освежение', 'refreshing',
-            'аромат', 'aroma', 'запах', 'smell', 'консистенция', 'consistency',
-            'текстура', 'texture', 'цвет', 'color', 'объем', 'volume',
-            'масса', 'mass', 'вес', 'weight', 'фасовка', 'packaging',
-            'упаковка', 'package', 'банка', 'jar', 'флакон', 'bottle',
-            'тюбик', 'tube', 'диспенсер', 'dispenser', 'крышка', 'cap',
-            'пробка', 'cork', 'этикетка', 'label', 'инструкция', 'instruction',
-            'рекомендация', 'recommendation', 'предупреждение', 'warning',
-            'совет', 'advice', 'примечание', 'note', 'информация', 'information',
-            'данные', 'data', 'исследование', 'research', 'тест', 'test',
-            'результат', 'result', 'эффект', 'effect', 'действие', 'action',
-            'свойство', 'property', 'характеристика', 'characteristic',
-            'особенность', 'feature', 'преимущество', 'advantage',
-            'недостаток', 'disadvantage', 'польза', 'benefit', 'вред', 'harm',
-            'опасность', 'danger', 'риск', 'risk', 'безопасность', 'safety',
-            'качество', 'quality', 'стандарт', 'standard', 'сертификат',
-            'certificate', 'соответствие', 'compliance', 'контроль', 'control',
-            'проверка', 'check', 'анализ', 'analysis', 'оценка', 'evaluation',
-            'экспертиза', 'expertise', 'заключение', 'conclusion', 'вывод',
-            'conclusion', 'мнение', 'opinion', 'отзыв', 'review', 'комментарий',
-            'comment', 'вопрос', 'question', 'ответ', 'answer', 'решение',
-            'solution', 'проблема', 'problem', 'задача', 'task', 'цель',
-            'goal', 'задание', 'assignment', 'план', 'plan', 'стратегия',
-            'strategy', 'тактика', 'tactics', 'метод', 'method', 'способ',
-            'way', 'технология', 'technology', 'процесс', 'process',
-            'производство', 'production', 'изготовление', 'manufacturing',
-            'создание', 'creation', 'разработка', 'development', 'проект',
-            'project', 'концепция', 'concept', 'идея', 'idea', 'замысел',
-            'intention', 'намерение', 'intent', 'желание', 'desire',
-            'потребность', 'need', 'необходимость', 'necessity',
-            'требование', 'requirement', 'условие', 'condition', 'критерий',
-            'criterion', 'параметр', 'parameter', 'показатель', 'indicator',
-            'уровень', 'level', 'степень', 'degree', 'мера', 'measure',
-            'количество', 'quantity', 'объем', 'volume', 'масса', 'mass',
-            'вес', 'weight', 'размер', 'size', 'форма', 'shape', 'вид',
-            'view', 'тип', 'type', 'вид', 'kind', 'сорт', 'grade', 'класс',
-            'class', 'категория', 'category', 'группа', 'group', 'серия',
-            'series', 'линия', 'line', 'коллекция', 'collection', 'ассортимент',
-            'assortment', 'набор', 'set', 'комплект', 'kit', 'пакет', 'package',
-            'мешок', 'bag', 'коробка', 'box', 'ящик', 'crate', 'контейнер',
-            'container', 'упаковка', 'packaging', 'обертка', 'wrapper',
-            'пленка', 'film', 'фольга', 'foil', 'картон', 'cardboard',
-            'бумага', 'paper', 'пластик', 'plastic', 'стекло', 'glass',
-            'металл', 'metal', 'дерево', 'wood', 'ткань', 'fabric',
-            'материал', 'material', 'сырье', 'raw material', 'компонент',
-            'component', 'элемент', 'element', 'часть', 'part', 'деталь',
-            'detail', 'узел', 'node', 'блок', 'block', 'модуль', 'module',
-            'система', 'system', 'комплекс', 'complex', 'структура', 'structure',
-            'схема', 'scheme', 'чертеж', 'drawing', 'диаграмма', 'diagram',
-            'график', 'graph', 'таблица', 'table', 'список', 'list',
-            'перечень', 'list', 'каталог', 'catalog', 'реестр', 'register',
-            'архив', 'archive', 'база', 'base', 'банк', 'bank', 'фонд', 'fund',
-            'ресурс', 'resource', 'источник', 'source', 'происхождение', 'origin',
-            'место', 'place', 'расположение', 'location', 'позиция', 'position',
-            'точка', 'point', 'зона', 'zone', 'область', 'area', 'регион',
-            'region', 'территория', 'territory', 'пространство', 'space',
-            'время', 'time', 'период', 'period', 'срок', 'term', 'дата', 'date',
-            'год', 'year', 'месяц', 'month', 'неделя', 'week', 'день', 'day',
-            'час', 'hour', 'минута', 'minute', 'секунда', 'second',
-            'момент', 'moment', 'интервал', 'interval', 'пауза', 'pause',
-            'перерыв', 'break', 'отдых', 'rest', 'сон', 'sleep', 'бодрствование',
-            'wakefulness', 'активность', 'activity', 'пассивность', 'passivity',
-            'движение', 'movement', 'покой', 'rest', 'скорость', 'speed',
-            'ускорение', 'acceleration', 'замедление', 'deceleration',
-            'направление', 'direction', 'траектория', 'trajectory',
-            'маршрут', 'route', 'путь', 'path', 'дорога', 'road', 'шоссе',
-            'highway', 'магистраль', 'highway', 'улица', 'street', 'проспект',
-            'avenue', 'площадь', 'square', 'переулок', 'lane', 'бульвар',
-            'boulevard', 'набережная', 'embankment', 'мост', 'bridge',
-            'тоннель', 'tunnel', 'эстакада', 'viaduct', 'развязка', 'interchange',
-            'круг', 'circle', 'кольцо', 'ring', 'петля', 'loop', 'виток', 'coil',
-            'спираль', 'spiral', 'волна', 'wave', 'вибрация', 'vibration',
-            'колебание', 'oscillation', 'пульсация', 'pulsation', 'ритм', 'rhythm',
-            'такт', 'beat', 'мелодия', 'melody', 'гармония', 'harmony',
-            'дисгармония', 'disharmony', 'конфликт', 'conflict', 'согласие',
-            'agreement', 'разногласие', 'disagreement', 'спор', 'dispute',
-            'дискуссия', 'discussion', 'дебаты', 'debate', 'полемика', 'polemics',
-            'аргумент', 'argument', 'контраргумент', 'counterargument',
-            'доказательство', 'proof', 'опровержение', 'refutation',
-            'подтверждение', 'confirmation', 'опровержение', 'denial',
-            'утверждение', 'statement', 'отрицание', 'negation', 'вопрос',
-            'question', 'ответ', 'answer', 'реплика', 'remark', 'речь', 'speech',
-            'слово', 'word', 'фраза', 'phrase', 'предложение', 'sentence',
-            'абзац', 'paragraph', 'текст', 'text', 'содержание', 'content',
-            'смысл', 'meaning', 'значение', 'significance', 'идея', 'idea',
-            'концепция', 'concept', 'теория', 'theory', 'гипотеза', 'hypothesis',
-            'предположение', 'assumption', 'догадка', 'guess', 'интуиция', 'intuition',
-            'логика', 'logic', 'разум', 'mind', 'интеллект', 'intelligence',
-            'мудрость', 'wisdom', 'знание', 'knowledge', 'опыт', 'experience',
-            'навык', 'skill', 'умение', 'ability', 'талант', 'talent',
-            'гениальность', 'genius', 'посредственность', 'mediocrity',
-            'профессионализм', 'professionalism', 'любительство', 'amateurism',
-            'мастерство', 'mastery', 'ремесло', 'craft', 'искусство', 'art',
-            'творчество', 'creativity', 'вдохновение', 'inspiration',
-            'воображение', 'imagination', 'фантазия', 'fantasy', 'мечта', 'dream',
-            'цель', 'goal', 'желание', 'desire', 'стремление', 'aspiration',
-            'амбиция', 'ambition', 'честолюбие', 'ambition', 'скромность', 'modesty',
-            'гордость', 'pride', 'скромность', 'humility', 'уверенность', 'confidence',
-            'сомнение', 'doubt', 'страх', 'fear', 'тревога', 'anxiety',
-            'беспокойство', 'worry', 'паника', 'panic', 'спокойствие', 'calm',
-            'равнодушие', 'indifference', 'интерес', 'interest', 'любопытство', 'curiosity',
-            'внимание', 'attention', 'невнимание', 'inattention', 'концентрация', 'concentration',
-            'рассеянность', 'distraction', 'память', 'memory', 'забывчивость', 'forgetfulness',
-            'воспоминание', 'memory', 'ностальгия', 'nostalgia', 'мечтание', 'daydreaming',
-            'планирование', 'planning', 'организация', 'organization', 'управление', 'management',
-            'контроль', 'control', 'координация', 'coordination', 'регулирование', 'regulation',
-            'стабилизация', 'stabilization', 'балансировка', 'balancing', 'выравнивание', 'alignment',
-            'корректировка', 'adjustment', 'исправление', 'correction', 'улучшение', 'improvement',
-            'ухудшение', 'deterioration', 'изменение', 'change', 'трансформация', 'transformation',
-            'эволюция', 'evolution', 'революция', 'revolution', 'прогресс', 'progress',
-            'регресс', 'regress', 'застой', 'stagnation', 'развитие', 'development',
-            'рост', 'growth', 'падение', 'decline', 'подъем', 'rise', 'спад', 'recession',
-            'кризис', 'crisis', 'стабильность', 'stability', 'нестабильность', 'instability',
-            'равновесие', 'equilibrium', 'дисбаланс', 'imbalance', 'гармония', 'harmony',
-            'дисгармония', 'disharmony', 'порядок', 'order', 'беспорядок', 'disorder',
-            'хаос', 'chaos', 'структура', 'structure', 'деструкция', 'destruction',
-            'создание', 'creation', 'разрушение', 'destruction', 'строительство', 'construction',
-            'демонтаж', 'dismantling', 'сборка', 'assembly', 'разборка', 'disassembly',
-            'монтаж', 'installation', 'установка', 'installation', 'настройка', 'configuration',
-            'запуск', 'launch', 'остановка', 'stop', 'пауза', 'pause', 'перезапуск', 'restart',
-            'перезагрузка', 'reboot', 'обновление', 'update', 'модернизация', 'modernization',
-            'ремонт', 'repair', 'обслуживание', 'maintenance', 'проверка', 'check',
-            'диагностика', 'diagnostics', 'анализ', 'analysis', 'оценка', 'evaluation',
-            'мониторинг', 'monitoring', 'отслеживание', 'tracking', 'контроль', 'control',
-            'управление', 'management', 'администрирование', 'administration',
-            'координация', 'coordination', 'организация', 'organization', 'планирование', 'planning',
-            'прогнозирование', 'forecasting', 'прогноз', 'forecast', 'предсказание', 'prediction',
-            'предвидение', 'foresight', 'интуиция', 'intuition', 'логика', 'logic',
-            'аналитика', 'analytics', 'статистика', 'statistics', 'математика', 'mathematics',
-            'вычисления', 'computations', 'расчеты', 'calculations', 'формулы', 'formulas',
-            'уравнения', 'equations', 'алгоритмы', 'algorithms', 'программы', 'programs',
-            'скрипты', 'scripts', 'код', 'code', 'разработка', 'development',
-            'тестирование', 'testing', 'отладка', 'debugging', 'оптимизация', 'optimization',
-            'интеграция', 'integration', 'внедрение', 'implementation', 'эксплуатация', 'operation',
-            'использование', 'usage', 'применение', 'application', 'утилизация', 'utilization',
-            'утилизация', 'disposal', 'переработка', 'recycling', 'уничтожение', 'destruction',
-            'сохранение', 'preservation', 'хранение', 'storage', 'архивация', 'archiving',
-            'резервное копирование', 'backup', 'восстановление', 'recovery', 'резервирование', 'reservation',
-            'дублирование', 'duplication', 'копирование', 'copying', 'вставка', 'pasting',
-            'вырезание', 'cutting', 'удаление', 'deletion', 'перемещение', 'moving',
-            'сортировка', 'sorting', 'фильтрация', 'filtering', 'поиск', 'search',
-            'навигация', 'navigation', 'просмотр', 'viewing', 'чтение', 'reading',
-            'письмо', 'writing', 'рисование', 'drawing', 'черчение', 'drafting',
-            'проектирование', 'designing', 'моделирование', 'modeling', 'симуляция', 'simulation',
-            'визуализация', 'visualization', 'анимация', 'animation', 'рендеринг', 'rendering',
-            'композиция', 'composition', 'монтаж', 'editing', 'обработка', 'processing',
-            'коррекция', 'correction', 'ретушь', 'retouching', 'фильтрация', 'filtering',
-            'трансформация', 'transformation', 'масштабирование', 'scaling', 'вращение', 'rotation',
-            'отражение', 'reflection', 'искажение', 'distortion', 'деформация', 'deformation',
-            'сжатие', 'compression', 'растяжение', 'stretching', 'скручивание', 'twisting',
-            'изгиб', 'bending', 'ломка', 'breaking', 'разрыв', 'rupture', 'трещина', 'crack',
-            'царапина', 'scratch', 'вмятина', 'dent', 'дефект', 'defect', 'брак', 'defect',
-            'недостаток', 'flaw', 'ошибка', 'error', 'погрешность', 'error', 'отклонение', 'deviation',
-            'вариация', 'variation', 'разнообразие', 'diversity', 'однообразие', 'monotony',
-            'унификация', 'unification', 'стандартизация', 'standardization', 'нормализация', 'normalization',
-            'калибровка', 'calibration', 'настройка', 'tuning', 'регулировка', 'adjustment',
-            'балансировка', 'balancing', 'юстировка', 'alignment', 'градуировка', 'graduation',
-            'шкала', 'scale', 'деление', 'division', 'отметка', 'mark', 'индикатор', 'indicator',
-            'датчик', 'sensor', 'измеритель', 'meter', 'анализатор', 'analyzer', 'детектор', 'detector',
-            'сканер', 'scanner', 'монитор', 'monitor', 'дисплей', 'display', 'экран', 'screen',
-            'панель', 'panel', 'клавиатура', 'keyboard', 'мышь', 'mouse', 'джойстик', 'joystick',
-            'руль', 'wheel', 'педали', 'pedals', 'рычаги', 'levers', 'кнопки', 'buttons',
-            'переключатели', 'switches', 'регуляторы', 'regulators', 'индикаторы', 'indicators',
-            'сигналы', 'signals', 'оповещения', 'notifications', 'предупреждения', 'warnings',
-            'сообщения', 'messages', 'уведомления', 'notifications', 'записи', 'records',
-            'журналы', 'logs', 'отчеты', 'reports', 'документы', 'documents', 'файлы', 'files',
-            'папки', 'folders', 'директории', 'directories', 'диски', 'disks', 'разделы', 'partitions',
-            'тома', 'volumes', 'носители', 'media', 'хранилища', 'storages', 'базы данных', 'databases',
-            'таблицы', 'tables', 'записи', 'records', 'поля', 'fields', 'ячейки', 'cells',
-            'строки', 'rows', 'столбцы', 'columns', 'индексы', 'indexes', 'ключи', 'keys',
-            'значения', 'values', 'параметры', 'parameters', 'настройки', 'settings',
-            'конфигурации', 'configurations', 'профили', 'profiles', 'учетные записи', 'accounts',
-            'пользователи', 'users', 'администраторы', 'administrators', 'модераторы', 'moderators',
-            'редакторы', 'editors', 'авторы', 'authors', 'соавторы', 'co-authors', 'участники', 'participants',
-            'члены', 'members', 'подписчики', 'subscribers', 'последователи', 'followers',
-            'друзья', 'friends', 'контакты', 'contacts', 'знакомые', 'acquaintances',
-            'коллеги', 'colleagues', 'партнеры', 'partners', 'клиенты', 'clients',
-            'покупатели', 'buyers', 'заказчики', 'customers', 'потребители', 'consumers',
-            'пользователи', 'users', 'абоненты', 'subscribers', 'подписчики', 'subscribers',
-            'аудитория', 'audience', 'публика', 'public', 'толпа', 'crowd', 'масса', 'mass',
-            'группа', 'group', 'сообщество', 'community', 'коллектив', 'team', 'команда', 'team',
-            'бригада', 'brigade', 'отряд', 'squad', 'отдел', 'department', 'служба', 'service',
-            'агентство', 'agency', 'бюро', 'bureau', 'филиал', 'branch', 'представительство', 'representation',
-            'офис', 'office', 'кабинет', 'office', 'рабочее место', 'workplace', 'стол', 'desk',
-            'стул', 'chair', 'шкаф', 'closet', 'полка', 'shelf', 'ящик', 'drawer',
-            'сейф', 'safe', 'хранилище', 'storage', 'архив', 'archive', 'библиотека', 'library',
-            'коллекция', 'collection', 'музей', 'museum', 'галерея', 'gallery', 'выставка', 'exhibition',
-            'экспозиция', 'exposition', 'инсталляция', 'installation', 'перформанс', 'performance',
-            'шоу', 'show', 'спектакль', 'play', 'концерт', 'concert', 'фестиваль', 'festival',
-            'праздник', 'holiday', 'торжество', 'celebration', 'юбилей', 'anniversary',
-            'годовщина', 'anniversary', 'дата', 'date', 'событие', 'event', 'мероприятие', 'event',
-            'встреча', 'meeting', 'собрание', 'meeting', 'совещание', 'meeting', 'конференция', 'conference',
-            'семинар', 'seminar', 'тренинг', 'training', 'курс', 'course', 'урок', 'lesson',
-            'лекция', 'lecture', 'доклад', 'report', 'презентация', 'presentation', 'демонстрация', 'demonstration',
-            'эксперимент', 'experiment', 'исследование', 'research', 'наблюдение', 'observation',
-            'открытие', 'discovery', 'изобретение', 'invention', 'патент', 'patent', 'лицензия', 'license',
-            'сертификат', 'certificate', 'диплом', 'diploma', 'аттестат', 'certificate', 'удостоверение', 'certificate',
-            'пропуск', 'pass', 'билет', 'ticket', 'квитанция', 'receipt', 'чек', 'check', 'счет', 'bill',
-            'договор', 'contract', 'соглашение', 'agreement', 'контракт', 'contract', 'акт', 'act',
-            'протокол', 'protocol', 'резолюция', 'resolution', 'решение', 'decision', 'приказ', 'order',
-            'распоряжение', 'order', 'указание', 'instruction', 'директива', 'directive', 'инструкция', 'instruction',
-            'правило', 'rule', 'норма', 'norm', 'стандарт', 'standard', 'критерий', 'criterion',
-            'показатель', 'indicator', 'индекс', 'index', 'рейтинг', 'rating', 'оценка', 'rating',
-            'балл', 'score', 'очко', 'point', 'место', 'place', 'позиция', 'position', 'ранг', 'rank',
-            'уровень', 'level', 'степень', 'degree', 'класс', 'class', 'категория', 'category',
-            'группа', 'group', 'тип', 'type', 'вид', 'kind', 'сорт', 'sort', 'марка', 'brand',
-            'модель', 'model', 'версия', 'version', 'редакция', 'edition', 'выпуск', 'issue',
-            'тираж', 'circulation', 'экземпляр', 'copy', 'оригинал', 'original', 'копия', 'copy',
-            'дубликат', 'duplicate', 'реплика', 'replica', 'имитация', 'imitation', 'подделка', 'fake',
-            'фальсификат', 'counterfeit', 'контрафакт', 'counterfeit', 'пиратство', 'piracy',
-            'легальный', 'legal', 'нелегальный', 'illegal', 'официальный', 'official', 'неофициальный', 'unofficial',
-            'формальный', 'formal', 'неформальный', 'informal', 'публичный', 'public', 'приватный', 'private',
-            'открытый', 'open', 'закрытый', 'closed', 'секретный', 'secret', 'конфиденциальный', 'confidential',
-            'служебный', 'official', 'личный', 'personal', 'корпоративный', 'corporate', 'государственный', 'state',
-            'муниципальный', 'municipal', 'региональный', 'regional', 'федеральный', 'federal', 'международный', 'international',
-            'мировой', 'global', 'локальный', 'local', 'национальный', 'national', 'этнический', 'ethnic',
-            'культурный', 'cultural', 'религиозный', 'religious', 'политический', 'political', 'экономический', 'economic',
-            'социальный', 'social', 'технологический', 'technological', 'научный', 'scientific', 'образовательный', 'educational',
-            'медицинский', 'medical', 'фармацевтический', 'pharmaceutical', 'косметический', 'cosmetic', 'гигиенический', 'hygienic',
-            'пищевой', 'food', 'промышленный', 'industrial', 'сельскохозяйственный', 'agricultural', 'строительный', 'construction',
-            'транспортный', 'transport', 'логистический', 'logistics', 'информационный', 'information', 'коммуникационный', 'communication',
-            'телекоммуникационный', 'telecommunication', 'интернет', 'internet', 'цифровой', 'digital', 'виртуальный', 'virtual',
-            'онлайн', 'online', 'офлайн', 'offline', 'реальный', 'real', 'идеальный', 'ideal', 'абстрактный', 'abstract',
-            'конкретный', 'concrete', 'материальный', 'material', 'нематериальный', 'immaterial', 'физический', 'physical',
-            'энергетический', 'energy', 'информационный', 'information', 'интеллектуальный', 'intellectual', 'духовный', 'spiritual',
-            'эмоциональный', 'emotional', 'психологический', 'psychological', 'ментальный', 'mental', 'физиологический', 'physiological',
-            'биологический', 'biological', 'химический', 'chemical', 'физический', 'physical', 'математический', 'mathematical',
-            'астрономический', 'astronomical', 'географический', 'geographical', 'исторический', 'historical', 'археологический', 'archaeological',
-            'геологический', 'geological', 'экологический', 'ecological', 'климатический', 'climatic', 'метеорологический', 'meteorological',
-            'океанографический', 'oceanographic', 'сейсмический', 'seismic', 'вулканический', 'volcanic', 'тектонический', 'tectonic',
-            'минералогический', 'mineralogical', 'палеонтологический', 'paleontological', 'антропологический', 'anthropological',
-            'социологический', 'sociological', 'политологический', 'political', 'экономический', 'economic', 'юридический', 'legal',
-            'философский', 'philosophical', 'филологический', 'philological', 'лингвистический', 'linguistic', 'психологический', 'psychological',
-            'педагогический', 'pedagogical', 'методический', 'methodological', 'дидактический', 'didactic', 'образовательный', 'educational',
-            'воспитательный', 'educational', 'развивающий', 'developmental', 'коррекционный', 'correctional', 'реабилитационный', 'rehabilitative',
-            'профилактический', 'preventive', 'терапевтический', 'therapeutic', 'диагностический', 'diagnostic', 'клинический', 'clinical',
-            'экспериментальный', 'experimental', 'исследовательский', 'research', 'научный', 'scientific', 'академический', 'academic',
-            'университетский', 'university', 'институтский', 'institute', 'школьный', 'school', 'дошкольный', 'preschool',
-            'начальный', 'primary', 'средний', 'secondary', 'высший', 'higher', 'профессиональный', 'professional',
-            'технический', 'technical', 'технологический', 'technological', 'инженерный', 'engineering', 'конструкторский', 'design',
-            'проектный', 'project', 'производственный', 'production', 'промышленный', 'industrial', 'сельскохозяйственный', 'agricultural',
-            'строительный', 'construction', 'транспортный', 'transport', 'логистический', 'logistics', 'складской', 'warehouse',
-            'распределительный', 'distribution', 'торговый', 'commercial', 'коммерческий', 'commercial', 'бизнес', 'business',
-            'предпринимательский', 'entrepreneurial', 'инвестиционный', 'investment', 'финансовый', 'financial', 'банковский', 'banking',
-            'страховой', 'insurance', 'налоговый', 'tax', 'бухгалтерский', 'accounting', 'аудиторский', 'audit',
-            'консалтинговый', 'consulting', 'юридический', 'legal', 'нотариальный', 'notarial', 'адвокатский', 'advocate',
-            'судебный', 'judicial', 'арбитражный', 'arbitration', 'медиационный', 'mediation', 'переговорный', 'negotiation',
-            'дипломатический', 'diplomatic', 'консульский', 'consular', 'визовый', 'visa', 'иммиграционный', 'immigration',
-            'таможенный', 'customs', 'пограничный', 'border', 'военный', 'military', 'оборонный', 'defense',
-            'безопасностный', 'security', 'разведывательный', 'intelligence', 'контрразведывательный', 'counterintelligence',
-            'оперативный', 'operational', 'тактический', 'tactical', 'стратегический', 'strategic', 'плановый', 'planning',
-            'организационный', 'organizational', 'управленческий', 'management', 'административный', 'administrative',
-            'кадровый', 'personnel', 'трудовой', 'labor', 'социальный', 'social', 'пенсионный', 'pension',
-            'страховой', 'insurance', 'медицинский', 'medical', 'санитарный', 'sanitary', 'эпидемиологический', 'epidemiological',
-            'ветеринарный', 'veterinary', 'фитосанитарный', 'phytosanitary', 'карантинный', 'quarantine', 'санитарно-эпидемиологический', 'sanitary-epidemiological',
-            'гигиенический', 'hygienic', 'противоэпидемический', 'anti-epidemic', 'вакцинный', 'vaccine', 'иммунологический', 'immunological',
-            'аллергологический', 'allergological', 'токсикологический', 'toxicological', 'радиологический', 'radiological',
-            'онкологический', 'oncological', 'кардиологический', 'cardiological', 'неврологический', 'neurological',
-            'психиатрический', 'psychiatric', 'наркологический', 'narcological', 'эндокринологический', 'endocrinological',
-            'гастроэнтерологический', 'gastroenterological', 'нефрологический', 'nephrological', 'урологический', 'urological',
-            'гинекологический', 'gynecological', 'акушерский', 'obstetric', 'педиатрический', 'pediatric', 'геронтологический', 'gerontological',
-            'стоматологический', 'dental', 'офтальмологический', 'ophthalmological', 'отоларингологический', 'otolaryngological',
-            'дерматологический', 'dermatological', 'венерологический', 'venereological', 'инфекционный', 'infectious',
-            'паразитологический', 'parasitological', 'микробиологический', 'microbiological', 'вирусологический', 'virological',
-            'генетический', 'genetic', 'молекулярно-биологический', 'molecular biological', 'биохимический', 'biochemical',
-            'биофизический', 'biophysical', 'биоинформационный', 'bioinformatics', 'биотехнологический', 'biotechnological',
-            'нанотехнологический', 'nanotechnological', 'квантовый', 'quantum', 'лазерный', 'laser', 'оптический', 'optical',
-            'электронный', 'electronic', 'микроэлектронный', 'microelectronic', 'полупроводниковый', 'semiconductor',
-            'радиоэлектронный', 'radio-electronic', 'телекоммуникационный', 'telecommunication', 'информационно-коммуникационный', 'information and communication',
-            'компьютерный', 'computer', 'программный', 'software', 'аппаратный', 'hardware', 'сетевой', 'network',
-            'интернет', 'internet', 'веб', 'web', 'мобильный', 'mobile', 'беспроводной', 'wireless', 'спутниковый', 'satellite',
-            'навигационный', 'navigation', 'геопозиционирование', 'geopositioning', 'картографический', 'cartographic',
-            'геоинформационный', 'geoinformation', 'дистанционный', 'remote', 'телеметрический', 'telemetric', 'телемедицинский', 'telemedical',
-            'телематический', 'telematics', 'телемеханика', 'telemechanics', 'телеметрия', 'telemetry', 'телемониторинг', 'telemonitoring',
-            'телеменеджмент', 'telemanagement', 'телемаркетинг', 'telemarketing', 'телемедиа', 'telemedia', 'телемедицина', 'telemedicine',
-            'телеобразование', 'teleeducation', 'телемедицина', 'telemedicine', 'телемедицинский', 'telemedical', 'телемедицинская', 'telemedical',
-            'телемедицинское', 'telemedical', 'телемедицинские', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскому', 'telemedical',
-            'телемедицинской', 'telemedical', 'телемедицинскому', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинскую', 'telemedical',
-            'телемедицинскою', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскими', 'telemedical',
-            'телерадиовещание', 'television and radio broadcasting', 'телематика', 'telematics', 'телемеханика', 'telemechanics',
-            'телеметрия', 'telemetry', 'телемониторинг', 'telemonitoring', 'телеменеджмент', 'telemanagement', 'телемаркетинг', 'telemarketing',
-            'телемедиа', 'telemedia', 'телемедицина', 'telemedicine', 'телемедицинский', 'telemedical', 'телемедицинская', 'telemedical',
-            'телемедицинское', 'telemedical', 'телемедицинские', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскому', 'telemedical',
-            'телемедицинской', 'telemedical', 'телемедицинскому', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинскую', 'telemedical',
-            'телемедицинскою', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскими', 'telemedical',
-            'телерадиовещание', 'television and radio broadcasting', 'телематика', 'telematics', 'телемеханика', 'telemechanics',
-            'телеметрия', 'telemetry', 'телемониторинг', 'telemonitoring', 'телеменеджмент', 'telemanagement', 'телемаркетинг', 'telemarketing',
-            'телемедиа', 'telemedia', 'телемедицина', 'telemedicine', 'телемедицинский', 'telemedical', 'телемедицинская', 'telemedical',
-            'телемедицинское', 'telemedical', 'телемедицинские', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскому', 'telemedical',
-            'телемедицинской', 'telemedical', 'телемедицинскому', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинскую', 'telemedical',
-            'телемедицинскою', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскими', 'telemedical',
-            'телерадиовещание', 'television and radio broadcasting', 'телематика', 'telematics', 'телемеханика', 'telemechanics',
-            'телеметрия', 'telemetry', 'телемониторинг', 'telemonitoring', 'телеменеджмент', 'telemanagement', 'телемаркетинг', 'telemarketing',
-            'телемедиа', 'telemedia', 'телемедицина', 'telemedicine', 'телемедицинский', 'telemedical', 'телемедицинская', 'telemedical',
-            'телемедицинское', 'telemedical', 'телемедицинские', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскому', 'telemedical',
-            'телемедицинской', 'telemedical', 'телемедицинскому', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинскую', 'telemedical',
-            'телемедицинскою', 'telemedical', 'телемедицинским', 'telemedical', 'телемедицинских', 'telemedical', 'телемедицинскими', 'telemedical'
+            # Общая маркировка и разделы
+            'склад', 'інгредієнти', 'ingredients', 'inci', 'склад:', 'інгредієнти:',
+            'продукт', 'продукція', 'product', 'назва', 'виробник', 'виготовлювач',
+            'упаковка', 'пакування', 'пакет', 'пляшка', 'туба', 'флакон',
+            
+            # Обязательная маркировочная информация (не ингредиенты)
+            'термін', 'придатності', 'придатний', 'зберігання', 'дата', 'рік',
+            'місяць', 'кінець', 'вжити', 'до', 'кінця', 'пакування',
+            'маса', 'нетто', 'вага', 'об\'єм', 'кількість',
+            'алергени', 'алерген', 'може', 'містити', 'сліди',
+            'умови', 'зберігання', 'використання', 'температура', 'холодильник',
+            'вироблено', 'для', 'країна', 'походження', 'україна',
+            'експортер', 'імпортер', 'адреса', 'контакти', 'телефон',
+            'штрихкод', 'код', 'партія', 'серія',
+            'поживна', 'цінність', 'енергетична', 'ценность', 'ккал', 'кдж',
+            'білки', 'жири', 'вуглеводи', 'цукор', 'сіль',
+            
+            # Слова из описаний и маркетинговых фраз (не ингредиенты)
+            'натуральний', 'органічний', 'екологічний', 'біо',
+            'знежирений', 'легкий', 'без', 'цукру', 'солі', 'лактози', 'глютену',
+            'добуток', 'ящик', 'коробка', 'зберігати', 'місці', 'сухому',
+            'захищати', 'сонця', 'дітей', 'дітям',
+            'після', 'відкриття', 'використати',
+            'дозований', 'рекомендована', 'доба', 'добова',
+            'вимірювання', 'вимірювач',
+            'ознайомтесь', 'інструкцією', 'обережно',
+            
+            # Частые предлоги, союзы и местоимения (украинские)
+            'та', 'і', 'або', 'чи', 'на', 'в', 'у', 'з', 'зі', 'від', 'до', 'про',
+            'для', 'за', 'під', 'над', 'перед', 'після', 'через',
+            'який', 'яка', 'яке', 'які', 'що', 'це', 'той', 'такий',
+            
+            # Базовые прилагательные и глаголы из описаний
+            'чистий', 'свіжий', 'якісний', 'безпечний', 'ефективний',
+            'містить', 'складається', 'призначений', 'рекомендується',
+            'наносити', 'змивати', 'використовувати', 'застосовувати',
+            
+            # Общие слова о здоровье и безопасности
+            'здоров\'я', 'безпека', 'алергія', 'реакція', 'подразнення',
+            'тестування', 'дослідження', 'клінічно', 'перевірено',
+            
+            # Единицы измерения и числительные (общие)
+            'мл', 'л', 'г', 'кг', 'мг', 'мкг', 'од', 'таблетка', 'капсула',
+            'шт', '%', 'відсотків', 'грам', 'мілілітр',
         }
         
         print(f"✅ IngredientChecker инициализирован: {len(self.local_ingredients)} ингредиентов в базе")
     
     def load_local_ingredients(self):
-        """Загрузка локальной базы ингредиентов"""
+        """Загрузка локальной базы ингредиентов (обновленная с практичным подходом)"""
         print("📚 Загрузка локальной базы ингредиентов...")
         ingredients = [
+            # 🔴 HIGH RISK (КРИТИЧЕСКИ ОПАСНЫЕ) - Избегать полностью
             {
-                "id": 1,
-                "name": "Sodium Laureth Sulfate",
-                "risk_level": "medium",
-                "category": "surfactant", 
-                "description": "Пінник, може викликати подразнення шкіри",
+                "id": 4,
+                "name": "Formaldehyde",
+                "risk_level": "high",
+                "category": "preservative", 
+                "description": "Канцероген 1-го класса, запрещен в косметике во многих странах",
                 "aliases": [
-                    "sodium laureth sulfate", 
-                    "sodium lauryl sulfate",
-                    "sles", 
-                    "sls", 
-                    "sodium lauryl ether sulfate",
-                    "натрію лаурет сульфат",
-                    "натрію лауріл сульфат",
-                    "лаурет сульфат натрію",
-                    "лауріл сульфат натрію",
-                    "sodium laureth sulphate",
-                    "sodium lauryl sulphate",
-                    "натріум лаурет сульфат"
+                    "formaldehyde", 
+                    "formalin", 
+                    "формальдегід",
+                    "формалін",
+                    "formaldehydum",
+                    "methyl aldehyde"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Запрещен в ЕС в косметике для детей"
             },
             {
-                "id": 2, 
-                "name": "Methylparaben",
-                "risk_level": "medium",
+                "id": 5,
+                "name": "Methylisothiazolinone",
+                "risk_level": "high",
                 "category": "preservative",
-                "description": "Консервант з можливим гормональним впливом",
+                "description": "Сильнейший аллерген, запрещен в несмываемой косметике в ЕС",
                 "aliases": [
-                    "methylparaben", 
-                    "methyl paraben", 
-                    "paraben",
-                    "parabens",
-                    "метилпарабен",
-                    "парабен",
-                    "консервант",
-                    "e218",
-                    "methylparabenum"
+                    "methylisothiazolinone",
+                    "isothiazolinone",
+                    "methylisothiazolino",
+                    "мітілізотіазолінон",
+                    "mi",
+                    "mit"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Аллерген 2013 года в Европе"
             },
+            {
+                "id": 21,
+                "name": "Methylchloroisothiazolinone",
+                "risk_level": "high",
+                "category": "preservative",
+                "description": "Сильный консервант и аллерген, часто используется в паре с MI",
+                "aliases": [
+                    "methylchloroisothiazolinone",
+                    "methylchloroisothiazolinone/methylisothiazolinone",
+                    "5-chloro-2-methyl-4-isothiazolin-3-one",
+                    "cmit",
+                    "mi/mci"
+                ],
+                "source": "local",
+                "context": "Ограничен в ЕС до 0.0015%"
+            },
+            {
+                "id": 10,
+                "name": "Triclosan",
+                "risk_level": "high",
+                "category": "antibacterial",
+                "description": "Вызывает антибиотикорезистентность, эндокринный дизраптор",
+                "aliases": [
+                    "triclosan",
+                    "триклозан",
+                    "antibacterial agent",
+                    "triclosanum",
+                    "2,4,4'-trichloro-2'-hydroxydiphenyl ether"
+                ],
+                "source": "local",
+                "context": "Запрещен в мыле в США с 2017"
+            },
+            {
+                "id": 11,
+                "name": "Oxybenzone",
+                "risk_level": "high",
+                "category": "UV filter",
+                "description": "Химический УФ-фильтр, проникает через кожу, эндокринный дизраптор",
+                "aliases": [
+                    "oxybenzone",
+                    "бензофенон-3",
+                    "benzophenone-3",
+                    "бензофенон",
+                    "benzophenone",
+                    "bp-3"
+                ],
+                "source": "local",
+                "context": "Запрещен на Гавайях, токсичен для кораллов"
+            },
+            
+            # 🟠 MEDIUM RISK (ВНИМАНИЕ) - Ограничить, особенно при чувствительной коже
             {
                 "id": 3,
                 "name": "Parfum", 
-                "risk_level": "high",
+                "risk_level": "medium",  # ИЗМЕНЕНО С high НА medium
                 "category": "fragrance",
-                "description": "Ароматизатор, може викликати алергії",
+                "description": "Ароматизатор. Может вызывать аллергию у 1-3% людей. Присутствует в 85% косметики.",
                 "aliases": [
                     "parfum", 
                     "fragrance", 
@@ -483,84 +182,74 @@ class IngredientChecker:
                     "aromatic",
                     "аромат"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Самый частый аллерген в косметике"
             },
             {
-                "id": 4,
-                "name": "Formaldehyde",
-                "risk_level": "high",
-                "category": "preservative", 
-                "description": "Канцероген, може викликати алергії",
-                "aliases": [
-                    "formaldehyde", 
-                    "formalin", 
-                    "формальдегід",
-                    "формалін",
-                    "formaldehydum",
-                    "methyl aldehyde"
-                ],
-                "source": "local"
-            },
-            {
-                "id": 5,
-                "name": "Methylisothiazolinone",
-                "risk_level": "high",
-                "category": "preservative",
-                "description": "Сильний алерген, заборонений в деяких країнах",
-                "aliases": [
-                    "methylisothiazolinone",
-                    "isothiazolinone",
-                    "methylisothiazolino",
-                    "мітілізотіазолінон",
-                    "methylchloroisothiazolinone",
-                    "methylchloroisothiazolinone/methylisothiazolinone",
-                    "kathon cg",
-                    "mi/mci"
-                ],
-                "source": "local"
-            },
-            {
-                "id": 6,
-                "name": "Tetrasodium EDTA",
+                "id": 2, 
+                "name": "Methylparaben",
                 "risk_level": "medium",
-                "category": "chelating agent",
-                "description": "Хелатуючий агент, може викликати подразнення",
+                "category": "preservative",
+                "description": "Консервант. Низкий риск в косметике для смывания, спорный в несмываемой.",
                 "aliases": [
-                    "tetrasodium edta",
-                    "edta",
-                    "тетранатрій едта",
-                    "тетрасодіум едта",
-                    "хелатуючий агент",
-                    "tetrasodium ethylenediaminetetraacetate",
-                    "edta tetrasodium",
-                    "edta-na4"
+                    "methylparaben", 
+                    "methyl paraben", 
+                    "парабен",
+                    "парабены",
+                    "метилпарабен",
+                    "консервант",
+                    "e218",
+                    "methylparabenum"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Разрешен в ЕС до 0.4% (смесь до 0.8%)"
             },
             {
-                "id": 7,
-                "name": "PEG-4",
-                "risk_level": "low",
-                "category": "emulsifier",
-                "description": "Емульгатор, вважається безпечним",
+                "id": 1,
+                "name": "Sodium Laureth Sulfate",
+                "risk_level": "medium",
+                "category": "surfactant", 
+                "description": "ПАВ, пенообразователь. Может сушить кожу. Более мягкий чем SLS.",
                 "aliases": [
-                    "peg-4",
-                    "peg",
-                    "поліетиленгліколь",
-                    "поліетилен гліколь",
-                    "peg 4",
-                    "peg4",
-                    "polyethylene glycol",
-                    "polyoxyethylene"
+                    "sodium laureth sulfate", 
+                    "sodium lauryl sulfate",
+                    "sles", 
+                    "sls", 
+                    "sodium lauryl ether sulfate",
+                    "натрію лаурет сульфат",
+                    "натрію лауріл сульфат",
+                    "лаурет сульфат натрію",
+                    "лауріл сульфат натрію",
+                    "sodium laureth sulphate",
+                    "sodium lauryl sulphate",
+                    "натріум лаурет сульфат"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Безопасен в смываемых продуктах"
+            },
+            {
+                "id": 12,
+                "name": "Propylene Glycol",
+                "risk_level": "medium",
+                "category": "humectant",
+                "description": "Увлажнитель и растворитель. Может вызывать раздражение при высокой концентрации (>20%).",
+                "aliases": [
+                    "propylene glycol",
+                    "пропіленгліколь",
+                    "пропілен гліколь",
+                    "1,2-propanediol",
+                    "pg",
+                    "propane-1,2-diol"
+                ],
+                "source": "local",
+                "context": "Безопасен до 50% в косметике"
             },
             {
                 "id": 8,
                 "name": "Alcohol Denat",
                 "risk_level": "medium",
                 "category": "solvent",
-                "description": "Денатурированный спирт, сушит кожу",
+                "description": "Денатурированный спирт. Сушит кожу, нарушает барьер. Избегать в продуктах для сухой кожи.",
                 "aliases": [
                     "alcohol denat",
                     "alcohol",
@@ -572,14 +261,55 @@ class IngredientChecker:
                     "ethyl alcohol",
                     "sd alcohol"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Приемлем в тониках для жирной кожи"
+            },
+            {
+                "id": 6,
+                "name": "Tetrasodium EDTA",
+                "risk_level": "medium",
+                "category": "chelating agent",
+                "description": "Хелатор. Улучшает пену и стабильность. Может вызывать раздражение у чувствительной кожи.",
+                "aliases": [
+                    "tetrasodium edta",
+                    "edta",
+                    "тетранатрій едта",
+                    "тетрасодіум едта",
+                    "хелатуючий агент",
+                    "tetrasodium ethylenediaminetetraacetate",
+                    "edta tetrasodium",
+                    "edta-na4"
+                ],
+                "source": "local",
+                "context": "Безопасен в низких концентрациях"
+            },
+            
+            # 🟡 LOW RISK (МИНИМАЛЬНЫЙ) - Нормально для большинства людей
+            {
+                "id": 7,
+                "name": "PEG-4",
+                "risk_level": "low",
+                "category": "emulsifier",
+                "description": "Полиэтиленгликоль низкомолекулярный. Эмульгатор, безопасен при чистоте >99.5%.",
+                "aliases": [
+                    "peg-4",
+                    "peg",
+                    "поліетиленгліколь",
+                    "поліетилен гліколь",
+                    "peg 4",
+                    "peg4",
+                    "polyethylene glycol",
+                    "polyoxyethylene"
+                ],
+                "source": "local",
+                "context": "Используется в фармацевтике и косметике"
             },
             {
                 "id": 9,
                 "name": "Mineral Oil",
                 "risk_level": "low",
                 "category": "emollient",
-                "description": "Минеральное масло, может забивать поры",
+                "description": "Минеральное масло высокой очистки. Не забивает поры (некомедогенное), окклюзивное увлажнение.",
                 "aliases": [
                     "mineral oil",
                     "парафінове масло",
@@ -590,61 +320,15 @@ class IngredientChecker:
                     "white mineral oil",
                     "liquid paraffin"
                 ],
-                "source": "local"
-            },
-            {
-                "id": 10,
-                "name": "Triclosan",
-                "risk_level": "high",
-                "category": "antibacterial",
-                "description": "Антибактериальный агент, может вызывать резистентность",
-                "aliases": [
-                    "triclosan",
-                    "триклозан",
-                    "antibacterial agent",
-                    "triclosanum",
-                    "2,4,4'-trichloro-2'-hydroxydiphenyl ether"
-                ],
-                "source": "local"
-            },
-            {
-                "id": 11,
-                "name": "Oxybenzone",
-                "risk_level": "high",
-                "category": "UV filter",
-                "description": "Химический УФ-фильтр, эндокринный дизраптор",
-                "aliases": [
-                    "oxybenzone",
-                    "бензофенон-3",
-                    "benzophenone-3",
-                    "бензофенон",
-                    "benzophenone",
-                    "bp-3"
-                ],
-                "source": "local"
-            },
-            {
-                "id": 12,
-                "name": "Propylene Glycol",
-                "risk_level": "medium",
-                "category": "humectant",
-                "description": "Увлажнитель, может вызывать раздражение",
-                "aliases": [
-                    "propylene glycol",
-                    "пропіленгліколь",
-                    "пропілен гліколь",
-                    "1,2-propanediol",
-                    "pg",
-                    "propane-1,2-diol"
-                ],
-                "source": "local"
+                "source": "local",
+                "context": "Высшая степень очистки - безопасно"
             },
             {
                 "id": 13,
                 "name": "Silicone",
                 "risk_level": "low",
                 "category": "emollient",
-                "description": "Силикон, создает пленку на коже",
+                "description": "Силиконы (диметикон). Создает защитную пленку, некомедогенные, легко смываются.",
                 "aliases": [
                     "silicone",
                     "силікон",
@@ -655,14 +339,15 @@ class IngredientChecker:
                     "cyclomethicone",
                     "polydimethylsiloxane"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Используется в медицинских имплантах"
             },
             {
                 "id": 14,
                 "name": "Citric Acid",
                 "risk_level": "low",
                 "category": "pH adjuster",
-                "description": "Регулятор pH, безопасный в малых количествах",
+                "description": "Лимонная кислота. Регулятор pH, антиоксидант. Безопасна в косметических концентрациях.",
                 "aliases": [
                     "citric acid",
                     "лимонная кислота",
@@ -670,14 +355,15 @@ class IngredientChecker:
                     "acidum citricum",
                     "e330"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Природная кислота, E330 в пище"
             },
             {
                 "id": 15,
                 "name": "Glycerin",
                 "risk_level": "low",
                 "category": "humectant",
-                "description": "Увлажнитель, безопасный и эффективный",
+                "description": "Глицерин. Натуральный увлажнитель, безопасен, подходит всем типам кожи.",
                 "aliases": [
                     "glycerin",
                     "гліцерин",
@@ -686,14 +372,15 @@ class IngredientChecker:
                     "1,2,3-propanetriol",
                     "e422"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Золотой стандарт увлажнения"
             },
             {
                 "id": 16,
                 "name": "Cocamidopropyl Betaine",
                 "risk_level": "low",
                 "category": "surfactant",
-                "description": "Мягкий поверхностно-активный агент",
+                "description": "Мягкий ПАВ из кокосового масла. Подходит для чувствительной кожи, не сушит.",
                 "aliases": [
                     "cocamidopropyl betaine",
                     "cocamidopropylbetaine",
@@ -702,28 +389,30 @@ class IngredientChecker:
                     "cab",
                     "cocamidopropyl dimethyl glycine"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Встречается в детской косметике"
             },
             {
                 "id": 17,
                 "name": "Styrene Acrylates Copolymer",
                 "risk_level": "low",
                 "category": "film former",
-                "description": "Пленкообразующий полимер",
+                "description": "Полимер для фиксации. Создает пленку, не проникает в кожу, безопасен.",
                 "aliases": [
                     "styrene acrylates copolymer",
                     "стирол/акрилати сополимер",
                     "styrene/acrylates copolymer",
                     "synthetic polymer"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Используется в лаках для волос"
             },
             {
                 "id": 18,
                 "name": "Coco Glucoside",
                 "risk_level": "low",
                 "category": "surfactant",
-                "description": "Натуральный мягкий ПАВ из кокосового масла",
+                "description": "Натуральный ПАВ из кокосового масла и глюкозы. Биоразлагаемый, мягкий.",
                 "aliases": [
                     "coco glucoside",
                     "коко глюкозид",
@@ -731,14 +420,15 @@ class IngredientChecker:
                     "alkyl polyglucoside",
                     "apg"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Используется в эко-косметике"
             },
             {
                 "id": 19,
                 "name": "Hydrolyzed Silk Protein",
                 "risk_level": "low",
                 "category": "conditioning agent",
-                "description": "Гидролизованный шелковый протеин, кондиционер",
+                "description": "Гидролизованный шелковый протеин. Кондиционер для волос, увлажняет.",
                 "aliases": [
                     "hydrolyzed silk protein",
                     "гідролізований шовковий протеїн",
@@ -746,14 +436,32 @@ class IngredientChecker:
                     "silk protein",
                     "sericin"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Натуральный кондиционер"
             },
+            {
+                "id": 22,
+                "name": "PEG-4 Cocoate",
+                "risk_level": "low",
+                "category": "emulsifier",
+                "description": "Эфир кокосового масла и ПЭГ-4. Эмульгатор, безопасен.",
+                "aliases": [
+                    "peg-4 cocoate",
+                    "peg-4 coconut ester",
+                    "polyethylene glycol-4 coconut ester",
+                    "coconut oil peg-4 esters"
+                ],
+                "source": "local",
+                "context": "Натуральный эмульгатор"
+            },
+            
+            # 🟢 SAFE (БЕЗОПАСНЫЕ) - Без риска
             {
                 "id": 20,
                 "name": "Aqua",
                 "risk_level": "safe",
                 "category": "solvent",
-                "description": "Вода, основа косметических средств",
+                "description": "Вода. Основа косметических средств, безопасна.",
                 "aliases": [
                     "aqua",
                     "вода",
@@ -761,39 +469,86 @@ class IngredientChecker:
                     "eau",
                     "h2o"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Основной компонент косметики"
             },
+            
+            # ДОПОЛНИТЕЛЬНЫЕ ИНГРЕДИЕНТЫ (добавлены для полноты)
             {
-                "id": 21,
-                "name": "Methylchloroisothiazolinone",
-                "risk_level": "high",
-                "category": "preservative",
-                "description": "Сильный консервант и аллерген",
-                "aliases": [
-                    "methylchloroisothiazolinone",
-                    "methylchloroisothiazolinone/methylisothiazolinone",
-                    "5-chloro-2-methyl-4-isothiazolin-3-one",
-                    "cmit",
-                    "mi/mci"
-                ],
-                "source": "local"
-            },
-            {
-                "id": 22,
-                "name": "PEG-4 Cocoate",
+                "id": 23,
+                "name": "Sodium Benzoate",
                 "risk_level": "low",
-                "category": "emulsifier",
-                "description": "Эмульгатор на основе кокосового масла",
+                "category": "preservative",
+                "description": "Консервант. Разрешен в ЕС до 0.5%, безопасен в косметических концентрациях.",
                 "aliases": [
-                    "peg-4 cocoate",
-                    "peg-4 coconut ester",
-                    "polyethylene glycol-4 coconut ester",
-                    "coconut oil peg-4 esters"
+                    "sodium benzoate",
+                    "бензоат натрия",
+                    "e211",
+                    "benzoate de sodium"
                 ],
-                "source": "local"
+                "source": "local",
+                "context": "Пищевой консервант E211"
+            },
+            {
+                "id": 24,
+                "name": "Titanium Dioxide",
+                "risk_level": "low",
+                "category": "UV filter",
+                "description": "Минеральный УФ-фильтр. Не проникает в кожу, безопасен даже для детей.",
+                "aliases": [
+                    "titanium dioxide",
+                    "діоксид титану",
+                    "ci 77891",
+                    "tio2"
+                ],
+                "source": "local",
+                "context": "Минеральный солнцезащитный фильтр"
+            },
+            {
+                "id": 25,
+                "name": "Zinc Oxide",
+                "risk_level": "low",
+                "category": "UV filter",
+                "description": "Минеральный УФ-фильтр широкого спектра. Безопасен, неаллергенный.",
+                "aliases": [
+                    "zinc oxide",
+                    "оксид цинку",
+                    "ci 77947",
+                    "zno"
+                ],
+                "source": "local",
+                "context": "Золотой стандарт детских санскринов"
+            },
+            {
+                "id": 26,
+                "name": "Butylparaben",
+                "risk_level": "medium",
+                "category": "preservative",
+                "description": "Парабеновый консервант. Разрешен с ограничениями в ЕС.",
+                "aliases": [
+                    "butylparaben",
+                    "бутилпарабен",
+                    "butyl paraben"
+                ],
+                "source": "local",
+                "context": "Ограничен в ЕС в детской косметике"
+            },
+            {
+                "id": 27,
+                "name": "Propylparaben",
+                "risk_level": "medium",
+                "category": "preservative",
+                "description": "Парабеновый консервант. Аналогичен метилпарабену по безопасности.",
+                "aliases": [
+                    "propylparaben",
+                    "пропилпарабен",
+                    "propyl paraben"
+                ],
+                "source": "local",
+                "context": "Часто используется с метилпарабеном"
             }
         ]
-        print(f"✅ Загружено {len(ingredients)} ингредиентов")
+        print(f"✅ Загружено {len(ingredients)} ингредиентов с практичной оценкой рисков")
         return ingredients
 
     def load_common_fixes(self):
@@ -850,87 +605,142 @@ class IngredientChecker:
             "вода": "aqua",
             "water": "aqua",
             "аqua": "aqua",
-            "cocoate": "cocoate"
+            "cocoate": "cocoate",
+            "бензоат": "benzoate",
+            "натрія": "sodium",
+            "діоксид": "dioxide",
+            "титану": "titanium",
+            "оксид": "oxide",
+            "цинку": "zinc"
         }
         print(f"✅ Загружено {len(fixes)} исправлений опечаток")
         return fixes
     
     def _create_not_found_response(self, ingredient_name):
-        """Создание ответа для ненайденного ингредиента"""
+        """Создание ответа для ненайденного ингредиента с улучшенной логикой"""
+        # Попробуем определить риск по названию
+        risk_level = "unknown"
+        
+        # Ключевые слова для определения риска
+        ingredient_lower = ingredient_name.lower()
+        
+        high_risk_patterns = [
+            r'.*formaldehyd.*', r'.*формальдегід.*',
+            r'.*isothiazolinone.*', r'.*ізотіазолінон.*',
+            r'.*triclosan.*', r'.*триклозан.*',
+            r'.*oxybenzone.*', r'.*бензофенон.*'
+        ]
+        
+        medium_risk_patterns = [
+            r'.*paraben.*', r'.*парабен.*',
+            r'.*parfum.*', r'.*fragrance.*', r'.*аромат.*',
+            r'.*alcohol.*', r'.*спирт.*',
+            r'.*sulfate.*', r'.*сульфат.*',
+            r'.*glycol.*', r'.*гліколь.*'
+        ]
+        
+        low_risk_patterns = [
+            r'.*glycerin.*', r'.*гліцерин.*',
+            r'.*aqua.*', r'.*вода.*', r'.*water.*',
+            r'.*benzoate.*', r'.*бензоат.*',
+            r'.*dioxide.*', r'.*діоксид.*',
+            r'.*oxide.*', r'.*оксид.*',
+            r'.*acid.*', r'.*кислота.*'
+        ]
+        
+        for pattern in high_risk_patterns:
+            if re.match(pattern, ingredient_lower):
+                risk_level = "high"
+                break
+                
+        if risk_level == "unknown":
+            for pattern in medium_risk_patterns:
+                if re.match(pattern, ingredient_lower):
+                    risk_level = "medium"
+                    break
+                    
+        if risk_level == "unknown":
+            for pattern in low_risk_patterns:
+                if re.match(pattern, ingredient_lower):
+                    risk_level = "low"
+                    break
+        
         return {
             "name": ingredient_name,
-            "risk_level": "unknown",
+            "risk_level": risk_level,
             "category": "unknown",
-            "description": "Інгредієнт не знайдено в базі даних",
+            "description": f"Інгредієнт не знайдено в локальній базі. Автоматично визначено рівень ризику: {risk_level}",
             "source": "not_found",
-            "aliases": []
+            "aliases": [],
+            "context": "Оцінка на основі ключових слів у назві"
         }
     
     def is_potential_ingredient(self, text):
-        """Проверка, может ли текст быть ингредиентом"""
+        """Проверка, может ли текст быть ингредиентом (с использованием стоп-слов)"""
         if not text or len(text) < 3:
             return False
         
         text_lower = text.lower().strip()
         
-        # Проверяем стоп-слова
+        # 1. Проверяем стоп-слова (обновленный список)
         if text_lower in self.stop_words:
+            print(f"  ⛔ Отфильтровано стоп-слово: '{text}'")
             return False
         
-        # Проверяем, не является ли это числом или адресом
+        # 2. Проверяем, не является ли это числом или процентом
         if text_lower.isdigit() or re.match(r'^\d+[.,]\d+$', text_lower):
             return False
         
-        # Проверяем формат адреса (индекс, улица и т.д.)
+        # 3. Проверяем единицы измерения и числительные
+        measurement_units = ['мл', 'л', 'г', 'кг', 'мг', 'мкг', 'шт', '%', 'відсотків']
+        if text_lower in measurement_units:
+            return False
+        
+        # 4. Проверяем формат адреса или контактной информации
         address_patterns = [
             r'^\d{6}$',  # почтовый индекс
-            r'^ул\.', r'^улица',  # улица
-            r'^д\.', r'^дом',  # дом
-            r'^корп\.', r'^корпус',  # корпус
-            r'^стр\.', r'^строение',  # строение
-            r'^оф\.', r'^офис',  # офис
-            r'^тел\.', r'^телефон',  # телефон
-            r'^\+\d',  # номер телефона
-            r'^\d{3}-\d{3}-\d{4}',  # формат телефона
-            r'^email', r'^e-mail',  # email
-            r'^@',  # email
-            r'^http', r'^www\.', r'^https',  # URL
-            r'^г\.', r'^город',  # город
-            r'^обл\.', r'^область',  # область
-            r'^р-н', r'^район',  # район
-            r'^пос\.', r'^поселок',  # поселок
-            r'^пгт',  # поселок городского типа
-            r'^с\.', r'^село',  # село
-            r'^д\.', r'^деревня',  # деревня
-            r'^кв\.', r'^квартира',  # квартира
-            r'^пом\.', r'^помещение',  # помещение
+            r'^ул\.', r'^улиця', r'^вул\.',
+            r'^д\.', r'^дом', 
+            r'^тел\.', r'^телефон', r'^\+?\d', r'^\d{3}-\d{3}-\d{4}',
+            r'^email', r'^e-mail', r'^@',
+            r'^http', r'^www\.', r'^https',
+            r'^г\.', r'^город', r'^м\.',
+            r'^обл\.', r'^область',
+            r'^р-н', r'^район',
+            r'^пос\.', r'^поселок', r'^пгт',
+            r'^с\.', r'^село',
+            r'^кв\.', r'^квартира',
         ]
         
         for pattern in address_patterns:
             if re.search(pattern, text_lower, re.IGNORECASE):
                 return False
         
-        # Ингредиенты обычно содержат буквы
+        # 5. Ингредиенты обычно содержат буквы
         if not any(c.isalpha() for c in text):
             return False
         
-        # Химические названия часто содержат цифры, дефисы, скобки
-        # или начинаются с заглавной буквы
+        # 6. Химические названия часто содержат специфические признаки
         has_uppercase = any(c.isupper() for c in text)
         has_hyphen = '-' in text
         has_digit = any(c.isdigit() for c in text)
         has_parentheses = '(' in text or ')' in text
         has_slash = '/' in text
-        has_period = '.' in text and len(text) > 1  # но не одиночная точка
+        has_period = '.' in text and len(text) > 1
         
         # Если это похоже на химическое название
         if has_uppercase or has_hyphen or has_digit or has_parentheses or has_slash or has_period:
             # Но проверяем, что это не просто число с точкой
             if re.match(r'^\d+\.?\d*$', text):
                 return False
+            
+            # Проверяем, не является ли это названием раздела (например, "Склад:")
+            if text_lower.endswith(':'):
+                return False
+            
             return True
         
-        # Проверяем по словарю известных ингредиентов
+        # 7. Проверяем по словарю известных ингредиентов и их алиасов
         for ingredient in self.local_ingredients:
             if text_lower == ingredient['name'].lower():
                 return True
@@ -938,11 +748,13 @@ class IngredientChecker:
                 if text_lower == alias.lower():
                     return True
         
-        # Дополнительная проверка: ингредиенты часто содержат определенные суффиксы
+        # 8. Дополнительная проверка: химические суффиксы
         ingredient_suffixes = ['ate', 'ide', 'one', 'ene', 'ol', 'ic', 'in', 'ose', 'ase', 'ium', 'um']
         for suffix in ingredient_suffixes:
             if text_lower.endswith(suffix) and len(text) > 3:
-                return True
+                # Проверяем, что это не слово из стоп-листа с таким суффиксом
+                if text_lower not in self.stop_words:
+                    return True
         
         return False
     
@@ -961,20 +773,16 @@ class IngredientChecker:
         
         # Паттерны для начала списка ингредиентов
         start_patterns = [
-            r'состав[:\s]*',
+            r'склад[:\s]*',  # Украинское "склад"
+            r'інгредієнти[:\s]*',  # Украинское "інгредієнти"
             r'ингредиенты[:\s]*',
             r'ingredients[:\s]*',
             r'inci[:\s]*',
-            r'ингредієнти[:\s]*',
-            r'склад[:\s]*',
             r'components[:\s]*',
             r'contents[:\s]*',
             r'contains[:\s]*',
             r'constituents[:\s]*',
         ]
-        
-        # Паттерны для разделителей между ингредиентами
-        separators = [',', ';', '\.', '\n', '/', 'и', 'and', '&', '\+']
         
         for pattern in start_patterns:
             matches = list(re.finditer(pattern, text, re.IGNORECASE))
@@ -986,21 +794,10 @@ class IngredientChecker:
                     r'\n\s*\d+\.',      # Новая строка с номером
                     r'\.\s*\n',         # Точка и новая строка
                     r'\n{2,}',          # Две пустые строки
-                    r'предназначено',   # Следующий раздел
-                    r'intended',
-                    r'применение',
-                    r'application',
-                    r'использование',
-                    r'usage',
-                    r'хранение',
-                    r'storage',
-                    r'условия',
-                    r'conditions',
-                    r'производитель',
-                    r'manufacturer',
-                    r'изготовитель',
-                    r'производство',
-                    r'production',
+                    r'умови', r'зберігання',  # Раздел условий
+                    r'термін', r'придатності',  # Срок годности
+                    r'виробник', r'виготовлювач',  # Производитель
+                    r'алергени', r'алерген',  # Раздел аллергенов
                 ]
                 
                 end_pos = len(text)
@@ -1061,6 +858,10 @@ class IngredientChecker:
                 # Очищаем токен от лишних символов в начале и конце
                 clean_token = token.strip(' ,.;:')
                 
+                # Пропускаем пустые токены
+                if not clean_token:
+                    continue
+                
                 # Разделяем сложные ингредиенты (например, "Methylchloroisothiazolinone/Methylisothiazolinone")
                 if '/' in clean_token:
                     sub_tokens = clean_token.split('/')
@@ -1070,7 +871,7 @@ class IngredientChecker:
                             all_candidates.append(sub_token_clean)
                             print(f"  🧪 Кандидат (из комбинации): '{sub_token_clean}'")
                 else:
-                    if clean_token and self.is_potential_ingredient(clean_token):
+                    if self.is_potential_ingredient(clean_token):
                         all_candidates.append(clean_token)
                         print(f"  🧪 Кандидат: '{clean_token}'")
         
@@ -1198,14 +999,32 @@ class IngredientChecker:
         for candidate in candidates:
             ingredient = self.search_ingredient(candidate)
             
-            if (ingredient['source'] != 'not_found' and 
-                ingredient['name'] not in seen_names):
-                
+            if ingredient['name'] not in seen_names:
                 found_ingredients.append(ingredient)
                 seen_names.add(ingredient['name'])
-                print(f"✅ Найден: {ingredient['name']} (источник: {ingredient['source']})")
+                risk_icon = "🔴" if ingredient['risk_level'] == 'high' else \
+                           "🟠" if ingredient['risk_level'] == 'medium' else \
+                           "🟡" if ingredient['risk_level'] == 'low' else \
+                           "🟢" if ingredient['risk_level'] == 'safe' else "⚫"
+                print(f"✅ {risk_icon} Найден: {ingredient['name']} (риск: {ingredient['risk_level']}, источник: {ingredient.get('source', 'local')})")
         
         print(f"📊 ИТОГО: найдено {len(found_ingredients)} ингредиентов")
+        
+        # 3. Статистика по рискам
+        risk_stats = {
+            'high': 0,
+            'medium': 0,
+            'low': 0,
+            'safe': 0,
+            'unknown': 0
+        }
+        
+        for ing in found_ingredients:
+            risk = ing.get('risk_level', 'unknown')
+            if risk in risk_stats:
+                risk_stats[risk] += 1
+        
+        print(f"📈 Статистика рисков: 🔴 {risk_stats['high']} 🟠 {risk_stats['medium']} 🟡 {risk_stats['low']} 🟢 {risk_stats['safe']} ⚫ {risk_stats['unknown']}")
         
         return found_ingredients
 
@@ -1285,9 +1104,6 @@ class ExternalDataFetcher:
             # В реальности нужно использовать официальный API
             url = f"https://ec.europa.eu/growth/tools-databases/cosing/api/ingredient/{ingredient_name}"
             
-            # В демо-версии возвращаем заглушку
-            # Для реального использования нужно зарегистрироваться и получить доступ к API
-            
             print(f"🔗 Запрос к CosIng API: {ingredient_name}")
             
             # Заглушка для демонстрации
@@ -1296,9 +1112,10 @@ class ExternalDataFetcher:
                     "name": ingredient_name,
                     "risk_level": "medium",
                     "category": "preservative",
-                    "description": "Консервант. Разрешен в ЕС с ограничениями.",
+                    "description": "Консервант парабенового ряда. Разрешен в ЕС с ограничениями.",
                     "source": "cosing",
-                    "aliases": []
+                    "aliases": [],
+                    "context": "ЕС ограничения: до 0.4% (смесь до 0.8%)"
                 }
             
             return None
@@ -1319,14 +1136,19 @@ class ExternalDataFetcher:
                 data = response.json()
                 
                 if data.get('product'):
-                    # Извлекаем информацию об ингредиенте
+                    # Определяем риск по типу ингредиента
+                    risk_level = "low"
+                    if any(word in ingredient_name.lower() for word in ['preservative', 'artificial', 'color']):
+                        risk_level = "medium"
+                    
                     ingredient_data = {
                         "name": ingredient_name,
-                        "risk_level": "low",  # По умолчанию
+                        "risk_level": risk_level,
                         "category": "food_ingredient",
-                        "description": f"Пищевой ингредиент из Open Food Facts",
+                        "description": f"Пищевой ингредиент",
                         "source": "openfoodfacts",
-                        "aliases": []
+                        "aliases": [],
+                        "context": "Данные из Open Food Facts"
                     }
                     
                     return ingredient_data
@@ -1338,7 +1160,7 @@ class ExternalDataFetcher:
             return None
     
     def _search_pubchem(self, ingredient_name):
-        """Поиск в PubChem"""
+        """Поиск в PubChem с улучшенной оценкой риска"""
         try:
             # PubChem API
             url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{ingredient_name}/JSON"
@@ -1348,14 +1170,36 @@ class ExternalDataFetcher:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Анализ химической информации
+                # Улучшенная логика определения риска по названию
+                ingredient_lower = ingredient_name.lower()
+                risk_level = "unknown"
+                category = "chemical"
+                
+                # Определяем риск и категорию
+                if any(word in ingredient_lower for word in ['paraben', 'isothiazolinone', 'formalde']):
+                    risk_level = "high" if 'isothiazolinone' in ingredient_lower or 'formalde' in ingredient_lower else "medium"
+                    category = "preservative"
+                elif any(word in ingredient_lower for word in ['parfum', 'fragrance', 'perfume']):
+                    risk_level = "medium"
+                    category = "fragrance"
+                elif any(word in ingredient_lower for word in ['alcohol', 'glycol']):
+                    risk_level = "medium"
+                    category = "solvent"
+                elif any(word in ingredient_lower for word in ['glycerin', 'aqua', 'water', 'oil']):
+                    risk_level = "low"
+                    category = "base" if 'aqua' in ingredient_lower or 'water' in ingredient_lower else "emollient"
+                elif any(word in ingredient_lower for word in ['acid', 'ate']):
+                    risk_level = "low"
+                    category = "pH adjuster" if 'acid' in ingredient_lower else "ester"
+                
                 ingredient_data = {
                     "name": ingredient_name,
-                    "risk_level": "unknown",
-                    "category": "chemical",
-                    "description": "Химическое соединение из базы PubChem",
+                    "risk_level": risk_level,
+                    "category": category,
+                    "description": f"Химическое соединение: {ingredient_name}",
                     "source": "pubchem",
-                    "aliases": []
+                    "aliases": [],
+                    "context": "Автоматическая оценка на основе названия"
                 }
                 
                 return ingredient_data
@@ -1412,13 +1256,15 @@ if __name__ == "__main__":
     checker = IngredientChecker(use_cache=True)
     
     test_texts = [
-        "Состав: Aqua, Sodium Laureth Sulfate, Methylparaben, Butylparaben",
-        "Ingredients: Water, Titanium Dioxide, Zinc Oxide",
-        "INCI: Cetearyl Alcohol, Glyceryl Stearate, Phenoxyethanol",
+        "Склад: Aqua, Parfum, Glycerin, Methylparaben, Sodium Laureth Sulfate",
+        "Ingredients: Water, Fragrance, Propylene Glycol, Oxybenzone",
+        "Состав: Формальдегід, Метилізотіазолінон, Триклозан, Бензоат натрію",
+        "INCI: Dimethicone, Titanium Dioxide, Zinc Oxide, Alcohol Denat",
     ]
     
     print("\n" + "=" * 60)
-    print("🧪 ТЕСТИРОВАНИЕ РАСШИРЕННОГО INGREDIENT CHECKER")
+    print("🧪 ТЕСТИРОВАНИЕ ОБНОВЛЕННОГО INGREDIENT CHECKER")
+    print("🔴 High   🟠 Medium   🟡 Low   🟢 Safe   ⚫ Unknown")
     print("=" * 60)
     
     for i, text in enumerate(test_texts, 1):
@@ -1427,11 +1273,32 @@ if __name__ == "__main__":
         
         result = checker.find_ingredients(text)
         
-        print(f"Найдено: {len(result)} ингредиентов")
+        print(f"\n📊 Результат: {len(result)} ингредиентов")
         
+        # Группируем по уровню риска
+        grouped = {}
         for ing in result:
-            print(f"  - {ing['name']} (риск: {ing['risk_level']}, источник: {ing.get('source', 'local')})")
+            risk = ing.get('risk_level', 'unknown')
+            if risk not in grouped:
+                grouped[risk] = []
+            grouped[risk].append(ing)
+        
+        # Выводим по группам риска
+        for risk_level in ['high', 'medium', 'low', 'safe', 'unknown']:
+            if risk_level in grouped and grouped[risk_level]:
+                icon = "🔴" if risk_level == 'high' else \
+                       "🟠" if risk_level == 'medium' else \
+                       "🟡" if risk_level == 'low' else \
+                       "🟢" if risk_level == 'safe' else "⚫"
+                print(f"\n{icon} {risk_level.upper()} риск ({len(grouped[risk_level])}):")
+                for ing in grouped[risk_level]:
+                    print(f"  - {ing['name']} ({ing.get('category', 'N/A')})")
     
     print("\n" + "=" * 60)
     print("✅ Тестирование завершено")
     print("=" * 60)
+    print("\n💡 Практичная система оценки:")
+    print("  🔴 HIGH: Избегать полностью (канцерогены, сильные аллергены)")
+    print("  🟠 MEDIUM: Осторожность при чувствительной коже (парфюм, парабены)")
+    print("  🟡 LOW: Нормально для большинства (глицерин, силиконы)")
+    print("  🟢 SAFE: Без риска (вода)")

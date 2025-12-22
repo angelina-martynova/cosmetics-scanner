@@ -1261,7 +1261,13 @@ input[autocomplete="new-password"] {
         color: #D991BA !important;
     }
 
-    /* Кнопки массовых действий в темной теме - ТЕМНЫЙ ТЕКСТ */
+    /* ФИОЛЕТОВЫЙ ТЕКСТ ДЛЯ "Скануй безпеку своєї косметики" только в темной теме */
+    .hero-section h1 {
+        color: #2A002D !important;
+        background: none !important;
+        -webkit-text-fill-color: #2A002D !important;
+    }
+
     .bulk-actions button {
         background: linear-gradient(135deg, #D7C9AA, #C5B89B);
         color: #330036 !important;

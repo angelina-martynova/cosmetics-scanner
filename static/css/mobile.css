@@ -167,7 +167,7 @@
         left: 10px;
         max-width: none;
         top: 80px;
-        /* Зміщуємо повідомлення нижче кнопок */
+        /* Зміщуємо повідомленя нижче кнопок */
     }
 
     .back-button {
@@ -533,7 +533,13 @@
         /* Розовый */
     }
 
-    /* Кнопки массовых действий в темной теме */
+    /* ФИОЛЕТОВЫЙ ТЕКСТ ДЛЯ "Скануй безпеку своєї косметики" только в темной теме на мобильных */
+    .hero-section h1 {
+        color: #2A002D !important;
+        background: none !important;
+        -webkit-text-fill-color: #2A002D !important;
+    }
+
     .bulk-actions button {
         background: linear-gradient(135deg, #D991BA, #C97AA5);
         /* Розовый градиент */

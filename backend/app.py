@@ -88,6 +88,9 @@ class Scan(db.Model):
     input_method = db.Column(db.String(50))
     original_text = db.Column(db.Text)
     safety_status = db.Column(db.String(20), default='safe')
+    safety_message = db.Column(db.String(255))  # Новое поле: сообщение о безопасности
+    contains_unknown = db.Column(db.Boolean, default=False)  # Новое поле: содержит неизвестные ингредиенты
+    unknown_count = db.Column(db.Integer, default=0)  # Новое поле: количество неизвестных ингредиентов
     image_filename = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -114,16 +117,13 @@ class Scan(db.Model):
     def to_dict(self):
         ingredients_list = self.get_ingredients_list()
         
-        safety_status = self.safety_status
-        if not safety_status and ingredients_list:
-            high_risk_count = sum(1 for ing in ingredients_list 
-                                if isinstance(ing, dict) and ing.get('risk_level') == 'high')
-            if high_risk_count > 0:
-                safety_status = 'danger'
-            elif len(ingredients_list) > 0:
-                safety_status = 'warning'
-            else:
-                safety_status = 'safe'
+        # Если поля не заполнены, рассчитываем заново (для старых записей)
+        if not self.safety_message:
+            safety_info = calculate_safety_status_with_message(ingredients_list)
+            self.safety_status = safety_info['status']
+            self.safety_message = safety_info['message']
+            self.contains_unknown = safety_info['contains_unknown']
+            self.unknown_count = safety_info['unknown_count']
         
         return {
             'id': self.id,
@@ -131,26 +131,130 @@ class Scan(db.Model):
             'input_type': self.input_type,
             'input_method': self.input_method,
             'original_text': self.original_text,
-            'safety_status': safety_status or 'safe',
+            'safety_status': self.safety_status,
+            'safety_message': self.safety_message,
+            'contains_unknown': self.contains_unknown,
+            'unknown_count': self.unknown_count,
             'image_filename': self.image_filename,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'ingredients': ingredients_list,
-            'ingredients_count': len(ingredients_list)
+            'ingredients_count': len(ingredients_list),
+            'risk_statistics': self.get_risk_statistics()
         }
+    
+    def get_risk_statistics(self):
+        """Получение статистики по рискам"""
+        ingredients_list = self.get_ingredients_list()
+        
+        stats = {
+            'total': len(ingredients_list),
+            'high': 0,
+            'medium': 0,
+            'low': 0,
+            'unknown': 0,
+            'safe': 0
+        }
+        
+        for ing in ingredients_list:
+            risk_level = ing.get('risk_level', 'unknown')
+            if risk_level in stats:
+                stats[risk_level] += 1
+        
+        return stats
 
-def save_uploaded_file(file):
-    import uuid
-    from datetime import datetime
+def calculate_safety_status_with_message(detected_ingredients):
+    """Улучшенная функция расчета статуса безопасности с сообщением"""
     
-    uploads_dir = os.path.join(os.path.dirname(__file__), 'uploads')
-    os.makedirs(uploads_dir, exist_ok=True)
+    if not detected_ingredients:
+        return {
+            'status': 'safe',
+            'message': 'Продукт безопасен',
+            'contains_unknown': False,
+            'unknown_count': 0
+        }
     
-    file_ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
-    filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.{file_ext}"
-    filepath = os.path.join(uploads_dir, filename)
+    # Счетчики рисков
+    risk_counts = {
+        'high': 0,
+        'medium': 0,
+        'low': 0,
+        'unknown': 0,
+        'safe': 0
+    }
     
-    file.save(filepath)
-    return filename
+    # Собираем статистику
+    for ing in detected_ingredients:
+        risk_level = ing.get('risk_level', 'unknown')
+        if risk_level in risk_counts:
+            risk_counts[risk_level] += 1
+    
+    total = len(detected_ingredients)
+    unknown_percentage = (risk_counts['unknown'] / total * 100) if total > 0 else 0
+    
+    # Основная логика оценки
+    
+    # 1. Опасность - есть high-риск ингредиенты
+    if risk_counts['high'] > 0:
+        return {
+            'status': 'danger',
+            'message': 'Высокий риск, рекомендуется избегать',
+            'contains_unknown': risk_counts['unknown'] > 0,
+            'unknown_count': risk_counts['unknown']
+        }
+    
+    # 2. Предупреждение - комбинация факторов
+    warning_conditions = [
+        risk_counts['medium'] >= 2,  # 2+ средних риска
+        risk_counts['medium'] == 1 and risk_counts['unknown'] >= 2,  # 1 средний + 2+ неизвестных
+        unknown_percentage > 50 and total <= 10,  # Больше половины неизвестно в небольшом составе
+        risk_counts['unknown'] >= 3 and total <= 5,  # 3+ неизвестных в коротком составе
+    ]
+    
+    if any(warning_conditions):
+        return {
+            'status': 'warning',
+            'message': 'Умеренные риски, рассмотрите альтернативы',
+            'contains_unknown': risk_counts['unknown'] > 0,
+            'unknown_count': risk_counts['unknown']
+        }
+    
+    # 3. Низкое предупреждение - умеренные условия
+    low_warning_conditions = [
+        risk_counts['medium'] == 1,  # 1 средний риск
+        risk_counts['unknown'] == 2 and total <= 8,  # 2 неизвестных в небольшом составе
+        unknown_percentage > 30 and unknown_percentage <= 50,  # 30-50% неизвестно
+    ]
+    
+    if any(low_warning_conditions):
+        return {
+            'status': 'low_warning',
+            'message': 'Незначительные риски, можно использовать',
+            'contains_unknown': risk_counts['unknown'] > 0,
+            'unknown_count': risk_counts['unknown']
+        }
+    
+    # 4. Безопасно - только низкие риски или немного неизвестного
+    safe_conditions = [
+        risk_counts['low'] > 0 and risk_counts['unknown'] == 0,  # Только низкие риски
+        risk_counts['unknown'] == 1 and total >= 10,  # 1 неизвестный среди многих ингредиентов
+        unknown_percentage <= 20,  # Меньше 20% неизвестно
+    ]
+    
+    if any(safe_conditions) or total == 0:
+        return {
+            'status': 'safe',
+            'message': 'Продукт безопасен',
+            'contains_unknown': risk_counts['unknown'] > 0,
+            'unknown_count': risk_counts['unknown']
+        }
+    
+    # 5. По умолчанию - безопасно с предупреждением о неизвестном
+    return {
+        'status': 'safe',
+        'message': 'Продукт безопасен' + (' (содержит неизвестные ингредиенты)' if risk_counts['unknown'] > 0 else ''),
+        'contains_unknown': risk_counts['unknown'] > 0,
+        'unknown_count': risk_counts['unknown']
+    }
 
 ingredient_checker = IngredientChecker(use_cache=True, fallback_to_local=True)
 
@@ -160,8 +264,12 @@ def check_ingredients(text):
     return ingredient_checker.find_ingredients(text)
 
 def create_scan(user_id, text, detected_ingredients, input_type='manual', input_method='text'):
-    safety_status = 'safe'
+    """Создание скана с улучшенной логикой оценки безопасности"""
     
+    # Рассчитываем статус безопасности
+    safety_info = calculate_safety_status_with_message(detected_ingredients)
+    
+    # Подготавливаем данные ингредиентов для JSON
     ingredients_for_json = []
     if detected_ingredients:
         for ing in detected_ingredients:
@@ -169,29 +277,12 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
                 ingredients_for_json.append({
                     'id': ing.get('id', 0),
                     'name': ing.get('name', 'Unknown'),
-                    'risk_level': ing.get('risk_level', 'medium'),
+                    'risk_level': ing.get('risk_level', 'unknown'),
                     'category': ing.get('category', ''),
                     'description': ing.get('description', '')
                 })
-            else:
-                ingredients_for_json.append({
-                    'id': 0,
-                    'name': str(ing),
-                    'risk_level': 'unknown',
-                    'category': '',
-                    'description': ''
-                })
-        
-        high_risk_count = sum(1 for ing in ingredients_for_json 
-                            if ing.get('risk_level') == 'high')
-        
-        if high_risk_count > 0:
-            safety_status = 'danger'
-        elif len(ingredients_for_json) > 0:
-            safety_status = 'warning'
-        else:
-            safety_status = 'safe'
     
+    # Создаем запись скана
     image_filename = None
     
     scan = Scan(
@@ -199,7 +290,10 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
         input_type=input_type,
         input_method=input_method,
         original_text=text,
-        safety_status=safety_status,
+        safety_status=safety_info['status'],
+        safety_message=safety_info['message'],
+        contains_unknown=safety_info['contains_unknown'],
+        unknown_count=safety_info['unknown_count'],
         image_filename=image_filename,
         ingredients_detected=ingredients_for_json
     )
@@ -207,7 +301,12 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
     db.session.add(scan)
     db.session.commit()
     
-    print(f"✅ Создан скан ID: {scan.id} с {len(ingredients_for_json)} ингредиентами")
+    print(f"✅ Создан скан ID: {scan.id}")
+    print(f"   Статус: {safety_info['status']}")
+    print(f"   Сообщение: {safety_info['message']}")
+    print(f"   Ингредиентов: {len(detected_ingredients)}")
+    print(f"   Неизвестных: {safety_info['unknown_count']}")
+    
     return scan.id
 
 @app.route('/api/upload_text_file', methods=['POST'])
@@ -479,10 +578,6 @@ def get_user_scans():
         scans_data = []
         for scan in scans:
             scan_dict = scan.to_dict()
-            
-            ingredients_list = scan.get_ingredients_list()
-            print(f"  Скан {scan.id}: {len(ingredients_list)} ингредиентов, статус: {scan.safety_status}")
-            
             scans_data.append(scan_dict)
         
         print(f"📊 Всего сканов: {len(scans_data)}")
@@ -508,10 +603,6 @@ def get_scan(scan_id):
             return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
         
         scan_data = scan.to_dict()
-        
-        ingredients_list = scan.get_ingredients_list()
-        scan_data['ingredients_detailed'] = ingredients_list
-        scan_data['ingredients_count'] = len(ingredients_list)
         
         return jsonify({
             "status": "success",
@@ -589,9 +680,13 @@ def export_scan_to_pdf(scan_id):
             'input_type': scan_data['input_type'],
             'input_method': scan_data['input_method'],
             'safety_status': scan_data['safety_status'],
+            'safety_message': scan_data['safety_message'],
+            'contains_unknown': scan_data['contains_unknown'],
+            'unknown_count': scan_data['unknown_count'],
             'original_text': scan_data['original_text'],
             'ingredients_count': scan_data['ingredients_count'],
-            'ingredients_detailed': ingredients_list
+            'ingredients_detailed': ingredients_list,
+            'risk_statistics': scan_data['risk_statistics']
         }
         
         print(f"📋 Экспорт скана {scan_id} в PDF")
@@ -766,27 +861,28 @@ def fix_all_scans():
                             ingredients_for_json.append({
                                 'id': ing.get('id', 0),
                                 'name': ing.get('name', 'Unknown'),
-                                'risk_level': ing.get('risk_level', 'medium'),
+                                'risk_level': ing.get('risk_level', 'unknown'),
                                 'category': ing.get('category', ''),
                                 'description': ing.get('description', '')
                             })
                     
                     scan.ingredients_detected = ingredients_for_json
                     
-                    high_risk_count = sum(1 for ing in ingredients_for_json 
-                                        if ing.get('risk_level') == 'high')
-                    
-                    if high_risk_count > 0:
-                        scan.safety_status = 'danger'
-                    elif len(ingredients_for_json) > 0:
-                        scan.safety_status = 'warning'
-                    else:
-                        scan.safety_status = 'safe'
+                    # Обновляем информацию о безопасности
+                    safety_info = calculate_safety_status_with_message(detected_ingredients)
+                    scan.safety_status = safety_info['status']
+                    scan.safety_message = safety_info['message']
+                    scan.contains_unknown = safety_info['contains_unknown']
+                    scan.unknown_count = safety_info['unknown_count']
                     
                     fixed_count += 1
-                    print(f"  ✅ Исправлен скан {scan.id}: {len(detected_ingredients)} ингредиентов")
+                    print(f"  ✅ Исправлен скан {scan.id}: {len(detected_ingredients)} ингредиентов, статус: {safety_info['status']}")
                 else:
-                    scan.safety_status = 'safe'
+                    safety_info = calculate_safety_status_with_message([])
+                    scan.safety_status = safety_info['status']
+                    scan.safety_message = safety_info['message']
+                    scan.contains_unknown = False
+                    scan.unknown_count = 0
                     scan.ingredients_detected = []
                     fixed_count += 1
                     print(f"  ℹ️  Исправлен скан {scan.id}: без ингредиентов")
@@ -995,6 +1091,51 @@ def get_enhanced_ingredients():
         
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/test-safety-logic', methods=['POST'])
+def test_safety_logic():
+    """Тестирование новой логики оценки безопасности"""
+    try:
+        data = request.get_json()
+        ingredients = data.get('ingredients', [])
+        
+        if not ingredients:
+            # Тестовые данные
+            ingredients = [
+                {'name': 'Aqua', 'risk_level': 'safe'},
+                {'name': 'Glycerin', 'risk_level': 'low'},
+                {'name': 'Unknown1', 'risk_level': 'unknown'},
+                {'name': 'Unknown2', 'risk_level': 'unknown'},
+            ]
+        
+        # Применяем новую логику
+        safety_info = calculate_safety_status_with_message(ingredients)
+        
+        # Анализируем статистику
+        stats = {
+            'total': len(ingredients),
+            'high': sum(1 for i in ingredients if i.get('risk_level') == 'high'),
+            'medium': sum(1 for i in ingredients if i.get('risk_level') == 'medium'),
+            'low': sum(1 for i in ingredients if i.get('risk_level') == 'low'),
+            'unknown': sum(1 for i in ingredients if i.get('risk_level') == 'unknown'),
+            'safe': sum(1 for i in ingredients if i.get('risk_level') == 'safe'),
+        }
+        
+        return jsonify({
+            "status": "success",
+            "safety_info": safety_info,
+            "statistics": stats,
+            "unknown_percentage": (stats['unknown'] / stats['total'] * 100) if stats['total'] > 0 else 0,
+            "logic_explanation": {
+                "safe": "Продукт безопасен",
+                "low_warning": "Незначительные риски, можно использовать",
+                "warning": "Умеренные риски, рассмотрите альтернативы",
+                "danger": "Высокий риск, рекомендуется избегать"
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route('/login')
 def login_page():
@@ -1138,5 +1279,6 @@ if __name__ == '__main__':
     print("🌐 Откройте: http://localhost:5000")
     print("💾 Кэш внешних источников включен")
     print("🔧 Режим отладки включен")
+    print("🛡️ Новая система оценки безопасности активирована")
     
     app.run(debug=True, port=5000, threaded=True)
