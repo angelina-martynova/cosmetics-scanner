@@ -1,4 +1,4 @@
-// Управление историей сканирований
+// Управління історією сканувань
 
 class ScansManager {
     constructor() {
@@ -20,9 +20,9 @@ class ScansManager {
         this.checkAuthStatus();
     }
 
-    // Привязка всех событий
+    // Прив'язка всіх подій
     bindEvents() {
-        // Кнопка "Закрити" в модальном окне
+        // Кнопка "Закрити" в модальному вікні
         const closeDetailsBtn = document.getElementById('closeDetailsBtn');
         if (closeDetailsBtn) {
             closeDetailsBtn.addEventListener('click', () => this.closeScanDetails());
@@ -41,7 +41,7 @@ class ScansManager {
         }
     }
 
-    // Привязка событий фильтров
+    // Прив'язка подій фільтрів
     bindFilterEvents() {
         const filterType = document.getElementById('filterType');
         const filterMethod = document.getElementById('filterMethod');
@@ -63,7 +63,7 @@ class ScansManager {
         }
     }
 
-    // Загрузка списка сканирований
+    // Завантаження списку сканувань
     async loadScans(page = 1) {
         this.currentPage = page;
         this.showLoadingState();
@@ -82,7 +82,7 @@ class ScansManager {
             const data = await response.json();
             
             if (data.status === 'success') {
-                // Фильтруем сканы на клиенте если нужно
+                // Фільтруємо скани на клієнті якщо потрібно
                 let filteredScans = data.scans;
                 
                 if (this.filters.type) {
@@ -93,7 +93,7 @@ class ScansManager {
                     filteredScans = filteredScans.filter(scan => scan.input_method === this.filters.method);
                 }
                 
-                // Пагинация на клиенте
+                // Пагінація на клієнті
                 const startIndex = (page - 1) * this.perPage;
                 const endIndex = startIndex + this.perPage;
                 const paginatedScans = filteredScans.slice(startIndex, endIndex);
@@ -111,7 +111,7 @@ class ScansManager {
         }
     }
 
-    // Отображение списка сканирований
+    // Відображення списку сканувань
     displayScans(scans) {
         const scansList = document.getElementById('scansList');
         const emptyState = document.getElementById('emptyState');
@@ -129,11 +129,11 @@ class ScansManager {
         emptyState.classList.add('hidden');
         scansList.innerHTML = scans.map(scan => this.createScanCard(scan)).join('');
         
-        // Добавляем обработчики событий для кликов по карточкам и кнопкам
+        // Додаємо обробники подій для кліків по карткам та кнопкам
         this.bindScanCardEvents();
     }
 
-    // Создание карточки сканирования
+    // Створення картки сканування
     createScanCard(scan) {
         const date = new Date(scan.created_at).toLocaleString('uk-UA');
         const methodIcon = this.getMethodIcon(scan.input_method);
@@ -177,14 +177,14 @@ class ScansManager {
         `;
     }
 
-    // Привязка событий к карточкам сканирования
+    // Прив'язка подій до карток сканування
     bindScanCardEvents() {
         const scanCards = document.querySelectorAll('.scan-card');
         
         scanCards.forEach(card => {
-            // Клик по всей карточке для просмотра деталей
+            // Клік по всій картці для перегляду деталей
             card.addEventListener('click', (e) => {
-                // Проверяем, не кликнули ли по чекбоксу или кнопке удаления
+                // Перевіряємо, чи не клікнули по чекбоксу або кнопці видалення
                 if (!e.target.closest('.scan-checkbox') && 
                     !e.target.closest('.icon-btn.delete') && 
                     e.target.className !== 'icon-btn delete') {
@@ -194,11 +194,11 @@ class ScansManager {
                 }
             });
             
-            // Обработчик для кнопки удаления
+            // Обробник для кнопки видалення
             const deleteBtn = card.querySelector('.icon-btn.delete');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Останавливаем всплытие события
+                    e.stopPropagation(); // Зупиняємо спливання події
                     const scanId = parseInt(deleteBtn.dataset.scanId);
                     this.deleteScan(scanId);
                 });
@@ -206,12 +206,12 @@ class ScansManager {
         });
     }
 
-    // Обработчик клика по чекбоксу
+    // Обробник кліку по чекбоксу
     handleCheckboxClick(scanId) {
         this.toggleScanSelection(scanId);
     }
 
-    // Просмотр деталей сканирования
+    // Перегляд деталей сканування
     async viewScanDetails(scanId) {
         try {
             const response = await fetch(`/api/scans/${scanId}`);
@@ -233,14 +233,14 @@ class ScansManager {
         }
     }
     
-    // Показ деталей сканирования в модальном окне
+    // Показ деталей сканування в модальному вікні
     showScanDetails(scan) {
         const modal = document.getElementById('scanDetailsModal');
         const content = document.getElementById('scanDetailsContent');
         const date = new Date(scan.created_at).toLocaleString('uk-UA');
         const riskLevel = scan.safety_status || this.calculateRiskLevel(scan.ingredients_detailed || scan.ingredients || []);
         
-        // Определяем длину текста и списка ингредиентов
+        // Визначаємо довжину тексту та списку інгредієнтів
         const isLongText = scan.original_text && scan.original_text.length > 500;
         const isLongList = (scan.ingredients_detailed && scan.ingredients_detailed.length > 15) || 
                         (scan.ingredients && scan.ingredients.length > 15);
@@ -305,14 +305,14 @@ class ScansManager {
         modal.classList.remove('hidden');
     }
 
-    // Экспорт одного сканирования в PDF
+    // Експорт одного сканування в PDF
     exportSingleScanToPdf(scanId) {
         try {
             this.showMessage('Створення PDF...', 'success');
             
-            // Проверьте этот URL
+            // Перевірте цей URL
             const url = `/api/scans/${scanId}/export/pdf`;
-            console.log('Opening PDF URL:', url); // Добавьте эту строку для отладки
+            console.log('Opening PDF URL:', url); // Додайте цей рядок для налагодження
             window.open(url, '_blank');
             
         } catch (error) {
@@ -332,7 +332,7 @@ class ScansManager {
     }
     }
     
-    // Удаление сканирования
+    // Видалення сканування
     async deleteScan(scanId) {
         if (!confirm('Ви впевнені, що хочете видалити це сканування?')) {
             return;
@@ -359,7 +359,7 @@ class ScansManager {
         }
     }
 
-    // Массовое удаление сканирований
+    // Масове видалення сканувань
     async deleteSelectedScans() {
         const selectedIds = Array.from(this.selectedScans);
         
@@ -400,7 +400,7 @@ class ScansManager {
         }
     }
 
-    // Управление выделением
+    // Управління виділенням
     toggleScanSelection(scanId) {
         const checkbox = document.querySelector(`.scan-checkbox[data-scan-id="${scanId}"]`);
         
@@ -420,7 +420,7 @@ class ScansManager {
         const checkboxes = document.querySelectorAll('.scan-checkbox');
         
         if (this.allScansSelected) {
-            // Снимаем выделение
+            // Знімаємо виділення
             checkboxes.forEach(checkbox => {
                 checkbox.checked = false;
                 const scanId = parseInt(checkbox.dataset.scanId);
@@ -428,7 +428,7 @@ class ScansManager {
             });
             this.allScansSelected = false;
         } else {
-            // Выделяем все
+            // Виділяємо все
             checkboxes.forEach(checkbox => {
                 const scanId = parseInt(checkbox.dataset.scanId);
                 checkbox.checked = true;
@@ -455,7 +455,7 @@ class ScansManager {
         }
     }
 
-    // Вспомогательные методы
+    // Допоміжні методи
     getMethodIcon(method) {
         const icons = {
             'text': `<img src="/static/images/scan_verification.svg" alt="Ручний ввід" width="24" height="24">`,
@@ -516,7 +516,7 @@ class ScansManager {
         return text.substring(0, maxLength) + '...';
     }
 
-    // Обновление текста пустого состояния в зависимости от фильтров
+    // Оновлення тексту порожнього стану залежно від фільтрів
     updateEmptyStateText() {
         const emptyState = document.getElementById('emptyState');
         const emptyTitle = emptyState.querySelector('h3');
@@ -541,7 +541,7 @@ class ScansManager {
         }
     }
 
-    // Пагинация
+    // Пагінація
     updatePagination(totalItems) {
         const pagination = document.getElementById('pagination');
         const totalPages = Math.ceil(totalItems / this.perPage);
@@ -574,7 +574,7 @@ class ScansManager {
         pagination.innerHTML = paginationHTML;
     }
 
-    // UI состояния
+    // UI стани
     showLoadingState() {
         document.getElementById('scansList').innerHTML = '';
         document.getElementById('emptyState').classList.add('hidden');
@@ -612,7 +612,7 @@ class ScansManager {
             messageDiv.style.backgroundColor = '#2196F3';
         }
         
-        // Добавляем анимацию в стили если ее нет
+        // Додаємо анімацію в стилі якщо її немає
         if (!document.querySelector('#message-animation')) {
             const style = document.createElement('style');
             style.id = 'message-animation';
@@ -635,7 +635,7 @@ class ScansManager {
         document.getElementById('scanDetailsModal').classList.add('hidden');
     }
 
-    // Проверка авторизации
+    // Перевірка авторизації
     async checkAuthStatus() {
         try {
             const response = await fetch('/api/status');
@@ -660,11 +660,11 @@ class ScansManager {
     }
 
     updateUI() {
-        // Дополнительные обновления UI при необходимости
+        // Додаткові оновлення UI за потреби
     }
 }
 
-// Инициализация при загрузке страницы
+// Ініціалізація при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
     window.scansManager = new ScansManager();
     window.scansManager.init();

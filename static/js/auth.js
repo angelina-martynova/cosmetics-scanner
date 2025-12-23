@@ -1,6 +1,6 @@
 // auth.js
 
-// Функция для входа
+// Функція для входу
 function login() {
     const email = document.getElementById('emailLogin').value;
     const password = document.getElementById('passwordLogin').value;
@@ -19,9 +19,7 @@ function login() {
     .then(data => {
         if (data.status === 'success') {
             showMessage('Вхід виконано успішно!', 'success');
-            // Сбрасываем форму
             resetLoginForm();
-            // Перенаправляем на главную страницу после успешного входа
             setTimeout(() => {
                 window.location.href = '/';
             }, 1000);
@@ -32,7 +30,7 @@ function login() {
     .catch(err => showMessage('Помилка: ' + err.message, 'error'));
 }
 
-// Функция для регистрации
+// Функція для реєстрації
 function register() {
     const email = document.getElementById('emailRegister').value;
     const password = document.getElementById('passwordRegister').value;
@@ -51,9 +49,7 @@ function register() {
     .then(data => {
         if (data.status === 'success') {
             showMessage('Реєстрація успішна! Тепер ви можете увійти.', 'success');
-            // Сбрасываем форму
             resetRegisterForm();
-            // Перенаправляем на страницу входа после успешной регистрации
             setTimeout(() => {
                 window.location.href = '/login';
             }, 2000);
@@ -64,12 +60,11 @@ function register() {
     .catch(err => showMessage('Помилка: ' + err.message, 'error'));
 }
 
-// Функция для выхода
+// Функція для виходу
 function logout() {
     fetch('/api/logout', { method: 'POST' })
         .then(() => {
             showMessage('Ви вийшли з системи!', 'success');
-            // Обновляем страницу после выхода
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -77,16 +72,14 @@ function logout() {
         .catch(err => showMessage('Помилка: ' + err.message, 'error'));
 }
 
-// Функция для сброса формы входа
+// Функція для скидання форми входу
 function resetLoginForm() {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.reset();
-        // Явно очищаем значения полей
         document.getElementById('emailLogin').value = '';
         document.getElementById('passwordLogin').value = '';
         
-        // Сбрасываем состояние кнопки показа пароля
         const toggleButton = document.querySelector('#loginForm .password-toggle');
         if (toggleButton && toggleButton.querySelector('img')) {
             toggleButton.querySelector('img').src = '/static/images/visible.svg';
@@ -99,16 +92,14 @@ function resetLoginForm() {
     }
 }
 
-// Функция для сброса формы регистрации
+// Функція для скидання форми реєстрації
 function resetRegisterForm() {
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.reset();
-        // Явно очищаем значения полей
         document.getElementById('emailRegister').value = '';
         document.getElementById('passwordRegister').value = '';
         
-        // Сбрасываем состояние кнопки показа пароля
         const toggleButton = document.querySelector('#registerForm .password-toggle');
         if (toggleButton && toggleButton.querySelector('img')) {
             toggleButton.querySelector('img').src = '/static/images/visible.svg';
@@ -121,7 +112,7 @@ function resetRegisterForm() {
     }
 }
 
-// Функция для показа/скрытия пароля
+// Функція для показу/приховування пароля
 function togglePasswordVisibility(inputId) {
     const passwordInput = document.getElementById(inputId);
     const toggleButton = passwordInput.parentElement.querySelector('.password-toggle');
@@ -138,16 +129,14 @@ function togglePasswordVisibility(inputId) {
     }
 }
 
-// Функция для показа сообщений
+// Функція для показу повідомлень
 function showMessage(message, type) {
-    // Создаем элемент сообщения
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
     messageDiv.textContent = message;
     
     document.body.appendChild(messageDiv);
     
-    // Удаляем сообщение через 5 секунд
     setTimeout(() => {
         if (messageDiv.parentNode) {
             messageDiv.parentNode.removeChild(messageDiv);
@@ -155,11 +144,10 @@ function showMessage(message, type) {
     }, 5000);
 }
 
-// Функция для предотвращения автозаполнения
+// Функція для запобігання автозаповнення
 function preventAutofill(formId) {
     const form = document.getElementById(formId);
     if (form) {
-        // Добавляем скрытые поля для обмана браузера
         const fakeFields = document.createElement('div');
         fakeFields.style.display = 'none';
         fakeFields.innerHTML = `
@@ -168,7 +156,6 @@ function preventAutofill(formId) {
         `;
         form.appendChild(fakeFields);
         
-        // Отключаем автозаполнение для реальных полей
         const inputs = form.querySelectorAll('input[type="email"], input[type="password"]');
         inputs.forEach(input => {
             input.setAttribute('autocomplete', 'new-password');
@@ -179,16 +166,14 @@ function preventAutofill(formId) {
     }
 }
 
-// Обработчики форм
+// Обробники форм
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Auth.js loaded - current page:', window.location.pathname);
+    console.log('Auth.js завантажено - поточна сторінка:', window.location.pathname);
     
-    // Обработчик формы входа
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        console.log('Login form found, resetting...');
+        console.log('Форму входу знайдено, скидання...');
         
-        // Предотвращаем автозаполнение
         preventAutofill('loginForm');
         
         loginForm.addEventListener('submit', function(e) {
@@ -196,25 +181,21 @@ document.addEventListener('DOMContentLoaded', function() {
             login();
         });
         
-        // Заменяем текстовые эмодзи на SVG иконки для кнопки показа пароля
         const loginToggleButton = loginForm.querySelector('.password-toggle');
         if (loginToggleButton && !loginToggleButton.querySelector('img')) {
             loginToggleButton.innerHTML = '<img src="/static/images/visible.svg" alt="Показати пароль" width="24" height="24">';
             loginToggleButton.title = 'Показати пароль';
         }
         
-        // Сбрасываем форму входа при загрузке с задержкой
         setTimeout(() => {
             resetLoginForm();
         }, 100);
     }
     
-    // Обработчик формы регистрации
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-        console.log('Register form found, resetting...');
+        console.log('Форму реєстрації знайдено, скидання...');
         
-        // Предотвращаем автозаполнение
         preventAutofill('registerForm');
         
         registerForm.addEventListener('submit', function(e) {
@@ -222,20 +203,17 @@ document.addEventListener('DOMContentLoaded', function() {
             register();
         });
         
-        // Заменяем текстовые эмодзи на SVG иконки для кнопки показа пароля
         const registerToggleButton = registerForm.querySelector('.password-toggle');
         if (registerToggleButton && !registerToggleButton.querySelector('img')) {
             registerToggleButton.innerHTML = '<img src="/static/images/visible.svg" alt="Показати пароль" width="24" height="24">';
             registerToggleButton.title = 'Показати пароль';
         }
         
-        // Сбрасываем форму регистрации при загрузке с задержкой
         setTimeout(() => {
             resetRegisterForm();
         }, 100);
     }
     
-    // Добавляем кнопку "Назад" на страницы аутентификации
     if (window.location.pathname === '/login' || window.location.pathname === '/register') {
         const backButton = document.createElement('button');
         backButton.textContent = '← Назад';

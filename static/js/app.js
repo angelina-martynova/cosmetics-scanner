@@ -27,7 +27,7 @@ class CosmeticsScanner {
     }
 
     initNavigationEvents() {
-        // Навигация уже обрабатывается в auth.js
+        // Навігація вже обробляється в auth.js
     }
 
     navigateToLogin() {
@@ -45,7 +45,6 @@ class CosmeticsScanner {
     }
 
     showMyScans() {
-        // Перенаправляем на страницу истории сканирований
         window.location.href = '/scans';
     }
 
@@ -101,5 +100,5 @@ class CosmeticsScanner {
 document.addEventListener('DOMContentLoaded', function() {
     window.app = new CosmeticsScanner();
     window.app.init();
-    console.log('CosmeticsScanner initialized');
+    console.log('CosmeticsScanner ініціалізовано');
 });

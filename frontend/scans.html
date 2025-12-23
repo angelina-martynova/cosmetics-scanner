@@ -29,7 +29,7 @@
       </header>
 
       <main>
-        <!-- Фильтры и управление -->
+        <!-- Фільтри та управління -->
         <div class="scans-controls">
           <div class="filters">
             <select id="filterType">
@@ -52,12 +52,12 @@
           </div>
         </div>
 
-        <!-- Состояние загрузки -->
+        <!-- Стан завантаження -->
         <div id="loadingState" class="loading hidden">
           <p>Завантаження сканувань...</p>
         </div>
 
-        <!-- Состояние пустого списка -->
+        <!-- Стан порожнього списку -->
         <div id="emptyState" class="empty-state hidden">
           <div class="empty-icon">
             <img src="{{ url_for('static', filename='images/empty.svg') }}" />
@@ -69,15 +69,15 @@
           </button>
         </div>
 
-        <!-- Список сканирований -->
+        <!-- Список сканувань -->
         <div id="scansList" class="scans-list"></div>
 
-        <!-- Пагинация -->
+        <!-- Пагінація -->
         <div id="pagination" class="pagination hidden"></div>
       </main>
     </div>
 
-    <!-- Модальное окно деталей сканирования -->
+    <!-- Модальне вікно деталей сканування -->
     <div id="scanDetailsModal" class="modal hidden">
       <div class="modal-content">
         <h3>Деталі сканування</h3>
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <!-- Подключаем скрипты -->
+    <!-- Підключення скриптів -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/scans.js') }}"></script>
   </body>

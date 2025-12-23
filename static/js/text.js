@@ -1,16 +1,16 @@
-// Открыть окно ввода текста
+// Відкрити вікно введення тексту
 function openTextInput() {
-    console.log('Opening text input modal...');
+    console.log('Відкриття вікна введення тексту...');
     const modal = document.getElementById('textInputModal');
     if (modal) {
         modal.classList.remove('hidden');
-        console.log('Modal opened');
+        console.log('Модальне вікно відкрито');
     } else {
-        console.error('textInputModal not found');
+        console.error('textInputModal не знайдено');
     }
 }
 
-// Закрыть окно ввода текста
+// Закрити вікно введення тексту
 function closeTextInput() {
     const modal = document.getElementById('textInputModal');
     const textInput = document.getElementById('manualTextInput');
@@ -18,44 +18,44 @@ function closeTextInput() {
     if (textInput) textInput.value = '';
 }
 
-// Функция для вызова файлового ввода
+// Функція для виклику файлового введення
 function triggerFileInput() {
-    console.log('Triggering file input...');
+    console.log('Активація файлового введення...');
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.click();
     } else {
-        console.error('fileInput not found');
+        console.error('fileInput не знайдено');
     }
 }
 
-// Функция для обработки ручного ввода текста
+// Функція для обробки ручного введення тексту
 async function processManualText() {
-    console.log('processManualText called');
+    console.log('processManualText викликано');
     
     const textInput = document.getElementById('manualTextInput');
     const resultDiv = document.getElementById('result');
     
-    console.log('Elements found:', {
+    console.log('Знайдені елементи:', {
         textInput: textInput,
         resultDiv: resultDiv,
         textInputValue: textInput ? textInput.value : 'null'
     });
     
     if (!textInput) {
-        console.error('Элемент manualTextInput не найден');
+        console.error('Елемент manualTextInput не знайдено');
         alert('Помилка: текстове поле не знайдено');
         return;
     }
     
     if (!resultDiv) {
-        console.error('Элемент result не найден');
+        console.error('Елемент result не знайдено');
         alert('Помилка: елемент для результатів не знайдено');
         return;
     }
     
     const textValue = textInput.value.trim();
-    console.log('Text value:', textValue);
+    console.log('Значення тексту:', textValue);
     
     if (!textValue) {
         alert('Будь ласка, введіть текст для аналізу');
@@ -64,7 +64,7 @@ async function processManualText() {
     }
 
     try {
-        console.log('Starting analysis...');
+        console.log('Початок аналізу...');
         resultDiv.innerHTML = '<p>Аналізується...</p>';
         closeTextInput();
         
@@ -76,14 +76,14 @@ async function processManualText() {
             body: JSON.stringify({ text: textValue })
         });
 
-        console.log('Response status:', response.status);
+        console.log('Статус відповіді:', response.status);
         
         if (!response.ok) {
             throw new Error(`Помилка сервера: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Response data:', data);
+        console.log('Дані відповіді:', data);
         
         if (data.status === 'success') {
             displayResults(data);
@@ -97,24 +97,24 @@ async function processManualText() {
     }
 }
 
-// Функция для обработки загрузки текстового файла
+// Функція для обробки завантаження текстового файлу
 async function processFileUpload() {
-    console.log('processFileUpload called');
+    console.log('processFileUpload викликано');
     
     const fileInput = document.getElementById('fileInput');
     const resultDiv = document.getElementById('result');
     
-    console.log('File input:', fileInput);
-    console.log('File input files:', fileInput ? fileInput.files : 'null');
+    console.log('Файлове введення:', fileInput);
+    console.log('Файли файлового введення:', fileInput ? fileInput.files : 'null');
     
     if (!fileInput) {
-        console.error('Элемент fileInput не найден');
+        console.error('Елемент fileInput не знайдено');
         alert('Помилка: елемент вибору файлу не знайдено');
         return;
     }
     
     if (!resultDiv) {
-        console.error('Элемент result не найден');
+        console.error('Елемент result не знайдено');
         alert('Помилка: елемент для результатів не знайдено');
         return;
     }
@@ -125,7 +125,7 @@ async function processFileUpload() {
     }
 
     const file = fileInput.files[0];
-    console.log('Selected file:', file.name, file.type, file.size);
+    console.log('Обраний файл:', file.name, file.type, file.size);
 
     try {
         resultDiv.innerHTML = '<p>Обробляється файл...</p>';
@@ -134,26 +134,26 @@ async function processFileUpload() {
         const formData = new FormData();
         formData.append('file', file);
 
-        console.log('Sending file to server...');
+        console.log('Відправка файлу на сервер...');
         const response = await fetch('/api/upload_text_file', {
             method: 'POST',
             body: formData
         });
 
-        console.log('Response status:', response.status);
+        console.log('Статус відповіді:', response.status);
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Server error response:', errorText);
+            console.error('Відповідь сервера з помилкою:', errorText);
             throw new Error(`Помилка сервера: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Response data:', data);
+        console.log('Дані відповіді:', data);
         
         if (data.status === 'success') {
             displayResults(data);
-            // Очищаем input после успешной загрузки
+            // Очищаємо input після успішного завантаження
             fileInput.value = '';
         } else {
             resultDiv.innerHTML = `<p class="error">Помилка: ${data.message}</p>`;
@@ -165,18 +165,18 @@ async function processFileUpload() {
     }
 }
 
-// Функция для отображения результатов
+// Функція для відображення результатів
 function displayResults(data) {
     const resultDiv = document.getElementById('result');
     
     if (!resultDiv) {
-        console.error('Элемент result не найден при отображении результатов');
+        console.error('Елемент result не знайдено при відображенні результатів');
         return;
     }
     
     let html = `
         <div class="result-section">
-            <h3>Аналізований текст:</h3>
+            <h3>Проаналізований текст:</h3>
             <div class="text-preview">${data.text || 'Текст не знайдено'}</div>
         </div>
     `;
@@ -216,37 +216,37 @@ function displayResults(data) {
     resultDiv.innerHTML = html;
 }
 
-// Инициализация при загрузке страницы
+// Ініціалізація при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== TEXT.JS LOADED ===');
-    console.log('Checking elements:');
+    console.log('=== TEXT.JS ЗАВАНТАЖЕНО ===');
+    console.log('Перевірка елементів:');
     console.log('manualTextInput:', document.getElementById('manualTextInput'));
     console.log('textInputModal:', document.getElementById('textInputModal'));
     console.log('fileInput:', document.getElementById('fileInput'));
     console.log('result:', document.getElementById('result'));
     
-    // Обработчик для файлового input - ВАЖНО!
+    // Обробник для файлового input - ВАЖЛИВО!
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
-            console.log('File input changed, files:', e.target.files);
+            console.log('Файлове введення змінено, файли:', e.target.files);
             if (e.target.files && e.target.files[0]) {
-                console.log('Calling processFileUpload...');
+                console.log('Виклик processFileUpload...');
                 processFileUpload();
             }
         });
     } else {
-        console.error('fileInput element not found!');
+        console.error('fileInput елемент не знайдено!');
     }
     
-    // Привязка кнопки "Скасувати" в модальном окне
+    // Прив'язка кнопки "Скасувати" в модальному вікні
     const cancelButton = document.querySelector('#textInputModal .modal-actions button:last-child');
     if (cancelButton && cancelButton.textContent.includes('Скасувати')) {
         cancelButton.addEventListener('click', closeTextInput);
     }
 });
 
-// Глобальная функция для вызова из HTML
+// Глобальна функція для виклику з HTML
 window.processFileUpload = processFileUpload;
 window.processManualText = processManualText;
 window.triggerFileInput = triggerFileInput;

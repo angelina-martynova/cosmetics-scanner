@@ -7,33 +7,19 @@
 
 :root {
     --primary-color: #D991BA;
-    /* М'який рожевий */
     --primary-dark: #C97AA5;
-    /* Темніший рожевий */
     --secondary-color: #D7C9AA;
-    /* Кремово-бежевий */
     --secondary-dark: #C5B89B;
-    /* Темніший бежевий */
     --accent-color: #330036;
-    /* Глибокий фіолетово-бордовий */
     --accent-light: #2A002D;
-    /* Світліший фіолетовий для заголовків */
     --warning-color: #565554;
-    /* Теплий сірий */
     --text-primary: #0A0908;
-    /* Глибокий чорний для тексту */
     --text-secondary: #565554;
-    /* Сірий для другорядного тексту */
     --text-tertiary: #8A8887;
-    /* Світліший сірий */
     --background-primary: #FFFFFF;
-    /* Білий */
     --background-secondary: #FDF8F5;
-    /* Дуже світлий кремовий */
     --background-gradient: linear-gradient(135deg, #D7C9AA 0%, #D991BA 100%);
-    /* Бежево-рожевий градієнт */
     --border-color: #E8DED0;
-    /* Світло-бежевий для рамок */
     --shadow: 0 4px 6px -1px rgba(51, 0, 54, 0.1), 0 2px 4px -1px rgba(51, 0, 54, 0.06);
     --shadow-hover: 0 10px 15px -3px rgba(51, 0, 54, 0.1), 0 4px 6px -2px rgba(51, 0, 54, 0.05);
 }
@@ -53,7 +39,6 @@ body {
     animation: fadeIn 0.8s ease-out;
 }
 
-/* Анімації */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -110,7 +95,6 @@ body {
     }
 }
 
-/* Хедер */
 header {
     display: flex;
     justify-content: space-between;
@@ -145,7 +129,6 @@ h1 {
 
 .user-menu span:first-child {
     display: none;
-    /* Приховуємо "Вітаємо" */
 }
 
 .user-name {
@@ -153,7 +136,6 @@ h1 {
     color: var(--accent-color);
 }
 
-/* Кнопки */
 button {
     background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
     color: white;
@@ -198,7 +180,6 @@ button.secondary {
     color: var(--accent-color);
 }
 
-/* Кнопки "Обрати всі" та "Видалити обрані" - БЕЛЫЙ ТЕКСТ В СВЕТЛОЙ ТЕМЕ */
 .bulk-actions button {
     background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
     color: white !important;
@@ -216,7 +197,6 @@ button.danger {
     font-weight: 600;
 }
 
-/* Герой-секція */
 .hero-section {
     text-align: center;
     padding: 3rem 2rem;
@@ -245,7 +225,6 @@ button.danger {
     line-height: 1.5;
 }
 
-/* Методи введення */
 .input-methods {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -310,7 +289,6 @@ button.danger {
     font-size: 0.95rem;
 }
 
-/* Результати */
 .result {
     background: var(--background-primary);
     padding: 2rem;
@@ -358,7 +336,6 @@ button.danger {
     color: #6B7D5A;
 }
 
-/* Модальні вікна */
 .modal {
     position: fixed;
     top: 0;
@@ -398,7 +375,6 @@ button.danger {
     font-weight: 600;
 }
 
-/* ТОЛЬКО ДЛЯ TEXTAREA В МОДАЛЬНОМ ОКНЕ */
 .modal-content textarea {
     width: 100%;
     padding: 1.2rem;
@@ -411,7 +387,6 @@ button.danger {
     font-family: inherit;
     background: var(--background-secondary);
     color: var(--text-primary);
-    /* Цвет текста для светлой темы */
 }
 
 .modal-content textarea:focus {
@@ -427,7 +402,6 @@ button.danger {
     flex-wrap: wrap;
 }
 
-/* СТИЛИ ДЛЯ КАМЕРЫ НА ДЕСКТОПЕ */
 .camera-preview {
     width: 100%;
     max-width: 500px;
@@ -465,7 +439,6 @@ button.danger {
     margin: 0.25rem 0;
 }
 
-/* Для больших экранов - кнопки в ряд */
 @media (min-width: 768px) {
     .camera-controls {
         flex-direction: row;
@@ -481,7 +454,6 @@ button.danger {
     }
 }
 
-/* Статуси */
 .loading {
     text-align: center;
     padding: 2rem;
@@ -510,7 +482,6 @@ button.danger {
     display: none !important;
 }
 
-/* Стили для сообщений */
 .message {
     position: fixed;
     top: 20px;
@@ -535,7 +506,6 @@ button.danger {
     color: white;
 }
 
-/* Стиль для кнопки "Назад" */
 .back-button {
     position: fixed;
     top: 20px;
@@ -556,7 +526,6 @@ button.danger {
     background: var(--primary-dark);
 }
 
-/* Стили для форм аутентификации */
 .auth-form {
     max-width: 400px;
     margin: 0 auto;
@@ -601,7 +570,6 @@ button.danger {
     color: var(--text-tertiary);
 }
 
-/* Стили для группы с паролем */
 .password-group {
     position: relative;
 }
@@ -610,13 +578,11 @@ button.danger {
     padding-right: 60px;
 }
 
-/* Стили для кнопки показа пароля - ОТКЛЮЧЕНИЕ ВСЕХ ЭФФЕКТОВ И ТЕМНАЯ ТЕМА */
 .password-toggle {
     position: absolute;
     right: 8px;
     top: 50%;
     transform: translateY(-50%) !important;
-    /* Фиксируем позицию */
     background: none !important;
     border: none !important;
     cursor: pointer;
@@ -633,13 +599,11 @@ button.danger {
     margin: 0 !important;
 }
 
-/* ЯВНО отключаем все эффекты при наведении для .password-toggle */
 .password-toggle:hover,
 .password-toggle:focus,
 .password-toggle:active {
     background: none !important;
     transform: translateY(-50%) !important;
-    /* Сохраняем позицию при наведении */
     box-shadow: none !important;
     outline: none !important;
 }
@@ -661,14 +625,12 @@ button.danger {
     transform: none !important;
 }
 
-/* Для темной темы - белые иконки через CSS фильтр */
 @media (prefers-color-scheme: dark) {
     .password-toggle img {
         filter: brightness(0) invert(1) !important;
     }
 }
 
-/* Для тач-интерфейсов - только минимальный эффект */
 @media (hover: none) and (pointer: coarse) {
     .password-toggle:active {
         opacity: 0.7;
@@ -700,7 +662,6 @@ button.danger {
     text-decoration: underline;
 }
 
-/* Стили для предотвращения автозаполнения браузером */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -710,13 +671,11 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Дополнительные стили для предотвращения автозаполнения */
 input[autocomplete="off"],
 input[autocomplete="new-password"] {
     background-color: var(--background-secondary) !important;
 }
 
-/* Progress bar */
 .scan-progress {
     margin: 1.5rem 0;
 }
@@ -737,7 +696,6 @@ input[autocomplete="new-password"] {
     border-radius: 4px;
 }
 
-/* Стили для страницы истории сканирований */
 .header-actions {
     display: flex;
     justify-content: space-between;
@@ -757,7 +715,6 @@ input[autocomplete="new-password"] {
     text-align: center;
 }
 
-/* Кнопка На головну в header-actions */
 .header-actions .back-button {
     position: relative;
     top: auto;
@@ -767,7 +724,6 @@ input[autocomplete="new-password"] {
     flex-shrink: 0;
 }
 
-/* Меню пользователя в header-actions */
 .header-actions .user-menu {
     position: relative;
     top: auto;
@@ -779,7 +735,6 @@ input[autocomplete="new-password"] {
     flex-shrink: 0;
 }
 
-/* Адаптивность для header-actions */
 @media (max-width: 768px) {
     .header-actions {
         flex-wrap: nowrap;
@@ -832,7 +787,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Элементы управления */
 .scans-controls {
     display: flex;
     justify-content: space-between;
@@ -867,7 +821,6 @@ input[autocomplete="new-password"] {
     gap: 1rem;
 }
 
-/* Карточка сканирования */
 .scans-list {
     display: flex;
     flex-direction: column;
@@ -1011,7 +964,6 @@ input[autocomplete="new-password"] {
     font-size: 0.85rem;
 }
 
-/* Состояние пустого списка */
 .empty-state {
     text-align: center;
     padding: 3rem 2rem;
@@ -1030,17 +982,14 @@ input[autocomplete="new-password"] {
     color: var(--text-primary);
 }
 
-/* Добавляем расстояние между абзацем и кнопкой в состоянии пустого списка */
 .empty-state p {
     margin-bottom: 2rem;
-    /* Увеличен отступ до 2rem */
 }
 
 .empty-state button {
     margin-top: 1rem;
 }
 
-/* Детали сканирования в модальном окне */
 .scan-details {
     max-height: 60vh;
     overflow-y: auto;
@@ -1083,7 +1032,6 @@ input[autocomplete="new-password"] {
     overflow-y: auto;
 }
 
-/* Пагинация */
 .pagination {
     display: flex;
     justify-content: center;
@@ -1113,7 +1061,6 @@ input[autocomplete="new-password"] {
     font-weight: 600;
 }
 
-/* Бейдж типа сканирования */
 .scan-type-badge {
     background: var(--background-secondary);
     color: var(--accent-color);
@@ -1124,7 +1071,6 @@ input[autocomplete="new-password"] {
     margin-left: 0.5rem;
 }
 
-/* Адаптивность для карточек */
 @media (max-width: 768px) {
     .scan-method {
         flex-direction: column;
@@ -1137,7 +1083,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Темная тема */
 @media (prefers-color-scheme: dark) {
     :root {
         --text-primary: #F5F5F5;
@@ -1147,13 +1092,9 @@ input[autocomplete="new-password"] {
         --background-secondary: #2D2D2D;
         --border-color: #404040;
         --primary-color: #D991BA;
-        /* Розовый вместо фиолетового */
         --primary-dark: #C97AA5;
-        /* Более темный розовый */
         --accent-color: #D991BA;
-        /* Розовый вместо #330036 */
         --accent-light: #E6B0D2;
-        /* Светлый розовый */
     }
 
     body {
@@ -1162,7 +1103,6 @@ input[autocomplete="new-password"] {
 
     h1 {
         color: #D7C9AA !important;
-        /* Бежевий для заголовків у темній темі */
     }
 
     .method-card,
@@ -1174,7 +1114,6 @@ input[autocomplete="new-password"] {
         color: var(--text-primary);
     }
 
-    /* Текст карточек методов ввода в темной теме */
     .method-card h3 {
         color: #FFFFFF !important;
     }
@@ -1193,12 +1132,10 @@ input[autocomplete="new-password"] {
         color: var(--text-tertiary);
     }
 
-    /* ВАЖНО: Белый текст ТОЛЬКО для textarea в модальном окне скана текста */
     .modal-content textarea {
         background: var(--background-secondary);
         border-color: var(--border-color);
         color: #FFFFFF !important;
-        /* БЕЛЫЙ ТЕКСТ в темной теме ТОЛЬКО для textarea */
     }
 
     .modal-content textarea::placeholder {
@@ -1254,14 +1191,12 @@ input[autocomplete="new-password"] {
         color: #D991BA;
     }
 
-    /* Розовый текст для темної теми */
     .hero-subtitle,
     .detail-section h4,
     .scan-details h4 {
         color: #D991BA !important;
     }
 
-    /* ФИОЛЕТОВЫЙ ТЕКСТ ДЛЯ "Скануй безпеку своєї косметики" только в темной теме */
     .hero-section h1 {
         color: #2A002D !important;
         background: none !important;
@@ -1288,41 +1223,33 @@ input[autocomplete="new-password"] {
         color: #D991BA !important;
     }
 
-    /* Стили для предотвращения автозаполнения в темной теме - ТОЛЬКО для textarea */
     textarea:-webkit-autofill,
     textarea:-webkit-autofill:hover,
     textarea:-webkit-autofill:focus,
     textarea:-webkit-autofill:active {
         -webkit-box-shadow: 0 0 0 30px var(--background-secondary) inset !important;
         -webkit-text-fill-color: #FFFFFF !important;
-        /* БЕЛЫЙ ТЕКСТ для автозаполнения textarea */
     }
 
-    /* ТОЛЬКО для textarea в модальном окне */
     .modal-content textarea[autocomplete="off"],
     .modal-content textarea {
         background-color: var(--background-secondary) !important;
         color: #FFFFFF !important;
-        /* БЕЛЫЙ ТЕКСТ для textarea в модальном окне */
     }
 
-    /* Камера в темной теме */
     .camera-preview {
         background: #000;
         border-color: #404040;
     }
 
-    /* Для темной темы - белые иконки удаления через CSS фильтр */
     .icon-btn.delete img {
         filter: brightness(0) invert(1) !important;
     }
 
-    /* Иконка empty.svg - делаем белой в темной теме */
     .empty-icon img {
         filter: brightness(0) invert(1) !important;
     }
 
-    /* Кнопки с градиентом в темной теме */
     button {
         background: linear-gradient(135deg, #D991BA, #C97AA5);
         color: white;
@@ -1338,7 +1265,6 @@ input[autocomplete="new-password"] {
         color: white;
     }
 
-    /* Элементы с акцентным цветом */
     .error {
         background: #2D1A24;
         color: #D991BA;
@@ -1370,7 +1296,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .scans-controls {
         flex-direction: column;
@@ -1419,7 +1344,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Особливості для тач-інтерфейсу */
 @media (hover: none) and (pointer: coarse) {
     button {
         min-height: 44px;
@@ -1449,34 +1373,27 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Стили для иконок методов - УБРАТЬ ВСЕ ФИЛЬТРЫ */
 .scan-method img {
     width: 24px;
     height: 24px;
     vertical-align: middle;
     margin-right: 8px;
-    /* УБРАТЬ filter: invert() и другие изменения цвета */
 }
 
-/* Стили для иконок действий в кнопках */
 .icon-btn img {
     width: 16px;
     height: 16px;
     vertical-align: middle;
-    /* УБРАТЬ filter: invert() и другие изменения цвета */
 }
 
-/* Для темной темы - не применять фильтры к иконкам методов и действий */
 @media (prefers-color-scheme: dark) {
 
     .scan-method img,
     .icon-btn img {
-        /* Не применять фильтры - оставить оригинальный вид */
         filter: none !important;
     }
 }
 
-/* Делаем карточки сканирования кликабельными */
 .scan-card {
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1488,46 +1405,36 @@ input[autocomplete="new-password"] {
     background-color: rgba(217, 145, 186, 0.05);
 }
 
-/* Запрещаем клики по чекбоксам и кнопкам удаления */
 .scan-checkbox,
 .delete-btn {
     cursor: pointer;
     pointer-events: auto;
-    /* Разрешаем события мыши */
 }
 
-/* Отключаем эффекты при наведении на элементы управления */
 .scan-checkbox:hover,
 .delete-btn:hover {
     transform: none;
 }
 
-/* ====== ИСПРАВЛЕНИЕ ДВОЙНОЙ ПОЛОСЫ ПРОКРУТКИ ====== */
-
-/* 1. Убираем ограничение высоты у .scan-details */
 .scan-details {
     max-height: none !important;
     overflow: visible !important;
     padding-right: 0 !important;
 }
 
-/* 2. Убираем внутреннюю прокрутку у элементов внутри .scan-details */
 .scan-details .original-text,
 .scan-details .ingredients-list {
     max-height: none !important;
     overflow: visible !important;
 }
 
-/* 3. Сделаем один стильный скроллбар для всего модального окна */
 .modal-content {
     max-height: 85vh;
     overflow-y: auto;
-    /* Стилизованный скроллбар */
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) var(--border-color);
 }
 
-/* Для WebKit браузеров */
 .modal-content::-webkit-scrollbar {
     width: 8px;
 }
@@ -1547,7 +1454,6 @@ input[autocomplete="new-password"] {
     background: var(--primary-dark);
 }
 
-/* 4. Для длинных текстов делаем ограничение по высоте */
 .original-text.long-text {
     max-height: 250px !important;
     overflow-y: auto !important;
@@ -1563,7 +1469,6 @@ input[autocomplete="new-password"] {
     border-radius: 3px;
 }
 
-/* 5. Для списка ингредиентов тоже ограничение */
 .ingredients-list.long-list {
     max-height: 300px !important;
     overflow-y: auto !important;
@@ -1578,7 +1483,6 @@ input[autocomplete="new-password"] {
     border-radius: 3px;
 }
 
-/* 6. Кнопка "Показать больше" для длинного текста */
 .show-more-btn {
     display: block;
     width: 100%;
@@ -1597,7 +1501,6 @@ input[autocomplete="new-password"] {
     background: rgba(217, 145, 186, 0.2);
 }
 
-/* 7. Адаптация для мобильных */
 @media (max-width: 768px) {
     .modal-content {
         max-height: 90vh;
@@ -1618,7 +1521,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* 8. Темная тема */
 @media (prefers-color-scheme: dark) {
     .modal-content::-webkit-scrollbar-track {
         background: #2D2D2D;
@@ -1648,7 +1550,6 @@ input[autocomplete="new-password"] {
     }
 }
 
-/* Стили для кнопки экспорта в PDF */
 .export-pdf-btn {
     background: none;
     border: none;
