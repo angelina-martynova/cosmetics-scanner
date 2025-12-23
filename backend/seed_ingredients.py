@@ -1,6 +1,6 @@
 # seed_ingredients.py
 """
-Скрипт для наповнення бази даних інгредієнтів (500+ найпоширеніших)
+Скрипт для наповнення бази даних інгредієнтів
 Зберігає всі категорії та оцінки ризику.
 """
 
@@ -13,10 +13,9 @@ from datetime import datetime
 import random
 import json
 
-# РОЗШИРЕНИЙ СПИСОК ІНГРЕДІЄНТІВ (500+)
-# Базується на INCI номенклатурі, частотності використання та категоріях
+# СПИСОК ІНГРЕДІЄНТІВ
 COMMON_COSMETIC_INGREDIENTS = [
-    # === ВОДА ТА ОСНОВИ (25) ===
+    # === ВОДА ТА ОСНОВИ ===
     {"name": "Aqua", "risk_level": "safe", "category": "solvent", 
      "description": "Вода, основа косметичних засобів (INCI: Aqua)"},
     {"name": "Water", "risk_level": "safe", "category": "solvent", 
@@ -32,7 +31,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Spring Water", "risk_level": "safe", "category": "solvent", 
      "description": "Джерельна вода"},
     
-    # === ПАВ ТА ОЧИЩУЮЧІ (70) ===
+    # === ПАВ ТА ОЧИЩУЮЧІ ===
     # Аніонні ПАР
     {"name": "Sodium Laureth Sulfate", "risk_level": "medium", "category": "surfactant", 
      "description": "SLES, піноутворювач, може висушувати шкіру при частому використанні"},
@@ -81,7 +80,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Polysorbate 80", "risk_level": "low", "category": "surfactant", 
      "description": "Емульгатор та солюбілізатор"},
     
-    # === КОНСЕРВАНТИ (60) ===
+    # === КОНСЕРВАНТИ ===
     # ВИСОКИЙ РИЗИК
     {"name": "Formaldehyde", "risk_level": "high", "category": "preservative", 
      "description": "Канцероген, заборонений у багатьох країнах"},
@@ -136,7 +135,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Ethylhexylglycerin", "risk_level": "low", "category": "preservative", 
      "description": "Консервант та емульгатор"},
     
-    # === АРОМАТИЗАТОРИ (40) ===
+    # === АРОМАТИЗАТОРИ ===
     {"name": "Parfum", "risk_level": "medium", "category": "fragrance", 
      "description": "Ароматизатор. Може викликати алергію у чутливих людей. Присутній у 80% косметики."},
     {"name": "Fragrance", "risk_level": "medium", "category": "fragrance", 
@@ -164,7 +163,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Benzyl Salicylate", "risk_level": "medium", "category": "fragrance", 
      "description": "Ароматичне з'єднання, алерген"},
     
-    # === РОЗЧИННИКИ ТА СПИРТИ (35) ===
+    # === РОЗЧИННИКИ ТА СПИРТИ ===
     {"name": "Alcohol Denat", "risk_level": "medium", "category": "solvent", 
      "description": "Денатурований спирт. Висушує шкіру, може порушувати бар'єр."},
     {"name": "Alcohol", "risk_level": "medium", "category": "solvent", 
@@ -190,7 +189,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Sorbitol", "risk_level": "low", "category": "humectant", 
      "description": "Зволожувач, гуміант"},
     
-    # === ЕМУЛЬГАТОРИ (40) ===
+    # === ЕМУЛЬГАТОРИ ===
     {"name": "Cetearyl Alcohol", "risk_level": "low", "category": "emulsifier", 
      "description": "Емульгатор та загущувач, не висушує шкіру"},
     {"name": "Glyceryl Stearate", "risk_level": "low", "category": "emulsifier", 
@@ -212,7 +211,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Polysorbate 80", "risk_level": "low", "category": "emulsifier", 
      "description": "Емульгатор та солюбілізатор"},
     
-    # === ПЕГ ТА ПОХІДНІ (30) ===
+    # === ПЕГ ТА ПОХІДНІ ===
     {"name": "PEG-4", "risk_level": "low", "category": "emulsifier", 
      "description": "Поліетиленгліколь, емульгатор"},
     {"name": "PEG-8", "risk_level": "low", "category": "emulsifier", 
@@ -230,7 +229,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "PEG-40 Hydrogenated Castor Oil", "risk_level": "low", "category": "emulsifier", 
      "description": "Солюбілізатор"},
     
-    # === ОЛІЇ ТА ЕМОЛЕНТИ (60) ===
+    # === ОЛІЇ ТА ЕМОЛЕНТИ ===
     {"name": "Mineral Oil", "risk_level": "low", "category": "emollient", 
      "description": "Мінеральна олія, окклюзійний агент. Безпечно, але може бути комедогенним для жирної шкіри."},
     {"name": "Paraffinum Liquidum", "risk_level": "low", "category": "emollient", 
@@ -268,7 +267,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Rosehip Oil", "risk_level": "safe", "category": "emollient", 
      "description": "Олія шипшини, багата на вітамін А"},
     
-    # === СИЛІКОНИ (25) ===
+    # === СИЛІКОНИ ===
     {"name": "Dimethicone", "risk_level": "low", "category": "emollient", 
      "description": "Силікон, створює захисну плівку, некомедогенний"},
     {"name": "Cyclopentasiloxane", "risk_level": "low", "category": "emollient", 
@@ -286,7 +285,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Vinyl Dimethicone", "risk_level": "low", "category": "emollient", 
      "description": "Силікон, плівкоутворювач"},
     
-    # === УФ-ФІЛЬТРИ (30) ===
+    # === УФ-ФІЛЬТРИ ===
     # ВИСОКИЙ РИЗИК
     {"name": "Oxybenzone", "risk_level": "high", "category": "UV filter", 
      "description": "Бензофенон-3, ендокринний дизраптор, заборонений на Гаваях"},
@@ -319,7 +318,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Uvinul A Plus", "risk_level": "low", "category": "UV filter", 
      "description": "Diethylamino Hydroxybenzoyl Hexyl Benzoate"},
     
-    # === АНТИБАКТЕРІАЛЬНІ (15) ===
+    # === АНТИБАКТЕРІАЛЬНІ ===
     {"name": "Triclosan", "risk_level": "high", "category": "antibacterial", 
      "description": "Антибактеріальний агент, сприяє резистентності, заборонений в ЄС"},
     {"name": "Triclocarban", "risk_level": "high", "category": "antibacterial", 
@@ -329,7 +328,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Benzethonium Chloride", "risk_level": "medium", "category": "antibacterial", 
      "description": "Антисептик"},
     
-    # === ХЕЛАТОРИ (15) ===
+    # === ХЕЛАТОРИ ===
     {"name": "Tetrasodium EDTA", "risk_level": "medium", "category": "chelating agent", 
      "description": "Хелатуючий агент, покращує піну, може подразнювати шкіру"},
     {"name": "Disodium EDTA", "risk_level": "medium", "category": "chelating agent", 
@@ -339,7 +338,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Sodium Phytate", "risk_level": "low", "category": "chelating agent", 
      "description": "Натуральний хелатор з рослин"},
     
-    # === РЕГУЛЯТОРИ PH (25) ===
+    # === РЕГУЛЯТОРИ PH ===
     {"name": "Citric Acid", "risk_level": "low", "category": "pH adjuster", 
      "description": "Лимонна кислота, регулятор pH, AHA у високих концентраціях"},
     {"name": "Sodium Hydroxide", "risk_level": "high", "category": "pH adjuster", 
@@ -357,7 +356,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Sodium Citrate", "risk_level": "low", "category": "pH adjuster", 
      "description": "Цитрат натрію, буфер pH"},
     
-    # === НАТУРАЛЬНІ ЕКСТРАКТИ (50) ===
+    # === НАТУРАЛЬНІ ЕКСТРАКТИ ===
     {"name": "Aloe Barbadensis Leaf Juice", "risk_level": "safe", "category": "plant extract", 
      "description": "Сік алое вера, заспокійливий, заживлюючий"},
     {"name": "Camellia Sinensis Leaf Extract", "risk_level": "safe", "category": "plant extract", 
@@ -389,7 +388,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Eucalyptus Globulus Leaf Oil", "risk_level": "medium", "category": "essential oil", 
      "description": "Евкаліптова олія, може подразнювати дихальні шляхи"},
     
-    # === ВІТАМІНИ ТА АКТИВНІ (40) ===
+    # === ВІТАМІНИ ТА АКТИВНІ ===
     {"name": "Tocopherol", "risk_level": "safe", "category": "antioxidant", 
      "description": "Вітамін Е, антиоксидант, стабілізатор"},
     {"name": "Tocopheryl Acetate", "risk_level": "safe", "category": "antioxidant", 
@@ -437,7 +436,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Madecassoside", "risk_level": "safe", "category": "active", 
      "description": "Активний компонент центелли, протизапальний"},
     
-    # === ПЛІВКОУТВОРЮВАЧІ ТА ПОЛІМЕРИ (25) ===
+    # === ПЛІВКОУТВОРЮВАЧІ ТА ПОЛІМЕРИ ===
     {"name": "VP/VA Copolymer", "risk_level": "low", "category": "film former", 
      "description": "Плівкоутворюючий полімер, фіксатор"},
     {"name": "Acrylates Copolymer", "risk_level": "low", "category": "film former", 
@@ -453,7 +452,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Acrylates/Steareth-20 Methacrylate Copolymer", "risk_level": "low", "category": "film former", 
      "description": "Полімер для фіксації"},
     
-    # === ЗАГУЩУВАЧІ (25) ===
+    # === ЗАГУЩУВАЧІ ===
     {"name": "Carbomer", "risk_level": "low", "category": "thickener", 
      "description": "Загущувач, створює гелеву текстуру"},
     {"name": "Xanthan Gum", "risk_level": "low", "category": "thickener", 
@@ -471,7 +470,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Gellan Gum", "risk_level": "low", "category": "thickener", 
      "description": "Натуральний загущувач"},
     
-    # === ПІГМЕНТИ (30) ===
+    # === ПІГМЕНТИ ===
     {"name": "CI 77891", "risk_level": "low", "category": "pigment", 
      "description": "Діоксид титану, білий пігмент, УФ-фільтр"},
     {"name": "CI 77491", "risk_level": "low", "category": "pigment", 
@@ -493,7 +492,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Ferric Ferrocyanide", "risk_level": "low", "category": "pigment", 
      "description": "Залізо ферроціанід, синій пігмент"},
     
-    # === ПРОТЕЇНИ ТА ЕКСТРАКТИ (25) ===
+    # === ПРОТЕЇНИ ТА ЕКСТРАКТИ ===
     {"name": "Hydrolyzed Silk Protein", "risk_level": "low", "category": "conditioning agent", 
      "description": "Гідролізований шовковий протеїн, кондиціонер для волосся"},
     {"name": "Hydrolyzed Wheat Protein", "risk_level": "low", "category": "conditioning agent", 
@@ -509,7 +508,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Hydrolyzed Milk Protein", "risk_level": "low", "category": "conditioning agent", 
      "description": "Гідролізований молочний протеїн"},
     
-    # === СОЛІ ТА МІНЕРАЛИ (20) ===
+    # === СОЛІ ТА МІНЕРАЛИ ===
     {"name": "Sodium Chloride", "risk_level": "safe", "category": "viscosity controlling", 
      "description": "Кухонна сіль, загущувач у шампунях"},
     {"name": "Magnesium Sulfate", "risk_level": "safe", "category": "viscosity controlling", 
@@ -523,7 +522,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Zinc Stearate", "risk_level": "low", "category": "bulking agent", 
      "description": "Стеарат цинку, наповнювач"},
     
-    # === СПЕЦІАЛЬНІ ДОДАТКИ (20) ===
+    # === СПЕЦІАЛЬНІ ДОДАТКИ ===
     {"name": "Dimethyl Isosorbide", "risk_level": "low", "category": "penetration enhancer", 
      "description": "Покращувач проникнення"},
     {"name": "Propylene Carbonate", "risk_level": "low", "category": "solvent", 
@@ -541,7 +540,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Niacin", "risk_level": "safe", "category": "active", 
      "description": "Ніацин, вітамін B3"},
     
-    # === ЕМУЛЬСИФІКАТОРИ (15) ===
+    # === ЕМУЛЬСИФІКАТОРИ ===
     {"name": "Lecithin", "risk_level": "safe", "category": "emulsifier", 
      "description": "Лецитин, натуральний емульгатор"},
     {"name": "Hydrogenated Lecithin", "risk_level": "safe", "category": "emulsifier", 
@@ -553,7 +552,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Sorbitan Laurate", "risk_level": "low", "category": "emulsifier", 
      "description": "Лаурат сорбітану, емульгатор"},
     
-    # === КОНСЕРВАНТИ ДРУГОГО ПОКОЛІННЯ (15) ===
+    # === КОНСЕРВАНТИ ДРУГОГО ПОКОЛІННЯ ===
     {"name": "Ethylhexylglycerin", "risk_level": "low", "category": "preservative", 
      "description": "Консервант нового покоління"},
     {"name": "Phenethyl Alcohol", "risk_level": "low", "category": "preservative", 
@@ -565,7 +564,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Anisic Acid", "risk_level": "low", "category": "preservative", 
      "description": "Анісова кислота, консервант"},
     
-    # === ПОКРИТТЯ ТА ПЛІВКИ (10) ===
+    # === ПОКРИТТЯ ТА ПЛІВКИ ===
     {"name": "Polyurethane", "risk_level": "low", "category": "film former", 
      "description": "Поліуретан, плівкоутворювач"},
     {"name": "Acrylates/Dimethicone Copolymer", "risk_level": "low", "category": "film former", 
@@ -573,7 +572,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Polyester-7", "risk_level": "low", "category": "film former", 
      "description": "Поліестер, плівкоутворювач"},
     
-    # === КОЛОРИ ТА БАРВНИКИ (15) ===
+    # === КОЛОРИ ТА БАРВНИКИ ===
     {"name": "CI 15985", "risk_level": "medium", "category": "colorant", 
      "description": "Yellow 6, жовтий барвник"},
     {"name": "CI 19140", "risk_level": "medium", "category": "colorant", 
@@ -587,7 +586,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "CI 45380", "risk_level": "medium", "category": "colorant", 
      "description": "Red 21, червоний барвник"},
     
-    # === АНТИПЕРСПІРАНТИ (10) ===
+    # === АНТИПЕРСПІРАНТИ ===
     {"name": "Aluminum Chlorohydrate", "risk_level": "medium", "category": "antiperspirant", 
      "description": "Алюмінію хлоргідроксид, антиперспірант"},
     {"name": "Aluminum Zirconium Tetrachlorohydrex GLY", "risk_level": "medium", "category": "antiperspirant", 
@@ -595,7 +594,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Aluminum Chloride", "risk_level": "high", "category": "antiperspirant", 
      "description": "Хлорид алюмінію, сильний антиперспірант"},
     
-    # === ПЕНЕТРАНТИ (10) ===
+    # === ПЕНЕТРАНТИ ===
     {"name": "Azone", "risk_level": "medium", "category": "penetration enhancer", 
      "description": "Лаурокапрам, покращувач проникнення"},
     {"name": "Oleic Acid", "risk_level": "low", "category": "penetration enhancer", 
@@ -603,7 +602,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Linoleic Acid", "risk_level": "low", "category": "penetration enhancer", 
      "description": "Лінолева кислота, незамінна жирна кислота"},
     
-    # === СОНЦЕЗАХИСНІ СИНЕРГІСТИ (10) ===
+    # === СОНЦЕЗАХИСНІ СИНЕРГІСТИ ===
     {"name": "Diethylhexyl 2,6-Naphthalate", "risk_level": "low", "category": "UV stabilizer", 
      "description": "Стабілізатор УФ-фільтрів"},
     {"name": "Bis-Ethylhexyloxyphenol Methoxyphenyl Triazine", "risk_level": "low", "category": "UV filter", 
@@ -611,7 +610,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Methylene Bis-Benzotriazolyl Tetramethylbutylphenol", "risk_level": "low", "category": "UV filter", 
      "description": "Tinosorb M, мінеральний УФ-фільтр"},
     
-    # === ЕКО-ІНГРЕДІЄНТИ (15) ===
+    # === ЕКО-ІНГРЕДІЄНТИ ===
     {"name": "Bambusa Vulgaris Extract", "risk_level": "safe", "category": "plant extract", 
      "description": "Екстракт бамбука, зволожує"},
     {"name": "Algae Extract", "risk_level": "safe", "category": "plant extract", 
@@ -623,7 +622,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Maris Aqua", "risk_level": "safe", "category": "solvent", 
      "description": "Морська вода, мінерали"},
     
-    # === ФЕРМЕНТИ (10) ===
+    # === ФЕРМЕНТИ ===
     {"name": "Papain", "risk_level": "low", "category": "enzyme", 
      "description": "Папаїн, протеолітичний фермент, відлущує"},
     {"name": "Bromelain", "risk_level": "low", "category": "enzyme", 
@@ -631,7 +630,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Superoxide Dismutase", "risk_level": "safe", "category": "enzyme", 
      "description": "Супероксиддисмутаза, антиоксидантний фермент"},
     
-    # === ВІТАМІНИ ГРУПИ B (10) ===
+    # === ВІТАМІНИ ГРУПИ B ===
     {"name": "Biotin", "risk_level": "safe", "category": "vitamin", 
      "description": "Біотин, вітамін B7, для волосся та нігтів"},
     {"name": "Folic Acid", "risk_level": "safe", "category": "vitamin", 
@@ -639,7 +638,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Cyanocobalamin", "risk_level": "safe", "category": "vitamin", 
      "description": "Вітамін B12"},
     
-    # === ПРЕБІОТИКИ ТА ПРОБІОТИКИ (10) ===
+    # === ПРЕБІОТИКИ ТА ПРОБІОТИКИ ===
     {"name": "Inulin", "risk_level": "safe", "category": "prebiotic", 
      "description": "Інулін, пребіотик"},
     {"name": "Alpha-Glucan Oligosaccharide", "risk_level": "safe", "category": "prebiotic", 
@@ -647,7 +646,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Lactobacillus Ferment", "risk_level": "safe", "category": "probiotic", 
      "description": "Фермент лактобактерій, пробіотик"},
     
-    # === РОСЛИННІ МАСЛА (20) ===
+    # === РОСЛИННІ МАСЛА ===
     {"name": "Helianthus Annuus Seed Oil", "risk_level": "safe", "category": "emollient", 
      "description": "Соняшникова олія, багата на вітамін Е"},
     {"name": "Olea Europaea Fruit Oil", "risk_level": "safe", "category": "emollient", 
@@ -665,7 +664,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Linum Usitatissimum Seed Oil", "risk_level": "safe", "category": "emollient", 
      "description": "Лляна олія, багата на омега-3"},
     
-    # === ГІДРОЛІЗОВАНІ ПРОТЕЇНИ (15) ===
+    # === ГІДРОЛІЗОВАНІ ПРОТЕЇНИ ===
     {"name": "Hydrolyzed Elastin", "risk_level": "low", "category": "conditioning agent", 
      "description": "Гідролізований еластин, для пружності"},
     {"name": "Hydrolyzed Hyaluronic Acid", "risk_level": "safe", "category": "humectant", 
@@ -675,7 +674,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Hydrolyzed Pea Protein", "risk_level": "low", "category": "conditioning agent", 
      "description": "Гідролізований гороховий протеїн"},
     
-    # === СПЕЦІАЛЬНІ СКЛАДОВІ (15) ===
+    # === СПЕЦІАЛЬНІ СКЛАДОВІ ===
     {"name": "Ubiquinone", "risk_level": "safe", "category": "antioxidant", 
      "description": "Коензим Q10, антиоксидант, енергія клітин"},
     {"name": "Idebenone", "risk_level": "safe", "category": "antioxidant", 
@@ -687,7 +686,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Adenosine", "risk_level": "safe", "category": "active", 
      "description": "Аденозин, покращує мікроциркуляцію"},
     
-    # === СИНТЕТИЧНІ ЛІПІДИ (10) ===
+    # === СИНТЕТИЧНІ ЛІПІДИ ===
     {"name": "Cetyl Palmitate", "risk_level": "low", "category": "emollient", 
      "description": "Цетил пальмітат, емульгатор"},
     {"name": "Myristyl Myristate", "risk_level": "low", "category": "emollient", 
@@ -695,7 +694,7 @@ COMMON_COSMETIC_INGREDIENTS = [
     {"name": "Isocetyl Stearate", "risk_level": "low", "category": "emollient", 
      "description": "Ізоцетил стеарат, емолент"},
     
-    # === ОСТАННІ ДОДАТКИ (досягаємо 500+) ===
+    # === ОСТАННІ ДОДАТКИ ===
     {"name": "Bentonite", "risk_level": "low", "category": "thickener", 
      "description": "Бентоніт, глина, загущувач"},
     {"name": "Kaolin", "risk_level": "low", "category": "absorbent", 
@@ -724,145 +723,17 @@ COMMON_COSMETIC_INGREDIENTS = [
      "description": "Церезин, мінеральний віск"},
     {"name": "Paraffin", "risk_level": "low", "category": "emollient", 
      "description": "Парафін, віск"},
-    
-    # === +НЕБЕЗПЕЧНІ ===
-    {"name": "Formaldehyde", "risk_level": "high", "category": "preservative", 
-    "description": "Канцероген, заборонений у багатьох країнах, але іноді зустрічається у лаках для нігтів"},
-    {"name": "Methylisothiazolinone", "risk_level": "high", "category": "preservative", 
-    "description": "Сильний алерген, обмежений в ЄС, але ще зустрічається у вологосерветках та шампунях"},
-    {"name": "Methylchloroisothiazolinone", "risk_level": "high", "category": "preservative", 
-    "description": "Часто використовується в парі з MIT, алерген"},
-    {"name": "Oxybenzone", "risk_level": "high", "category": "UV filter", 
-    "description": "Ендокринний дизраптор, досі зустрічається у сонцезахисних кремах"},
-    {"name": "Triclosan", "risk_level": "high", "category": "antibacterial", 
-    "description": "Антибактеріальний агент, сприяє резистентності, ще є у деяких дезодорантах"},
-    {"name": "Sodium Lauryl Sulfate", "risk_level": "high", "category": "surfactant", 
-    "description": "SLS, сильний ПАР, викликає подразнення, дуже поширений у шампунях та гелях"},
-    {"name": "Toluene", "risk_level": "high", "category": "solvent", 
-    "description": "Нейротоксин, ще іноді зустрічається у лаках для нігтів"},
-    {"name": "Phthalates (DBP, DEP, DEHP)", "risk_level": "high", "category": "plasticizer", 
-    "description": "Ендокринні дизраптори, досі трапляються у лаках для нігтів та парфумах"},
-    {"name": "Coal Tar", "risk_level": "high", "category": "colorant", 
-    "description": "Канцероген, ще використовується у деяких шампунях проти перхоти"},
-    {"name": "Lead Acetate", "risk_level": "high", "category": "colorant", 
-    "description": "Нейротоксин, іноді у фарбах для волосся"},
-    {"name": "Hydroquinone", "risk_level": "high", "category": "active", 
-    "description": "Канцероген, ще продається в освітлювачах шкіри"},
-    {"name": "1,4-Dioxane", "risk_level": "high", "category": "contaminant", 
-    "description": "Канцероген, забруднювач у ПЕГ та етоксилованих інгредієнтах"},
-    {"name": "PFAS", "risk_level": "high", "category": "contaminant", 
-    "description": "'Вічні хімікати', зустрічаються у водостойкій косметиці"},
-    {"name": "BHA (Butylated Hydroxyanisole)", "risk_level": "high", "category": "antioxidant", 
-    "description": "Канцероген, ще у деяких губних помадах"},
-    {"name": "BHT (Butylated Hydroxytoluene)", "risk_level": "high", "category": "antioxidant", 
-    "description": "Канцероген, антиоксидант у косметиці"},
-    {"name": "Carbon Black", "risk_level": "high", "category": "pigment", 
-    "description": "Канцероген при вдиханні, у туші для вій та підводках"},
-    {"name": "Aluminum Powder", "risk_level": "high", "category": "pigment", 
-    "description": "Нейротоксин, у блискітках та тінях"},
-    {"name": "Talc (with asbestos risk)", "risk_level": "high", "category": "absorbent", 
-    "description": "Ризик забруднення асбестом, у пудрі та тінях"},
-    {"name": "Formaldehyde-releasing DMDM Hydantoin", "risk_level": "high", "category": "preservative", 
-    "description": "Виділяє формальдегід, ще у шампунях та кондиціонерах"},
-    {"name": "Formaldehyde-releasing Imidazolidinyl Urea", "risk_level": "high", "category": "preservative", 
-    "description": "Виділяє формальдегід, у вологих серветках"},
-    {"name": "Quaternium-15", "risk_level": "high", "category": "preservative", 
-    "description": "Виділяє формальдегід, у косметиці"},
-    {"name": "Ethylene Oxide residues", "risk_level": "high", "category": "contaminant", 
-    "description": "Канцерогенні залишки, у деяких рослинних екстрактах"},
-    {"name": "Heavy metals (Lead, Cadmium, Arsenic, Mercury)", "risk_level": "high", "category": "contaminant", 
-    "description": "Забруднення у пігментах та рослинних інгредієнтах"},
-    {"name": "Musk Xylene", "risk_level": "high", "category": "fragrance", 
-    "description": "Біоакумулятивний мускус, у парфумах"},
-    {"name": "Nonylphenol Ethoxylates", "risk_level": "high", "category": "surfactant", 
-    "description": "Ендокринний дизраптор, у миючих засобах"},
-    {"name": "Retinoic Acid (Tretinoin)", "risk_level": "high", "category": "active", 
-    "description": "Тератоген, іноді у антивікових кремах без рецепта"},
-    {"name": "Salicylic Acid (over 2%)", "risk_level": "high", "category": "active", 
-    "description": "Високі концентрації викликають подразнення, у пелінгах"},
-    {"name": "Glycolic Acid (over 10%)", "risk_level": "high", "category": "active", 
-    "description": "Хімічні опіки, у професійних пелінгах"},
-    {"name": "Benzalkonium Chloride (high concentration)", "risk_level": "high", "category": "preservative", 
-    "description": "Подразнення шкіри, у дезінфікуючих засобах"},
-    {"name": "Chlorhexidine (high concentration)", "risk_level": "high", "category": "antiseptic", 
-    "description": "Алерген, у засобах проти акне"},
-    {"name": "Minoxidil (over 5%)", "risk_level": "high", "category": "active", 
-    "description": "Кардіотоксичний, у засобах для росту волосся"},
-    {"name": "Kojic Acid (over 1%)", "risk_level": "high", "category": "active", 
-    "description": "Подразнення, у освітлювачах"},
-    {"name": "Arbutin (over 2%)", "risk_level": "high", "category": "active", 
-    "description": "Може виділяти гідрохінон, у освітлювачах"},
-    {"name": "Licorice Extract (high glycyrrhizin)", "risk_level": "high", "category": "plant extract", 
-    "description": "Підвищує тиск, у заспокійливих кремах"},
-    {"name": "Bergapten", "risk_level": "high", "category": "plant extract", 
-    "description": "Фототоксичний, у парфумах з бергамотом"},
-    {"name": "Citrus oils (phototoxic)", "risk_level": "high", "category": "essential oil", 
-    "description": "Фотосенсибілізатори, у парфумах та косметиці"},
-    {"name": "Peppermint Oil (high concentration)", "risk_level": "high", "category": "essential oil", 
-    "description": "Подразнення шкіри, у засобах для губ"},
-    {"name": "Tea Tree Oil (undiluted)", "risk_level": "high", "category": "essential oil", 
-    "description": "Алерген, у засобах проти прищів"},
-    {"name": "Lavender Oil (undiluted)", "risk_level": "high", "category": "essential oil", 
-    "description": "Ендокринний дизраптор, у ароматерапії"},
-    {"name": "Ylang-Ylang Oil", "risk_level": "high", "category": "essential oil", 
-    "description": "Алерген, у парфумах"},
-    {"name": "Jasmine Oil", "risk_level": "high", "category": "essential oil", 
-    "description": "Алерген, у парфумах"},
-    {"name": "Rose Oil (undiluted)", "risk_level": "high", "category": "essential oil", 
-    "description": "Подразнення, у люксовій косметиці"},
-    {"name": "Neroli Oil", "risk_level": "high", "category": "essential oil", 
-    "description": "Фототоксичний, у парфумах"},
-    {"name": "4-Nitro-o-phenylenediamine", "risk_level": "high", "category": "colorant", 
-    "description": "Канцероген, у фарбах для волосся"},
-    {"name": "HC Blue No. 1", "risk_level": "high", "category": "colorant", 
-    "description": "Канцероген, у напівпостійних фарбах"},
-    {"name": "HC Red No. 3", "risk_level": "high", "category": "colorant", 
-    "description": "Канцероген, у фарбах для волосся"},
-    {"name": "D&C Red No. 33", "risk_level": "high", "category": "colorant", 
-    "description": "Канцероген, у губних помадах"},
-    {"name": "FD&C Yellow No. 5", "risk_level": "high", "category": "colorant", 
-    "description": "Алерген, у косметиці"},
-    {"name": "Aconite Extract", "risk_level": "high", "category": "plant extract", 
-    "description": "Екстракт аконіту, нейротоксин, заборонений"},
-    {"name": "Belladonna Extract", "risk_level": "high", "category": "plant extract", 
-    "description": "Екстракт беладони, нейротоксин, заборонений"},
-    {"name": "Hemlock Extract", "risk_level": "high", "category": "plant extract", 
-    "description": "Екстракт болиголова, нейротоксин, заборонений"},
-    {"name": "Foxglove Extract", "risk_level": "high", "category": "plant extract", 
-    "description": "Екстракт наперстянки, кардіотоксичний, заборонений"},
-    {"name": "Lily of the Valley Extract", "risk_level": "high", "category": "plant extract", 
-    "description": "Екстракт конвалії, кардіотоксичний, заборонений"},
-    {"name": "Coal Tar", "risk_level": "high", "category": "colorant", 
-    "description": "Кам'яновугільна смола, канцероген, заборонена в косметиці"},
-    {"name": "Lead Acetate", "risk_level": "high", "category": "colorant", 
-    "description": "Ацетат свинцю, нейротоксин, заборонений у косметиці"},
-    {"name": "Mercury", "risk_level": "high", "category": "preservative", 
-    "description": "Ртуть, нейротоксин, заборонена у всій косметиці"},
-    {"name": "Hydroquinone", "risk_level": "high", "category": "active", 
-    "description": "Гідрохінон, канцероген, заборонений у багатьох країнах"},
-    {"name": "Boric Acid", "risk_level": "high", "category": "preservative", 
-    "description": "Борна кислота, репродуктивний токсин, заборонена у дитячій косметиці"},
-    {"name": "Salicylic Acid (high concentration)", "risk_level": "high", "category": "active", 
-    "description": "Саліцилова кислота у високих концентраціях (>2%), викликає подразнення"},
-    {"name": "Glycolic Acid (high concentration)", "risk_level": "high", "category": "active", 
-    "description": "Гліколева кислота у високих концентраціях (>10%), викликає хімічні опіки"}
-    
-    # === КІЛЬКІСТЬ ПЕРЕВІРКА ===
-    # Загальна кількість: 500+ інгредієнтів
-    # Категорії: solvent, surfactant, preservative, fragrance, emulsifier, emollient, UV filter, 
-    # chelating agent, pH adjuster, plant extract, active, film former, thickener, pigment,
-    # conditioning agent, mineral, colorant, antiperspirant, enzyme, vitamin, prebiotic, etc.
 ]
 
 def seed_database():
     """Наповнення бази даних основними інгредієнтами та тестовими даними"""
     
     with app.app_context():
-        print("🌱 Наповнення бази даних Cosmetics Scanner розширеним списком...")
+        print("Наповнення бази даних Cosmetics Scanner...")
         print("=" * 60)
         
-        # 1. Додавання 500+ поширених інгредієнтів
-        print(f"🧪 Додавання розширеного списку інгредієнтів ({len(COMMON_COSMETIC_INGREDIENTS)})...")
+        # 1. Додавання поширених інгредієнтів
+        print(f"Додавання списку інгредієнтів ({len(COMMON_COSMETIC_INGREDIENTS)})...")
         
         ingredients_added = 0
         ingredients_updated = 0
@@ -893,10 +764,10 @@ def seed_database():
                 ingredients_updated += 1
         
         db.session.commit()
-        print(f"✅ Додано: {ingredients_added}, Оновлено: {ingredients_updated}, Пропущено: {ingredients_skipped}")
+        print(f"Додано: {ingredients_added}, Оновлено: {ingredients_updated}, Пропущено: {ingredients_skipped}")
         
         # 2. Тестові користувачі
-        print("\n👤 Створення тестових користувачів...")
+        print("\nСтворення тестових користувачів...")
         
         # Адміністратор
         admin_user = User.query.filter_by(email="admin@cosmetics.com").first()
@@ -904,9 +775,9 @@ def seed_database():
             admin_user = User(email="admin@cosmetics.com", role="admin")
             admin_user.set_password("admin123")
             db.session.add(admin_user)
-            print("✅ Створено адміністратора: admin@cosmetics.com / admin123")
+            print("Створено адміністратора: admin@cosmetics.com / admin123")
         else:
-            print("ℹ️ Адміністратор вже існує")
+            print("Адміністратор вже існує")
         
         # Користувач
         test_user = User.query.filter_by(email="user@example.com").first()
@@ -914,82 +785,82 @@ def seed_database():
             test_user = User(email="user@example.com", role="user")
             test_user.set_password("user123")
             db.session.add(test_user)
-            print("✅ Створено користувача: user@example.com / user123")
+            print("Створено користувача: user@example.com / user123")
         else:
-            print("ℹ️ Користувач вже існує")
-        
+            print("Користувач вже існує")
+
         db.session.commit()
-        
+
         # 3. Статистика
-        print("\n📊 ФІНАЛЬНА СТАТИСТИКА БАЗИ:")
-        print(f"   👥 Користувачів: {User.query.count()}")
-        print(f"   🧪 Інгредієнтів: {Ingredient.query.count()}")
-        print(f"   🔍 Сканувань: {Scan.query.count()}")
-        
+        print("\nФІНАЛЬНА СТАТИСТИКА БАЗИ:")
+        print(f"Користувачів: {User.query.count()}")
+        print(f"Інгредієнтів: {Ingredient.query.count()}")
+        print(f"Сканувань: {Scan.query.count()}")
+
         # Статистика за категоріями
-        print("\n📈 СТАТИСТИКА ЗА КАТЕГОРІЯМИ:")
+        print("\nСТАТИСТИКА ЗА КАТЕГОРІЯМИ:")
         from sqlalchemy import func
         category_stats = db.session.query(
             Ingredient.category, 
             func.count(Ingredient.id)
         ).group_by(Ingredient.category).order_by(func.count(Ingredient.id).desc()).all()
-        
+
         for category, count in category_stats[:15]:  # Показуємо топ-15 категорій
             if category:
                 print(f"   • {category}: {count}")
-        
+
         if len(category_stats) > 15:
             print(f"   ... та ще {len(category_stats) - 15} категорій")
-        
+
         # Статистика за рівнем ризику
-        print("\n⚠️  СТАТИСТИКА ЗА РИЗИКОМ:")
+        print("\nСТАТИСТИКА ЗА РИЗИКОМ:")
         risk_stats = db.session.query(
             Ingredient.risk_level, 
             func.count(Ingredient.id)
         ).group_by(Ingredient.risk_level).order_by(func.count(Ingredient.id).desc()).all()
-        
+
         risk_icons = {
-            'safe': '🟢',
-            'low': '🟡', 
-            'medium': '🟠',
-            'high': '🔴',
-            'unknown': '⚫'
+            'safe': 'БЕЗПЕЧНИЙ',
+            'low': 'НИЗЬКИЙ', 
+            'medium': 'ПОМІРНИЙ',
+            'high': 'ВИСОКИЙ',
+            'unknown': 'НЕВІДОМИЙ'
         }
-        
+
         for risk, count in risk_stats:
             if risk:
-                icon = risk_icons.get(risk, '⚪')
-                print(f"   {icon} {risk}: {count}")
-        
+                level_name = risk_icons.get(risk, 'НЕВІДОМИЙ')
+                print(f"   {level_name}: {count}")
+
         # Приклади продуктів з різним рівнем ризику
-        print("\n🧪 ПРИКЛАДИ ОЦІНКИ ПРОДУКТІВ:")
-        print("   🔴 HIGH: Формальдегід, Оксибензон, Триклозан, MIT/MCI")
-        print("   🟠 MEDIUM: Парфум, Парабени, Спирт, SLES, Тріетаноламін")
-        print("   🟡 LOW: Гліцерин, Діметикон, Бензоат натрію, Мінеральна олія")
-        print("   🟢 SAFE: Вода, Алое вера, Вітаміни, Гіалуронова кислота, Рослинні екстракти")
-        
+        print("\nПРИКЛАДИ ОЦІНКИ ПРОДУКТІВ:")
+        print("   ВИСОКИЙ РИЗИК: Формальдегід, Оксибензон, Триклозан, MIT/MCI")
+        print("   ПОМІРНИЙ РИЗИК: Парфум, Парабени, Спирт, SLES, Тріетаноламін")
+        print("   НИЗЬКИЙ РИЗИК: Гліцерин, Діметикон, Бензоат натрію, Мінеральна олія")
+        print("   БЕЗПЕЧНИЙ: Вода, Алое вера, Вітаміни, Гіалуронова кислота, Рослинні екстракти")
+
         print("\n" + "=" * 60)
-        print("🎉 БАЗУ ДАНИХ ОНОВЛЕНО ДО 500+ ІНГРЕДІЄНТІВ!")
+        print("БАЗУ ДАНИХ ОНОВЛЕНО ІНГРЕДІЄНТІВ!")
         print("=" * 60)
-        
-        print("\n🔧 ОСНОВНІ ЗМІНИ:")
+
+        print("\nОСНОВНІ ЗМІНИ:")
         print("   1. Додано 500+ найпоширеніших інгредієнтів")
         print("   2. Покриті всі основні категорії INCI")
         print("   3. Описано українською мовою з правильними апострофами")
         print("   4. Реалістичні оцінки ризику на основі сучасних досліджень")
-        
-        print("\n📱 ТЕСТОВІ ОБЛІКОВІ ЗАПИСИ:")
-        print("   👤 Користувач: user@example.com / user123")
-        print("   👑 Адміністратор: admin@cosmetics.com / admin123")
-        
-        print("\n⚠️  Для очищення бази даних:")
+
+        print("\nТЕСТОВІ ОБЛІКОВІ ЗАПИСИ:")
+        print("   Користувач: user@example.com / user123")
+        print("   Адміністратор: admin@cosmetics.com / admin123")
+
+        print("\nДля очищення бази даних:")
         print('   python -c "from app import app, db; with app.app_context(): db.drop_all(); db.create_all()"')
-        
-        print("\n🚀 Запустіть додаток:")
+
+        print("\nЗапустіть додаток:")
         print("   python app.py")
-        print("\n🌐 Відкрийте у браузері: http://localhost:5000")
-        
+        print("\nВідкрийте у браузері: http://localhost:5000")
+
         return True
 
-if __name__ == "__main__":
-    seed_database()
+        if __name__ == "__main__":
+            seed_database()

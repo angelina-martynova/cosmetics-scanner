@@ -1,9 +1,9 @@
 -- setup_database.sql
--- Этот файл содержит SQL команды для настройки базы данных
--- Запускать по частям в pgAdmin Query Tool
+-- Цей файл містить SQL команди для налаштування бази даних
+-- Запускати частинами в pgAdmin Query Tool
 
 -- ============================================
--- ШАГ 1: Создание базы данных (выполнять как postgres)
+-- КРОК 1: Створення бази даних (виконувати як postgres)
 -- ============================================
 CREATE DATABASE cosmetics_db
     ENCODING 'UTF8'
@@ -11,10 +11,10 @@ CREATE DATABASE cosmetics_db
     LC_CTYPE 'C'
     TEMPLATE template0;
 
-COMMENT ON DATABASE cosmetics_db IS 'База данных для дипломного проекта Cosmetics Scanner';
+COMMENT ON DATABASE cosmetics_db IS 'База даних для дипломного проекту Cosmetics Scanner';
 
 -- ============================================
--- ШАГ 2: Создание пользователя приложения (опционально)
+-- КРОК 2: Створення користувача додатка (необов'язково)
 -- ============================================
 CREATE USER cosmetics_app WITH 
     PASSWORD 'AppPassword123!'
@@ -24,21 +24,21 @@ CREATE USER cosmetics_app WITH
     LOGIN;
 
 -- ============================================
--- ШАГ 3: Подключиться к cosmetics_db вручную в pgAdmin
--- Затем выполнить следующий блок:
+-- КРОК 3: Підключитися до cosmetics_db вручну в pgAdmin
+-- Потім виконати наступний блок:
 -- ============================================
 
--- Дать права на базу данных
+-- Надати права на базу даних
 GRANT ALL PRIVILEGES ON DATABASE cosmetics_db TO cosmetics_app;
 
--- Дать права на схему public
+-- Надати права на схему public
 GRANT ALL ON SCHEMA public TO cosmetics_app;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cosmetics_app;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO cosmetics_app;
 GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO cosmetics_app;
 
 -- ============================================
--- ШАГ 4: Альтернативно - простой вариант для диплома
--- (если хотите использовать пользователя postgres)
+-- КРОК 4: Альтернативно - простий варіант для диплома
+-- (якщо хочете використовувати користувача postgres)
 -- ============================================
--- Ничего не делать, пользователь postgres уже имеет все права
+-- Нічого не робити, користувач postgres вже має всі права

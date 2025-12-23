@@ -9,7 +9,7 @@ import traceback
 
 class IngredientChecker:
     def __init__(self, use_cache=True, fallback_to_local=True):
-        print("🔄 Ініціалізація IngredientChecker...")
+        print("Ініціалізація IngredientChecker...")
         self.local_ingredients = self.load_local_ingredients()
         self.common_fixes = self.load_common_fixes()
         
@@ -24,7 +24,7 @@ class IngredientChecker:
         # Розширений список стоп-слів з маркетинговими фразами
         self.stop_words = self._load_stop_words()
         
-        print(f"✅ IngredientChecker ініціалізований: {len(self.local_ingredients)} інгредієнтів у базі")
+        print(f"IngredientChecker ініціалізований: {len(self.local_ingredients)} інгредієнтів у базі")
     
     def _load_stop_words(self):
         """Завантаження розширеного списку стоп-слів"""
@@ -66,7 +66,7 @@ class IngredientChecker:
     
     def load_local_ingredients(self):
         """Завантаження локальної бази інгредієнтів"""
-        print("📚 Завантаження локальної бази інгредієнтів...")
+        print("Завантаження локальної бази інгредієнтів...")
         
         # Базовий список основних інгредієнтів (з повними псевдонімами)
         ingredients = [
@@ -441,7 +441,7 @@ class IngredientChecker:
             {
                 "id": 1048, "name": "Tetrasodium EDTA", "risk_level": "medium", "category": "chelating agent",
                 "description": "Хелатуючий агент, покращує піну, може подразнювати шкіру",
-                "aliases": ["tetrasodium edta", "тетранатрій едта", "едта-4na",
+                "aliases": ["tetrasodium edta", "тетранатрій едта", "едта-4на",
                            "ethylenediaminetetraacetic acid tetrasodium salt",
                            "хелатор", "хелатирующий агент"],
                 "source": "local"
@@ -449,7 +449,7 @@ class IngredientChecker:
             {
                 "id": 1049, "name": "Disodium EDTA", "risk_level": "medium", "category": "chelating agent",
                 "description": "Хелатуючий агент",
-                "aliases": ["disodium edta", "динатрій едта", "едта-2na",
+                "aliases": ["disodium edta", "динатрій едта", "едта-2на",
                            "ethylenediaminetetraacetic acid disodium salt"],
                 "source": "local"
             },
@@ -513,14 +513,14 @@ class IngredientChecker:
                 "id": 1057, "name": "Tocopherol", "risk_level": "safe", "category": "antioxidant",
                 "description": "Вітамін Е, антиоксидант, стабілізатор",
                 "aliases": ["tocopherol", "токоферол", "vitamin e", "вітамін е",
-                           "alpha-tocopherol", "d-alpha-tocopherol", "антиоксидант e"],
+                           "alpha-tocopherol", "d-alpha-tocopherol", "антиоксидант е"],
                 "source": "local"
             },
             {
                 "id": 1058, "name": "Ascorbic Acid", "risk_level": "safe", "category": "antioxidant",
                 "description": "Вітамін С, антиоксидант, освітлює",
                 "aliases": ["ascorbic acid", "аскорбінова кислота", "vitamin c", "вітамін с",
-                           "l-ascorbic acid", "антиоксидант c", "освітлювач с"],
+                           "l-ascorbic acid", "антиоксидант с", "освітлювач с"],
                 "source": "local"
             },
             {
@@ -852,12 +852,12 @@ class IngredientChecker:
         # Додаємо ще інгредієнти для досягнення повного охоплення
         # У реальній реалізації тут будуть всі 500+ інгредієнтів з бази даних
         
-        print(f"✅ Завантажено {len(ingredients)} інгредієнтів з повними псевдонімами")
+        print(f"Завантажено {len(ingredients)} інгредієнтів з повними псевдонімами")
         return ingredients
 
     def load_common_fixes(self):
         """Завантаження виправлень помилок OCR та транскрипції"""
-        print("🔧 Завантаження виправлень помилок...")
+        print("Завантаження виправлень помилок...")
         fixes = {
             # Хімічні помилки OCR
             "methytisctvazuivare": "methylisothiazolinone",
@@ -1033,7 +1033,7 @@ class IngredientChecker:
             "сорбат": "sorbate",
             "пропіонат": "propionate",
         }
-        print(f"✅ Завантажено {len(fixes)} виправлень помилок")
+        print(f"Завантажено {len(fixes)} виправлень помилок")
         return fixes
     
     def _create_not_found_response(self, ingredient_name):
@@ -1140,7 +1140,7 @@ class IngredientChecker:
         if not text:
             return []
         
-        print(f"\n🧪 Виділення кандидатів з тексту ({len(text)} символів)")
+        print(f"Виділення кандидатів з тексту ({len(text)} символів)")
         
         # 1. Знаходимо початок списку інгредієнтів
         composition_start = -1
@@ -1158,7 +1158,7 @@ class IngredientChecker:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 composition_start = match.end()
-                print(f"   ✅ Знайдено розділ 'СКЛАД' у позиції {composition_start}")
+                print(f"Знайдено розділ 'СКЛАД' у позиції {composition_start}")
                 break
         
         # Якщо не знайшли заголовок, шукаємо рядок з INCI назвами
@@ -1167,7 +1167,7 @@ class IngredientChecker:
             for i, line in enumerate(lines):
                 if ',' in line and any(word in line.upper() for word in ['AQUA', 'SODIUM', 'GLYCERIN', 'PARFUM', 'WATER', 'ALCOHOL']):
                     composition_start = sum(len(l) + 1 for l in lines[:i])
-                    print(f"   ✅ Знайдено список інгредієнтів у рядку {i+1}")
+                    print(f"Знайдено список інгредієнтів у рядку {i+1}")
                     break
         
         # 2. Виділяємо текст списку інгредієнтів
@@ -1194,10 +1194,10 @@ class IngredientChecker:
                         end_pos = potential_end
             
             ingredients_text = text[composition_start:end_pos].strip()
-            print(f"   📊 Виділено текст інгредієнтів: {len(ingredients_text)} символів")
+            print(f"Виділено текст інгредієнтів: {len(ingredients_text)} символів")
         else:
             ingredients_text = text
-            print("   ℹ️ Розділ 'СКЛАД' не знайдено, використовуємо весь текст")
+            print("Розділ 'СКЛАД' не знайдено, використовуємо весь текст")
         
         # 3. Очищуємо текст
         ingredients_text = re.sub(r'[^\w\s.,;:\-–/()\n]', ' ', ingredients_text)
@@ -1239,7 +1239,7 @@ class IngredientChecker:
             # Перевіряємо через is_potential_ingredient
             if self.is_potential_ingredient(item):
                 candidates.append(item)
-                print(f"   🧪 Кандидат: '{item}'")
+                print(f"Кандидат: '{item}'")
         
         # Стратегія 2: За переводами рядків (для складних випадків)
         if len(candidates) < 3:
@@ -1259,7 +1259,7 @@ class IngredientChecker:
                 seen.add(candidate_lower)
                 unique_candidates.append(candidate)
         
-        print(f"📊 Знайдено {len(unique_candidates)} унікальних кандидатів")
+        print(f"Знайдено {len(unique_candidates)} унікальних кандидатів")
         
         return unique_candidates
     
@@ -1357,10 +1357,10 @@ class IngredientChecker:
     def find_ingredients(self, text):
         """Покращена функція пошуку інгредієнтів"""
         if not text or not isinstance(text, str):
-            print("⚠️ Текст для аналізу порожній або не є рядком")
+            print("Текст для аналізу порожній або не є рядком")
             return []
         
-        print(f"\n🔍 Пошук інгредієнтів у тексті")
+        print(f"Пошук інгредієнтів у тексті")
         
         # 1. Виділяємо кандидатів
         candidates = self.extract_ingredient_candidates(text)
@@ -1375,13 +1375,9 @@ class IngredientChecker:
             if ingredient['name'] not in seen_names:
                 found_ingredients.append(ingredient)
                 seen_names.add(ingredient['name'])
-                risk_icon = "🔴" if ingredient['risk_level'] == 'high' else \
-                           "🟠" if ingredient['risk_level'] == 'medium' else \
-                           "🟡" if ingredient['risk_level'] == 'low' else \
-                           "🟢" if ingredient['risk_level'] == 'safe' else "⚫"
-                print(f"✅ {risk_icon} Знайдено: {ingredient['name']} (ризик: {ingredient['risk_level']})")
+                print(f"Знайдено: {ingredient['name']} (ризик: {ingredient['risk_level']})")
         
-        print(f"📊 ПІДСУМОК: знайдено {len(found_ingredients)} інгредієнтів")
+        print(f"ПІДСУМОК: знайдено {len(found_ingredients)} інгредієнтів")
         
         # 3. Статистика за ризиками
         risk_stats = {'high': 0, 'medium': 0, 'low': 0, 'safe': 0, 'unknown': 0}
@@ -1391,7 +1387,7 @@ class IngredientChecker:
             if risk in risk_stats:
                 risk_stats[risk] += 1
         
-        print(f"📈 Статистика ризиків: 🔴 {risk_stats['high']} 🟠 {risk_stats['medium']} 🟡 {risk_stats['low']} 🟢 {risk_stats['safe']} ⚫ {risk_stats['unknown']}")
+        print(f"Статистика ризиків: високий {risk_stats['high']} помірний {risk_stats['medium']} низький {risk_stats['low']} безпечний {risk_stats['safe']} невідомий {risk_stats['unknown']}")
         
         return found_ingredients
 
@@ -1404,7 +1400,7 @@ class ExternalDataFetcher:
         self.cache_file = os.path.join(cache_dir, 'external_cache.db')
         os.makedirs(cache_dir, exist_ok=True)
         self.init_cache()
-        print(f"✅ ExternalDataFetcher ініціалізований, кеш: {self.cache_file}")
+        print(f"ExternalDataFetcher ініціалізований, кеш: {self.cache_file}")
         
     def init_cache(self):
         """Ініціалізація кешу"""
@@ -1449,13 +1445,13 @@ class ExternalDataFetcher:
             return result
             
         except (requests.ConnectionError, requests.Timeout):
-            print(f"⚠️ Немає доступу до інтернету, пропускаємо зовнішні джерела")
+            print(f"Немає доступу до інтернету, пропускаємо зовнішні джерела")
             return None
     
     def _search_cosing(self, ingredient_name):
         """Пошук у базі CosIng ЄС"""
         try:
-            print(f"🔗 Запит до CosIng API: {ingredient_name}")
+            print(f"Запит до CosIng API: {ingredient_name}")
             
             # Заглушка для демонстрації
             if 'paraben' in ingredient_name.lower():
@@ -1472,7 +1468,7 @@ class ExternalDataFetcher:
             return None
             
         except Exception as e:
-            print(f"❌ Помилка CosIng API: {e}")
+            print(f"Помилка CosIng API: {e}")
             return None
     
     def _search_openfoodfacts(self, ingredient_name):
@@ -1501,7 +1497,7 @@ class ExternalDataFetcher:
             return None
             
         except Exception as e:
-            print(f"❌ Помилка Open Food Facts API: {e}")
+            print(f"Помилка Open Food Facts API: {e}")
             return None
     
     def _search_pubchem(self, ingredient_name):
@@ -1546,7 +1542,7 @@ class ExternalDataFetcher:
             return None
             
         except Exception as e:
-            print(f"❌ Помилка PubChem API: {e}")
+            print(f"Помилка PubChem API: {e}")
             return None
     
     def _get_from_cache(self, ingredient_name):
@@ -1567,7 +1563,7 @@ class ExternalDataFetcher:
             return None
             
         except Exception as e:
-            print(f"❌ Помилка читання кешу: {e}")
+            print(f"Помилка читання кешу: {e}")
             return None
     
     def _save_to_cache(self, ingredient_name, data):
@@ -1583,4 +1579,4 @@ class ExternalDataFetcher:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Помилка збереження в кеш: {e}")
+            print(f"Помилка збереження в кеш: {e}")

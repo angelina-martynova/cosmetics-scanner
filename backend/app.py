@@ -88,9 +88,9 @@ class Scan(db.Model):
     input_method = db.Column(db.String(50))
     original_text = db.Column(db.Text)
     safety_status = db.Column(db.String(20), default='safe')
-    safety_message = db.Column(db.String(255))  # Новое поле: сообщение о безопасности
-    contains_unknown = db.Column(db.Boolean, default=False)  # Новое поле: содержит неизвестные ингредиенты
-    unknown_count = db.Column(db.Integer, default=0)  # Новое поле: количество неизвестных ингредиентов
+    safety_message = db.Column(db.String(255))
+    contains_unknown = db.Column(db.Boolean, default=False)
+    unknown_count = db.Column(db.Integer, default=0)
     image_filename = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
@@ -117,7 +117,6 @@ class Scan(db.Model):
     def to_dict(self):
         ingredients_list = self.get_ingredients_list()
         
-        # Если поля не заполнены, рассчитываем заново (для старых записей)
         if not self.safety_message:
             safety_info = calculate_safety_status_with_message(ingredients_list)
             self.safety_status = safety_info['status']
@@ -143,7 +142,6 @@ class Scan(db.Model):
         }
     
     def get_risk_statistics(self):
-        """Получение статистики по рискам"""
         ingredients_list = self.get_ingredients_list()
         
         stats = {
@@ -163,17 +161,14 @@ class Scan(db.Model):
         return stats
 
 def calculate_safety_status_with_message(detected_ingredients):
-    """Улучшенная функция расчета статуса безопасности с сообщением"""
-    
     if not detected_ingredients:
         return {
             'status': 'safe',
-            'message': 'Продукт безопасен',
+            'message': 'Продукт безпечний',
             'contains_unknown': False,
             'unknown_count': 0
         }
     
-    # Счетчики рисков
     risk_counts = {
         'high': 0,
         'medium': 0,
@@ -182,7 +177,6 @@ def calculate_safety_status_with_message(detected_ingredients):
         'safe': 0
     }
     
-    # Собираем статистику
     for ing in detected_ingredients:
         risk_level = ing.get('risk_level', 'unknown')
         if risk_level in risk_counts:
@@ -191,67 +185,60 @@ def calculate_safety_status_with_message(detected_ingredients):
     total = len(detected_ingredients)
     unknown_percentage = (risk_counts['unknown'] / total * 100) if total > 0 else 0
     
-    # Основная логика оценки
-    
-    # 1. Опасность - есть high-риск ингредиенты
     if risk_counts['high'] > 0:
         return {
             'status': 'danger',
-            'message': 'Высокий риск, рекомендуется избегать',
+            'message': 'Високий ризик, рекомендовано уникати',
             'contains_unknown': risk_counts['unknown'] > 0,
             'unknown_count': risk_counts['unknown']
         }
     
-    # 2. Предупреждение - комбинация факторов
     warning_conditions = [
-        risk_counts['medium'] >= 2,  # 2+ средних риска
-        risk_counts['medium'] == 1 and risk_counts['unknown'] >= 2,  # 1 средний + 2+ неизвестных
-        unknown_percentage > 50 and total <= 10,  # Больше половины неизвестно в небольшом составе
-        risk_counts['unknown'] >= 3 and total <= 5,  # 3+ неизвестных в коротком составе
+        risk_counts['medium'] >= 2,
+        risk_counts['medium'] == 1 and risk_counts['unknown'] >= 2,
+        unknown_percentage > 50 and total <= 10,
+        risk_counts['unknown'] >= 3 and total <= 5,
     ]
     
     if any(warning_conditions):
         return {
             'status': 'warning',
-            'message': 'Умеренные риски, рассмотрите альтернативы',
+            'message': 'Помірні ризики, розгляньте альтернативи',
             'contains_unknown': risk_counts['unknown'] > 0,
             'unknown_count': risk_counts['unknown']
         }
     
-    # 3. Низкое предупреждение - умеренные условия
     low_warning_conditions = [
-        risk_counts['medium'] == 1,  # 1 средний риск
-        risk_counts['unknown'] == 2 and total <= 8,  # 2 неизвестных в небольшом составе
-        unknown_percentage > 30 and unknown_percentage <= 50,  # 30-50% неизвестно
+        risk_counts['medium'] == 1,
+        risk_counts['unknown'] == 2 and total <= 8,
+        unknown_percentage > 30 and unknown_percentage <= 50,
     ]
     
     if any(low_warning_conditions):
         return {
             'status': 'low_warning',
-            'message': 'Незначительные риски, можно использовать',
+            'message': 'Незначні ризики, можна використовувати',
             'contains_unknown': risk_counts['unknown'] > 0,
             'unknown_count': risk_counts['unknown']
         }
     
-    # 4. Безопасно - только низкие риски или немного неизвестного
     safe_conditions = [
-        risk_counts['low'] > 0 and risk_counts['unknown'] == 0,  # Только низкие риски
-        risk_counts['unknown'] == 1 and total >= 10,  # 1 неизвестный среди многих ингредиентов
-        unknown_percentage <= 20,  # Меньше 20% неизвестно
+        risk_counts['low'] > 0 and risk_counts['unknown'] == 0,
+        risk_counts['unknown'] == 1 and total >= 10,
+        unknown_percentage <= 20,
     ]
     
     if any(safe_conditions) or total == 0:
         return {
             'status': 'safe',
-            'message': 'Продукт безопасен',
+            'message': 'Продукт безпечний',
             'contains_unknown': risk_counts['unknown'] > 0,
             'unknown_count': risk_counts['unknown']
         }
     
-    # 5. По умолчанию - безопасно с предупреждением о неизвестном
     return {
         'status': 'safe',
-        'message': 'Продукт безопасен' + (' (содержит неизвестные ингредиенты)' if risk_counts['unknown'] > 0 else ''),
+        'message': 'Продукт безпечний' + (' (містить невідомі інгредієнти)' if risk_counts['unknown'] > 0 else ''),
         'contains_unknown': risk_counts['unknown'] > 0,
         'unknown_count': risk_counts['unknown']
     }
@@ -264,12 +251,8 @@ def check_ingredients(text):
     return ingredient_checker.find_ingredients(text)
 
 def create_scan(user_id, text, detected_ingredients, input_type='manual', input_method='text'):
-    """Создание скана с улучшенной логикой оценки безопасности"""
-    
-    # Рассчитываем статус безопасности
     safety_info = calculate_safety_status_with_message(detected_ingredients)
     
-    # Подготавливаем данные ингредиентов для JSON
     ingredients_for_json = []
     if detected_ingredients:
         for ing in detected_ingredients:
@@ -282,7 +265,6 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
                     'description': ing.get('description', '')
                 })
     
-    # Создаем запись скана
     image_filename = None
     
     scan = Scan(
@@ -301,99 +283,87 @@ def create_scan(user_id, text, detected_ingredients, input_type='manual', input_
     db.session.add(scan)
     db.session.commit()
     
-    print(f"✅ Создан скан ID: {scan.id}")
+    print(f"Створено сканування ID: {scan.id}")
     print(f"   Статус: {safety_info['status']}")
-    print(f"   Сообщение: {safety_info['message']}")
-    print(f"   Ингредиентов: {len(detected_ingredients)}")
-    print(f"   Неизвестных: {safety_info['unknown_count']}")
+    print(f"   Повідомлення: {safety_info['message']}")
+    print(f"   Інгредієнтів: {len(detected_ingredients)}")
+    print(f"   Невідомих: {safety_info['unknown_count']}")
     
     return scan.id
 
 @app.route('/api/upload_text_file', methods=['POST'])
 def upload_text_file():
-    """Загрузка и обработка текстового файла"""
     try:
-        print(f"\n📁 API upload_text_file вызван")
+        print(f"API upload_text_file викликано")
         
         if 'file' not in request.files:
-            print("❌ Файл не найден в запросе")
-            return jsonify({"status": "error", "message": "Файл не загружен"}), 400
+            print("Файл не знайдено в запиті")
+            return jsonify({"status": "error", "message": "Файл не завантажено"}), 400
         
         file = request.files['file']
         
         if file.filename == '':
-            print("❌ Пустое имя файла")
-            return jsonify({"status": "error", "message": "Файл не выбран"}), 400
+            print("Порожня назва файлу")
+            return jsonify({"status": "error", "message": "Файл не вибрано"}), 400
         
-        print(f"📄 Получен файл: {file.filename}")
-        print(f"📊 Content-Type: {file.content_type}")
+        print(f"Отримано файл: {file.filename}")
+        print(f"Content-Type: {file.content_type}")
         
-        # Сохраняем оригинальное имя для расширения
         original_filename = file.filename
         file_ext = os.path.splitext(original_filename)[1].lower() if '.' in original_filename else ''
         
-        # Проверка расширения
         allowed_extensions = {'.txt', '.doc', '.docx', '.pdf'}
         if file_ext not in allowed_extensions:
-            print(f"❌ Неподдерживаемое расширение: {file_ext}")
-            return jsonify({"status": "error", "message": f"Неподдерживаемый формат файла: {file_ext}. Поддерживаются: {', '.join(allowed_extensions)}"}), 400
+            print(f"Непідтримуване розширення: {file_ext}")
+            return jsonify({"status": "error", "message": f"Непідтримуваний формат файлу: {file_ext}. Підтримується: {', '.join(allowed_extensions)}"}), 400
         
-        # ВАЖНО: Читаем файл ОДИН РАЗ в память
         file.seek(0)
         file_bytes = file.read()
         file_size = len(file_bytes)
         
-        print(f"📏 Размер файла: {file_size} байт")
+        print(f"Розмір файлу: {file_size} байт")
         
-        # Проверка размера (макс 5MB)
         if file_size > 5 * 1024 * 1024:
-            print(f"❌ Файл слишком большой: {file_size} байт")
-            return jsonify({"status": "error", "message": "Файл слишком большой. Максимальный размер: 5MB"}), 400
+            print(f"Файл занадто великий: {file_size} байт")
+            return jsonify({"status": "error", "message": "Файл занадто великий. Максимальний розмір: 5MB"}), 400
         
         if file_size == 0:
-            print("❌ Файл пустой")
-            return jsonify({"status": "error", "message": "Файл пустой"}), 400
+            print("Файл порожній")
+            return jsonify({"status": "error", "message": "Файл порожній"}), 400
         
-        # Декодируем содержимое файла
         text = ""
         
         if file_ext == '.txt':
-            # Пробуем разные кодировки для .txt файлов
             encodings = ['utf-8', 'cp1251', 'cp1252', 'iso-8859-1', 'windows-1251']
             for encoding in encodings:
                 try:
                     text = file_bytes.decode(encoding)
-                    print(f"✅ Успешно декодирован как {encoding}")
+                    print(f"Успішно декодовано як {encoding}")
                     break
                 except UnicodeDecodeError:
                     continue
             
             if not text:
-                # Если все кодировки не подошли, используем игнорирование ошибок
                 text = file_bytes.decode('utf-8', errors='ignore')
-                print("⚠️ Файл декодирован с игнорированием ошибок")
+                print("Файл декодовано з ігноруванням помилок")
         
         elif file_ext in {'.doc', '.docx', '.pdf'}:
-            # Для бинарных форматов возвращаем сообщение
-            text = f"[Файл {original_filename} - это бинарный формат {file_ext.upper()}. Для анализа скопируйте текст вручную или конвертируйте в TXT.]"
-            print(f"ℹ️ Получен бинарный файл: {file_ext}")
+            text = f"[Файл {original_filename} - це бінарний формат {file_ext.upper()}. Для аналізу скопіюйте текст вручну або конвертуйте в TXT.]"
+            print(f"Отримано бінарний файл: {file_ext}")
         else:
-            # Для остальных пробуем декодировать
             try:
                 text = file_bytes.decode('utf-8')
             except UnicodeDecodeError:
                 text = file_bytes.decode('utf-8', errors='ignore')
         
-        print(f"📝 Извлечено текста: {len(text)} символов")
+        print(f"Видобуто тексту: {len(text)} символів")
         if text and len(text) > 100:
-            print(f"📄 Начало текста: {text[:100]}...")
+            print(f"Початок тексту: {text[:100]}...")
         
-        # Проверяем ингредиенты
         detected_ingredients = check_ingredients(text)
         
-        print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
+        print(f"Знайдено інгредієнтів: {len(detected_ingredients)}")
         
-        # Создаем запись в базе данных
         scan_id = None
         if current_user.is_authenticated:
             scan_id = create_scan(
@@ -406,7 +376,7 @@ def upload_text_file():
 
         return jsonify({
             "status": "success", 
-            "text": text[:10000],  # Ограничиваем для ответа
+            "text": text[:10000],
             "ingredients": detected_ingredients,
             "ingredients_count": len(detected_ingredients),
             "scan_id": scan_id,
@@ -418,11 +388,11 @@ def upload_text_file():
         })
         
     except Exception as e:
-        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА в upload_text_file:")
+        print(f"КРИТИЧНА ПОМИЛКА в upload_text_file:")
         traceback.print_exc()
         return jsonify({
             "status": "error", 
-            "message": f"Внутренняя ошибка сервера: {str(e)}"
+            "message": f"Внутрішня помилка сервера: {str(e)}"
         }), 500
 
 @app.route('/api/analyze_text', methods=['POST'])
@@ -430,14 +400,14 @@ def analyze_text():
     try:
         data = request.get_json()
         if not data or 'text' not in data:
-            return jsonify({"status": "error", "message": "Текст не предоставлен"}), 400
+            return jsonify({"status": "error", "message": "Текст не надано"}), 400
         
         text = data['text']
         detected_ingredients = check_ingredients(text)
         
-        print(f"\n⌨️ Ручной ввод текста")
-        print(f"📄 Текст: {text[:100]}...")
-        print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
+        print(f"Ручний ввід тексту")
+        print(f"Текст: {text[:100]}...")
+        print(f"Знайдено інгредієнтів: {len(detected_ingredients)}")
 
         scan_id = None
         if current_user.is_authenticated:
@@ -457,7 +427,7 @@ def analyze_text():
             "scan_id": scan_id
         })
     except Exception as e:
-        print(f"❌ Ошибка в analyze_text: {str(e)}")
+        print(f"Помилка в analyze_text: {str(e)}")
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
   
@@ -466,56 +436,51 @@ def analyze():
     try:
         file = request.files.get('image')
         if not file:
-            print("❌ Изображение не предоставлено")
-            return jsonify({"status": "error", "message": "Файл изображения не найден"}), 400
+            print("Зображення не надано")
+            return jsonify({"status": "error", "message": "Файл зображення не знайдено"}), 400
 
         input_method = request.form.get('input_method', 'camera')
         
-        print(f"\n📸 Начало обработки изображения (метод: {input_method})")
-        print(f"📄 Имя файла: {file.filename}")
+        print(f"Початок обробки зображення (метод: {input_method})")
+        print(f"Назва файлу: {file.filename}")
         
-        # Проверка размера файла
-        file.seek(0, 2)  # Перейти в конец
-        file_size = file.tell()  # Получить размер
-        file.seek(0)  # Вернуться в начало
+        file.seek(0, 2)
+        file_size = file.tell()
+        file.seek(0)
         
-        print(f"📏 Размер изображения: {file_size} байт")
+        print(f"Розмір зображення: {file_size} байт")
         
-        # Ограничение размера (макс 10MB)
         MAX_IMAGE_SIZE = 10 * 1024 * 1024
         if file_size > MAX_IMAGE_SIZE:
-            print(f"❌ Изображение слишком большое: {file_size} байт")
+            print(f"Зображення занадто велике: {file_size} байт")
             return jsonify({
                 "status": "error", 
-                "message": f"Изображение слишком большое. Максимальный размер: {MAX_IMAGE_SIZE//1024//1024}MB"
+                "message": f"Зображення занадто велике. Максимальний розмір: {MAX_IMAGE_SIZE//1024//1024}MB"
             }), 400
         
         if file_size == 0:
-            print("❌ Изображение пустое")
-            return jsonify({"status": "error", "message": "Файл изображения пустой"}), 400
+            print("Зображення порожнє")
+            return jsonify({"status": "error", "message": "Файл зображення порожній"}), 400
         
-        # Извлекаем текст с помощью OCR
         text = extract_text(file)
         
         if not text or text.strip() == "":
-            print("⚠️ OCR не распознал текст")
+            print("OCR не розпізнав текст")
             return jsonify({
                 "status": "warning",
-                "message": "Не удалось распознать текст на изображении. Попробуйте другое изображение или убедитесь, что текст четкий.",
+                "message": "Не вдалося розпізнати текст на зображенні. Спробуйте інше зображення або переконайтеся, що текст чіткий.",
                 "text": "",
                 "ingredients": [],
                 "ingredients_count": 0
             })
         
-        print(f"✅ OCR распознал {len(text)} символов")
-        print(f"📝 Текст из OCR: {text[:150]}...")
+        print(f"OCR розпізнав {len(text)} символів")
+        print(f"Текст з OCR: {text[:150]}...")
         
-        # Проверяем ингредиенты
         detected_ingredients = check_ingredients(text)
         
-        print(f"🔍 Найдено ингредиентов: {len(detected_ingredients)}")
+        print(f"Знайдено інгредієнтів: {len(detected_ingredients)}")
         
-        # Создаем запись в базе данных
         scan_id = None
         if current_user.is_authenticated:
             scan_id = create_scan(
@@ -528,17 +493,17 @@ def analyze():
 
         return jsonify({
             "status": "success", 
-            "text": text[:5000],  # Ограничиваем длину ответа
+            "text": text[:5000],
             "ingredients": detected_ingredients,
             "ingredients_count": len(detected_ingredients),
             "scan_id": scan_id
         })
     except Exception as e:
-        print(f"❌ КРИТИЧЕСКАЯ ОШИБКА в analyze:")
+        print(f"КРИТИЧНА ПОМИЛКА в analyze:")
         traceback.print_exc()
         return jsonify({
             "status": "error", 
-            "message": f"Ошибка обработки изображения: {str(e)}"
+            "message": f"Помилка обробки зображення: {str(e)}"
         }), 500
 
 @app.route('/api/ingredients', methods=['GET'])
@@ -569,7 +534,7 @@ def get_ingredients():
 @login_required
 def get_user_scans():
     try:
-        print(f"\n📋 Запрос сканов пользователя: {current_user.email}")
+        print(f"Запит сканувань користувача: {current_user.email}")
         
         scans = Scan.query.filter_by(user_id=current_user.id)\
                          .order_by(Scan.created_at.desc())\
@@ -580,7 +545,7 @@ def get_user_scans():
             scan_dict = scan.to_dict()
             scans_data.append(scan_dict)
         
-        print(f"📊 Всего сканов: {len(scans_data)}")
+        print(f"Всього сканувань: {len(scans_data)}")
         
         return jsonify({
             "status": "success",
@@ -590,7 +555,7 @@ def get_user_scans():
         })
         
     except Exception as e:
-        print(f"❌ Ошибка в get_user_scans: {str(e)}")
+        print(f"Помилка в get_user_scans: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
     
 @app.route('/api/scans/<int:scan_id>', methods=['GET'])
@@ -663,14 +628,12 @@ def bulk_delete_scans():
 @app.route('/api/scans/<int:scan_id>/export/pdf', methods=['GET'])
 @login_required
 def export_scan_to_pdf(scan_id):
-    """Экспорт одного скана в PDF"""
     try:
         scan = Scan.query.filter_by(id=scan_id, user_id=current_user.id).first()
         
         if not scan:
             return jsonify({"status": "error", "message": "Сканування не знайдено"}), 404
         
-        # Подготавливаем данные
         scan_data = scan.to_dict()
         ingredients_list = scan.get_ingredients_list()
         
@@ -689,21 +652,19 @@ def export_scan_to_pdf(scan_id):
             'risk_statistics': scan_data['risk_statistics']
         }
         
-        print(f"📋 Экспорт скана {scan_id} в PDF")
+        print(f"Експорт сканування {scan_id} в PDF")
         
-        # Создаем PDF в памяти
         pdf_bytes = scan_exporter.create_pdf_bytes(export_data, current_user.email)
         
-        # Отправляем PDF как ответ
         response = make_response(pdf_bytes)
         response.headers['Content-Type'] = 'application/pdf'
         response.headers['Content-Disposition'] = f'attachment; filename=scan_{scan_id}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
         
-        print(f"✅ PDF отправлен пользователю, размер: {len(pdf_bytes)} байт")
+        print(f"PDF надіслано користувачу, розмір: {len(pdf_bytes)} байт")
         return response
         
     except Exception as e:
-        print(f"❌ Ошибка при экспорте в PDF: {str(e)}")
+        print(f"Помилка при експорті в PDF: {str(e)}")
         return jsonify({"status": "error", "message": f"Помилка при створенні PDF: {str(e)}"}), 500
     
 @app.route('/api/status', methods=['GET'])
@@ -812,12 +773,12 @@ def test_checker():
 @login_required
 def debug_scans(email):
     if current_user.role != 'admin':
-        return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+        return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
     
     try:
         user = User.query.filter_by(email=email).first()
         if not user:
-            return jsonify({"status": "error", "message": f"Пользователь {email} не найден"}), 404
+            return jsonify({"status": "error", "message": f"Користувача {email} не знайдено"}), 404
         
         scans = Scan.query.filter_by(user_id=user.id).order_by(Scan.created_at.desc()).all()
         
@@ -842,13 +803,13 @@ def debug_scans(email):
 @login_required
 def fix_all_scans():
     if current_user.role != 'admin':
-        return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+        return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
     
     try:
         scans = Scan.query.all()
         fixed_count = 0
         
-        print(f"\n🔧 Исправление всех сканов ({len(scans)} шт.)")
+        print(f"Виправлення всіх сканувань ({len(scans)} шт.)")
         
         for scan in scans:
             if scan.original_text:
@@ -868,7 +829,6 @@ def fix_all_scans():
                     
                     scan.ingredients_detected = ingredients_for_json
                     
-                    # Обновляем информацию о безопасности
                     safety_info = calculate_safety_status_with_message(detected_ingredients)
                     scan.safety_status = safety_info['status']
                     scan.safety_message = safety_info['message']
@@ -876,7 +836,7 @@ def fix_all_scans():
                     scan.unknown_count = safety_info['unknown_count']
                     
                     fixed_count += 1
-                    print(f"  ✅ Исправлен скан {scan.id}: {len(detected_ingredients)} ингредиентов, статус: {safety_info['status']}")
+                    print(f"  Виправлено сканування {scan.id}: {len(detected_ingredients)} інгредієнтів, статус: {safety_info['status']}")
                 else:
                     safety_info = calculate_safety_status_with_message([])
                     scan.safety_status = safety_info['status']
@@ -885,31 +845,29 @@ def fix_all_scans():
                     scan.unknown_count = 0
                     scan.ingredients_detected = []
                     fixed_count += 1
-                    print(f"  ℹ️  Исправлен скан {scan.id}: без ингредиентов")
+                    print(f"  Виправлено сканування {scan.id}: без інгредієнтів")
         
         db.session.commit()
         
         return jsonify({
             "status": "success",
-            "message": f"Исправлено {fixed_count} сканирований",
+            "message": f"Виправлено {fixed_count} сканувань",
             "fixed_count": fixed_count
         })
         
     except Exception as e:
-        print(f"❌ Ошибка при исправлении сканов: {str(e)}")
+        print(f"Помилка при виправленні сканувань: {str(e)}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/external/search', methods=['POST'])
 def external_search():
-    """Поиск ингредиента во внешних источниках"""
     try:
         data = request.get_json()
         ingredient_name = data.get('name', '').strip()
         
         if not ingredient_name:
-            return jsonify({"status": "error", "message": "Не указано название ингредиента"}), 400
+            return jsonify({"status": "error", "message": "Не вказано назву інгредієнта"}), 400
         
-        # Используем обновленный checker
         ingredient_data = ingredient_checker.search_ingredient(ingredient_name)
         
         return jsonify({
@@ -924,28 +882,27 @@ def external_search():
 
 @app.route('/api/external/sources', methods=['GET'])
 def get_external_sources():
-    """Получение списка доступных внешних источников"""
     sources = [
         {
             "name": "CosIng (EC)",
-            "description": "База данных косметических ингредиентов Европейской комиссии",
+            "description": "База даних косметичних інгредієнтів Європейської комісії",
             "url": "https://ec.europa.eu/growth/tools-databases/cosing/",
             "status": "available",
-            "rate_limit": "Требуется регистрация"
+            "rate_limit": "Потрібна реєстрація"
         },
         {
             "name": "Open Food Facts",
-            "description": "Открытая база данных пищевых продуктов и ингредиентов",
+            "description": "Відкрита база даних харчових продуктів та інгредієнтів",
             "url": "https://world.openfoodfacts.org/",
             "status": "available",
-            "rate_limit": "30 запросов/минута"
+            "rate_limit": "30 запитів/хвилину"
         },
         {
             "name": "PubChem",
-            "description": "База химических соединений NIH",
+            "description": "База хімічних сполук NIH",
             "url": "https://pubchem.ncbi.nlm.nih.gov/",
             "status": "available",
-            "rate_limit": "5 запросов/секунда"
+            "rate_limit": "5 запитів/секунду"
         }
     ]
     
@@ -962,10 +919,9 @@ def get_external_sources():
 @app.route('/api/external/cache/stats', methods=['GET'])
 @login_required
 def get_cache_stats():
-    """Статистика кэша внешних источников"""
     try:
         if current_user.role != 'admin':
-            return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+            return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
         
         import sqlite3
         import os
@@ -976,13 +932,12 @@ def get_cache_stats():
             return jsonify({
                 "status": "success",
                 "cache_exists": False,
-                "message": "Кэш не инициализирован"
+                "message": "Кеш не ініціалізовано"
             })
         
         conn = sqlite3.connect(cache_file)
         cursor = conn.cursor()
         
-        # Получаем статистику
         cursor.execute("SELECT COUNT(*) FROM ingredients_cache")
         total_items = cursor.fetchone()[0]
         
@@ -1018,10 +973,9 @@ def get_cache_stats():
 @app.route('/api/external/cache/clear', methods=['POST'])
 @login_required
 def clear_cache():
-    """Очистка кэша внешних источников"""
     try:
         if current_user.role != 'admin':
-            return jsonify({"status": "error", "message": "Требуются права администратора"}), 403
+            return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
         
         import sqlite3
         import os
@@ -1037,12 +991,12 @@ def clear_cache():
             
             return jsonify({
                 "status": "success",
-                "message": "Кэш очищен"
+                "message": "Кеш очищено"
             })
         else:
             return jsonify({
                 "status": "success",
-                "message": "Кэш не существует"
+                "message": "Кеш не існує"
             })
         
     except Exception as e:
@@ -1051,13 +1005,11 @@ def clear_cache():
 
 @app.route('/api/ingredients/enhanced', methods=['GET'])
 def get_enhanced_ingredients():
-    """Получение ингредиентов с возможностью расширения из внешних источников"""
     try:
         search = request.args.get('search')
         limit = int(request.args.get('limit', 50))
         include_external = request.args.get('external', 'false').lower() == 'true'
         
-        # Начинаем с локальной базы
         query = Ingredient.query
         
         if search:
@@ -1066,16 +1018,13 @@ def get_enhanced_ingredients():
         local_ingredients = query.order_by(Ingredient.name).limit(limit).all()
         result = [ing.to_dict() for ing in local_ingredients]
         
-        # Если нужно и во внешних источниках
         if include_external and search:
-            # Здесь можно добавить поиск во внешних источниках
-            # Для демо просто добавляем сообщение
             result.append({
                 "id": "external_search",
-                "name": f"Поиск '{search}' во внешних источниках",
+                "name": f"Пошук '{search}' у зовнішніх джерелах",
                 "risk_level": "info",
                 "category": "external",
-                "description": "Нажмите для поиска в CosIng, Open Food Facts и PubChem",
+                "description": "Натисніть для пошуку в CosIng, Open Food Facts та PubChem",
                 "source": "external_search"
             })
         
@@ -1094,13 +1043,11 @@ def get_enhanced_ingredients():
 
 @app.route('/api/test-safety-logic', methods=['POST'])
 def test_safety_logic():
-    """Тестирование новой логики оценки безопасности"""
     try:
         data = request.get_json()
         ingredients = data.get('ingredients', [])
         
         if not ingredients:
-            # Тестовые данные
             ingredients = [
                 {'name': 'Aqua', 'risk_level': 'safe'},
                 {'name': 'Glycerin', 'risk_level': 'low'},
@@ -1108,10 +1055,8 @@ def test_safety_logic():
                 {'name': 'Unknown2', 'risk_level': 'unknown'},
             ]
         
-        # Применяем новую логику
         safety_info = calculate_safety_status_with_message(ingredients)
         
-        # Анализируем статистику
         stats = {
             'total': len(ingredients),
             'high': sum(1 for i in ingredients if i.get('risk_level') == 'high'),
@@ -1127,10 +1072,10 @@ def test_safety_logic():
             "statistics": stats,
             "unknown_percentage": (stats['unknown'] / stats['total'] * 100) if stats['total'] > 0 else 0,
             "logic_explanation": {
-                "safe": "Продукт безопасен",
-                "low_warning": "Незначительные риски, можно использовать",
-                "warning": "Умеренные риски, рассмотрите альтернативы",
-                "danger": "Высокий риск, рекомендуется избегать"
+                "safe": "Продукт безпечний",
+                "low_warning": "Незначні ризики, можна використовувати",
+                "warning": "Помірні ризики, розгляньте альтернативи",
+                "danger": "Високий ризик, рекомендовано уникати"
             }
         })
         
@@ -1176,11 +1121,11 @@ def register():
         
         return jsonify({
             "status": "success", 
-            "message": "Реєстрація успішна! Теперь ви можете увійти."
+            "message": "Реєстрація успішна! Тепер ви можете увійти."
         })
         
     except Exception as e:
-        print(f"❌ Ошибка регистрации: {str(e)}")
+        print(f"Помилка реєстрації: {str(e)}")
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -1211,7 +1156,7 @@ def login():
         })
         
     except Exception as e:
-        print(f"❌ Ошибка входа: {str(e)}")
+        print(f"Помилка входу: {str(e)}")
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -1227,14 +1172,14 @@ def load_user(user_id):
 
 def init_db():
     with app.app_context():
-        print("🔄 Инициализация базы данных...")
+        print("Ініціалізація бази даних...")
         
         os.makedirs('uploads', exist_ok=True)
         os.makedirs('static', exist_ok=True)
         os.makedirs('data_cache', exist_ok=True)
         
         db.create_all()
-        print("✅ Структура базы данных проверена")
+        print("Структура бази даних перевірена")
         
         if User.query.count() == 0:
             admin = User(email="admin@cosmetics.com", role="admin")
@@ -1246,8 +1191,8 @@ def init_db():
             db.session.add(user)
             
             db.session.commit()
-            print("👤 Создан администратор: admin@cosmetics.com / admin123")
-            print("👤 Создан пользователь: user@example.com / user123")
+            print("Створено адміністратора: admin@cosmetics.com / admin123")
+            print("Створено користувача: user@example.com / user123")
         
         users_count = User.query.count()
         scans_count = Scan.query.count()
@@ -1262,23 +1207,23 @@ def init_db():
                 scans_with_ingredients += 1
                 total_ingredients += len(ingredients)
         
-        print(f"📊 Текущее состояние базы:")
-        print(f"   👥 Пользователей: {users_count}")
-        print(f"   🔍 Сканирований: {scans_count}")
-        print(f"   📄 Сканов с ингредиентами: {scans_with_ingredients}")
-        print(f"   🧪 Всего ингредиентов найдено: {total_ingredients}")
+        print(f"Поточний стан бази:")
+        print(f"   Користувачів: {users_count}")
+        print(f"   Сканувань: {scans_count}")
+        print(f"   Сканувань з інгредієнтами: {scans_with_ingredients}")
+        print(f"   Всього інгредієнтів знайдено: {total_ingredients}")
         
         if scans_count > 0:
-            print(f"   📊 Среднее ингредиентов на скан: {round(total_ingredients / scans_count, 2)}")
+            print(f"   Середнє інгредієнтів на сканування: {round(total_ingredients / scans_count, 2)}")
         
-        print("✅ Инициализация завершена")
+        print("Ініціалізація завершена")
 
 if __name__ == '__main__':
     init_db()
-    print("🚀 Запуск приложения...")
-    print("🌐 Откройте: http://localhost:5000")
-    print("💾 Кэш внешних источников включен")
-    print("🔧 Режим отладки включен")
-    print("🛡️ Новая система оценки безопасности активирована")
+    print("Запуск програми...")
+    print("Відкрийте: http://localhost:5000")
+    print("Кеш зовнішніх джерел увімкнено")
+    print("Режим налагодження увімкнено")
+    print("Нова система оцінки безпеки активована")
     
     app.run(debug=True, port=5000, threaded=True)

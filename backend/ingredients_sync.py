@@ -1,5 +1,5 @@
 """
-Модуль для синхронизации данных из внешних источников
+Модуль для синхронізації даних із зовнішніх джерел
 """
 
 import requests
@@ -12,14 +12,14 @@ from bs4 import BeautifulSoup
 
 
 class IngredientsSync:
-    """Класс для синхронизации данных об ингредиентах"""
+    """Клас для синхронізації даних про інгредієнти"""
     
     def __init__(self):
         self.cache_file = 'data_cache/external_cache.db'
         self.init_database()
     
     def init_database(self):
-        """Инициализация базы для кэша"""
+        """Ініціалізація бази для кешу"""
         conn = sqlite3.connect(self.cache_file)
         cursor = conn.cursor()
         
@@ -51,33 +51,33 @@ class IngredientsSync:
         conn.close()
     
     def sync_from_cosing(self, max_items=100):
-        """Синхронизация из CosIng (ЕС)"""
-        print(f"🔄 Синхронизация с CosIng (макс: {max_items} записей)")
+        """Синхронізація з CosIng (ЄС)"""
+        print(f"Синхронізація з CosIng (макс: {max_items} записів)")
         
         try:
-            # В реальном проекте здесь будет работа с CosIng API
-            # Для демо используем статические данные
+            # У реальному проекті тут буде робота з CosIng API
+            # Для демо використовуємо статичні дані
             
             demo_ingredients = [
                 {
                     "name": "Butylparaben",
                     "risk_level": "medium",
                     "category": "preservative",
-                    "description": "Консервант, разрешенный в ЕС с ограничениями",
+                    "description": "Консервант, дозволений в ЄС з обмеженнями",
                     "source": "cosing"
                 },
                 {
                     "name": "Propylparaben",
                     "risk_level": "medium",
                     "category": "preservative",
-                    "description": "Консервант, аналогичный метилпарабену",
+                    "description": "Консервант, аналогічний метилпарабену",
                     "source": "cosing"
                 },
                 {
                     "name": "Phenoxyethanol",
                     "risk_level": "low",
                     "category": "preservative",
-                    "description": "Широко используемый консервант",
+                    "description": "Широко використовуваний консервант",
                     "source": "cosing"
                 }
             ]
@@ -91,21 +91,21 @@ class IngredientsSync:
                 synced_count += 1
             
             self.log_sync('cosing', 'success', synced_count)
-            print(f"✅ Синхронизировано {synced_count} ингредиентов из CosIng")
+            print(f"Синхронізовано {synced_count} інгредієнтів з CosIng")
             
             return synced_count
             
         except Exception as e:
             self.log_sync('cosing', 'error', 0, str(e))
-            print(f"❌ Ошибка синхронизации с CosIng: {e}")
+            print(f"Помилка синхронізації з CosIng: {e}")
             return 0
     
     def sync_from_openfoodfacts(self, max_items=50):
-        """Синхронизация из Open Food Facts"""
-        print(f"🔄 Синхронизация с Open Food Facts")
+        """Синхронізація з Open Food Facts"""
+        print(f"Синхронізація з Open Food Facts")
         
         try:
-            # Пример запроса популярных ингредиентов
+            # Приклад запиту популярних інгредієнтів
             url = "https://world.openfoodfacts.org/ingredients.json"
             
             response = requests.get(url, timeout=10)
@@ -118,9 +118,9 @@ class IngredientsSync:
                 for ingredient in ingredients:
                     ingredient_data = {
                         "name": ingredient.get('name', ''),
-                        "risk_level": "low",  # Пищевые ингредиенты обычно безопасны
+                        "risk_level": "low",  # Харчові інгредієнти зазвичай безпечні
                         "category": "food_ingredient",
-                        "description": f"Пищевой ингредиент: {ingredient.get('products', 0)} продуктов",
+                        "description": f"Харчовий інгредієнт: {ingredient.get('products', 0)} продуктів",
                         "source": "openfoodfacts"
                     }
                     
@@ -128,7 +128,7 @@ class IngredientsSync:
                     synced_count += 1
                 
                 self.log_sync('openfoodfacts', 'success', synced_count)
-                print(f"✅ Синхронизировано {synced_count} ингредиентов из Open Food Facts")
+                print(f"Синхронізовано {synced_count} інгредієнтів з Open Food Facts")
                 
                 return synced_count
             
@@ -136,11 +136,11 @@ class IngredientsSync:
             
         except Exception as e:
             self.log_sync('openfoodfacts', 'error', 0, str(e))
-            print(f"❌ Ошибка синхронизации с Open Food Facts: {e}")
+            print(f"Помилка синхронізації з Open Food Facts: {e}")
             return 0
     
     def save_to_cache(self, ingredient_data):
-        """Сохранение ингредиента в кэш"""
+        """Збереження інгредієнта в кеш"""
         try:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
@@ -162,10 +162,10 @@ class IngredientsSync:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Ошибка сохранения в кэш: {e}")
+            print(f"Помилка збереження в кеш: {e}")
     
     def log_sync(self, source, status, items_synced, error_message=None):
-        """Логирование синхронизации"""
+        """Логування синхронізації"""
         try:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
@@ -179,10 +179,10 @@ class IngredientsSync:
             conn.close()
             
         except Exception as e:
-            print(f"❌ Ошибка логирования: {e}")
+            print(f"Помилка логування: {e}")
     
     def get_sync_stats(self):
-        """Получение статистики синхронизации"""
+        """Отримання статистики синхронізації"""
         try:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
@@ -231,11 +231,11 @@ class IngredientsSync:
             }
             
         except Exception as e:
-            print(f"❌ Ошибка получения статистики: {e}")
+            print(f"Помилка отримання статистики: {e}")
             return {"sources": [], "sync_logs": []}
     
     def search_in_cache(self, query, limit=20):
-        """Поиск в кэшированных данных"""
+        """Пошук у кешованих даних"""
         try:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
@@ -263,31 +263,31 @@ class IngredientsSync:
             ]
             
         except Exception as e:
-            print(f"❌ Ошибка поиска в кэше: {e}")
+            print(f"Помилка пошуку в кеші: {e}")
             return []
 
 
 def run_sync_job():
-    """Запуск задачи синхронизации"""
+    """Запуск завдання синхронізації"""
     print("=" * 60)
-    print("🔄 ЗАПУСК СИНХРОНИЗАЦИИ ВНЕШНИХ ИСТОЧНИКОВ")
+    print("ЗАПУСК СИНХРОНІЗАЦІЇ ЗОВНІШНІХ ДЖЕРЕЛ")
     print("=" * 60)
     
     sync = IngredientsSync()
     
-    # Синхронизация из разных источников
+    # Синхронізація з різних джерел
     cosing_count = sync.sync_from_cosing(max_items=50)
     openfoodfacts_count = sync.sync_from_openfoodfacts(max_items=30)
     
     # Статистика
     stats = sync.get_sync_stats()
     
-    print(f"\n📊 РЕЗУЛЬТАТЫ СИНХРОНИЗАЦИИ:")
-    print(f"   CosIng: {cosing_count} ингредиентов")
-    print(f"   Open Food Facts: {openfoodfacts_count} ингредиентов")
-    print(f"   Всего в кэше: {sum(s['total'] for s in stats['sources'])} ингредиентов")
+    print(f"\nРЕЗУЛЬТАТИ СИНХРОНІЗАЦІЇ:")
+    print(f"   CosIng: {cosing_count} інгредієнтів")
+    print(f"   Open Food Facts: {openfoodfacts_count} інгредієнтів")
+    print(f"   Всього в кеші: {sum(s['total'] for s in stats['sources'])} інгредієнтів")
     
-    print("\n✅ Синхронизация завершена")
+    print("\nСинхронізація завершена")
     return stats
 
 

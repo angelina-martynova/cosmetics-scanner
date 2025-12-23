@@ -1,37 +1,37 @@
 """
-Конфигурация приложения Cosmetics Scanner
+Конфігурація програми Cosmetics Scanner
 """
 
 import os
 from datetime import timedelta
 
 class Config:
-    """Базовая конфигурация"""
+    """Базова конфігурація"""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
     
-    # База данных
+    # База даних
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL', 
         'postgresql://postgres:AdminPostgres123!@localhost:5432/cosmetics_db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Внешние API
+    # Зовнішні API
     COSING_API_KEY = os.environ.get('COSING_API_KEY', '')
     OPENFOODFACTS_ENABLED = True
     PUBCHEM_ENABLED = True
     
-    # Настройки кэша
+    # Налаштування кешу
     CACHE_TYPE = 'filesystem'
     CACHE_DIR = 'data_cache'
-    CACHE_DEFAULT_TIMEOUT = 3600  # 1 час
+    CACHE_DEFAULT_TIMEOUT = 3600  # 1 година
     
-    # Настройки внешних источников
+    # Налаштування зовнішніх джерел
     EXTERNAL_SOURCES = {
         'cosing': {
             'enabled': True,
             'base_url': 'https://ec.europa.eu/growth/tools-databases/cosing/',
-            'rate_limit': 10,  # запросов в минуту
+            'rate_limit': 10,  # запитів на хвилину
         },
         'openfoodfacts': {
             'enabled': True,
@@ -45,37 +45,37 @@ class Config:
         }
     }
     
-    # Настройки приложения
+    # Налаштування програми
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
     UPLOAD_FOLDER = 'uploads'
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'txt', 'pdf'}
     
-    # Настройки безопасности
-    SESSION_COOKIE_SECURE = False  # True для production с HTTPS
+    # Налаштування безпеки
+    SESSION_COOKIE_SECURE = False  # True для продакшена з HTTPS
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 
 class DevelopmentConfig(Config):
-    """Конфигурация для разработки"""
+    """Конфігурація для розробки"""
     DEBUG = True
     TESTING = True
 
 
 class ProductionConfig(Config):
-    """Конфигурация для продакшена"""
+    """Конфігурація для продакшена"""
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True
 
 
 class TestingConfig(Config):
-    """Конфигурация для тестирования"""
+    """Конфігурація для тестування"""
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
 
-# Словарь конфигураций
+# Словник конфігурацій
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,

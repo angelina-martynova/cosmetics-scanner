@@ -1,73 +1,73 @@
-# debug_tools.py - инструменты для отладки
+# debug_tools.py - інструменти для налагодження
 from app import app, db, User, Scan
 import json
 
 def print_all_scans():
-    """Вывести все сканы в базе"""
+    """Вивести всі сканування в базі"""
     with app.app_context():
-        print("\n=== ВСЕ СКАНИРОВАНИЯ В БАЗЕ ===")
+        print("\n=== ВСІ СКАНУВАННЯ В БАЗІ ===")
         scans = Scan.query.order_by(Scan.created_at.desc()).all()
         
         for scan in scans:
             user = User.query.get(scan.user_id) if scan.user_id else None
-            print(f"\n--- Скан ID: {scan.id} ---")
-            print(f"Пользователь: {user.email if user else 'Аноним'}")
+            print(f"\n--- Сканування ID: {scan.id} ---")
+            print(f"Користувач: {user.email if user else 'Анонім'}")
             print(f"Дата: {scan.created_at}")
             print(f"Тип: {scan.input_type}, Метод: {scan.input_method}")
             print(f"Статус: {scan.safety_status}")
             
-            # Ингредиенты
+            # Інгредієнти
             ingredients = scan.get_ingredients_list()
-            print(f"Найдено ингредиентов: {len(ingredients)}")
+            print(f"Знайдено інгредієнтів: {len(ingredients)}")
             
             for i, ing in enumerate(ingredients, 1):
                 if isinstance(ing, dict):
-                    print(f"  {i}. {ing.get('name', 'N/A')} (риск: {ing.get('risk_level', 'N/A')})")
+                    print(f"  {i}. {ing.get('name', 'N/A')} (ризик: {ing.get('risk_level', 'N/A')})")
                 else:
                     print(f"  {i}. {ing}")
             
-            # Сырые данные
-            print(f"Сырые данные (ingredients_detected): {type(scan.ingredients_detected)}")
+            # Сирі дані
+            print(f"Сирі дані (ingredients_detected): {type(scan.ingredients_detected)}")
             if scan.ingredients_detected:
                 print(f"  JSON: {json.dumps(scan.ingredients_detected, indent=2, ensure_ascii=False)}")
             
             if scan.original_text:
-                print(f"\nТекст (первые 150 символов):")
+                print(f"\nТекст (перші 150 символів):")
                 print(scan.original_text[:150] + "...")
         
-        print(f"\nВсего сканов в базе: {len(scans)}")
+        print(f"\nВсього сканувань в базі: {len(scans)}")
 
 def check_user_scans(email):
-    """Проверить сканы конкретного пользователя"""
+    """Перевірити сканування конкретного користувача"""
     with app.app_context():
         user = User.query.filter_by(email=email).first()
         if not user:
-            print(f"Пользователь {email} не найден")
+            print(f"Користувача {email} не знайдено")
             return
         
-        print(f"\n=== СКАНЫ ПОЛЬЗОВАТЕЛЯ: {email} ===")
+        print(f"\n=== СКАНУВАННЯ КОРИСТУВАЧА: {email} ===")
         scans = Scan.query.filter_by(user_id=user.id).order_by(Scan.created_at.desc()).all()
         
         for scan in scans:
-            print(f"\n--- Скан ID: {scan.id} ---")
+            print(f"\n--- Сканування ID: {scan.id} ---")
             print(f"Дата: {scan.created_at}")
             print(f"Тип: {scan.input_type}, Метод: {scan.input_method}")
             print(f"Статус: {scan.safety_status}")
             
             ingredients = scan.get_ingredients_list()
-            print(f"Ингредиентов: {len(ingredients)}")
+            print(f"Інгредієнтів: {len(ingredients)}")
             
-            for i, ing in enumerate(ingredients[:5], 1):  # Показываем первые 5
+            for i, ing in enumerate(ingredients[:5], 1):  # Показуємо перші 5
                 if isinstance(ing, dict):
                     print(f"  {i}. {ing.get('name', 'N/A')}")
             
             if len(ingredients) > 5:
-                print(f"  ... и еще {len(ingredients) - 5} ингредиентов")
+                print(f"  ... і ще {len(ingredients) - 5} інгредієнтів")
         
-        print(f"\nВсего сканов у пользователя: {len(scans)}")
+        print(f"\nВсього сканувань у користувача: {len(scans)}")
 
 def fix_all_scans():
-    """Исправить все сканы в базе"""
+    """Виправити всі сканування в базі"""
     with app.app_context():
         from checker import IngredientChecker
         checker = IngredientChecker()
@@ -75,15 +75,15 @@ def fix_all_scans():
         scans = Scan.query.all()
         fixed_count = 0
         
-        print(f"\n=== ИСПРАВЛЕНИЕ {len(scans)} СКАНОВ ===")
+        print(f"\n=== ВИПРАВЛЕННЯ {len(scans)} СКАНУВАНЬ ===")
         
         for scan in scans:
             if not scan.ingredients_detected and scan.original_text:
-                # Анализируем текст заново
+                # Аналізуємо текст заново
                 detected = checker.find_ingredients(scan.original_text)
                 
                 if detected:
-                    # Преобразуем в правильный формат
+                    # Перетворюємо у правильний формат
                     ingredients_for_json = []
                     for ing in detected:
                         if isinstance(ing, dict):
@@ -98,7 +98,7 @@ def fix_all_scans():
                     
                     scan.ingredients_detected = ingredients_for_json
                     
-                    # Обновляем статус
+                    # Оновлюємо статус
                     high_risk_count = sum(1 for ing in ingredients_for_json 
                                         if ing.get('risk_level') == 'high')
                     if high_risk_count > 0:
@@ -109,16 +109,16 @@ def fix_all_scans():
                         scan.safety_status = 'safe'
                     
                     fixed_count += 1
-                    print(f"✅ Исправлен скан {scan.id}: добавлено {len(detected)} ингредиентов")
+                    print(f"Виправлено сканування {scan.id}: додано {len(detected)} інгредієнтів")
         
         if fixed_count > 0:
             db.session.commit()
-            print(f"\n✅ Исправлено сканов: {fixed_count}")
+            print(f"\nВиправлено сканувань: {fixed_count}")
         else:
-            print("\nℹ️ Нечего исправлять")
+            print("\nНема що виправляти")
 
 def test_checker():
-    """Тестирование IngredientChecker"""
+    """Тестування IngredientChecker"""
     from checker import IngredientChecker
     checker = IngredientChecker()
     
@@ -129,32 +129,32 @@ def test_checker():
         "Безопасный крем с глицерином и алое вера",
     ]
     
-    print("\n=== ТЕСТИРОВАНИЕ INGREDIENT CHECKER ===")
+    print("\n=== ТЕСТУВАННЯ INGREDIENT CHECKER ===")
     
     for i, text in enumerate(test_texts, 1):
         print(f"\nТест #{i}:")
         print(f"Текст: {text}")
         
         result = checker.find_ingredients(text)
-        print(f"Найдено: {len(result)} ингредиентов")
+        print(f"Знайдено: {len(result)} інгредієнтів")
         
         for ing in result:
             print(f"  - {ing['name']} ({ing['risk_level']})")
 
 if __name__ == "__main__":
-    print("🔧 ИНСТРУМЕНТЫ ДЛЯ ОТЛАДКИ")
+    print("ІНСТРУМЕНТИ ДЛЯ НАЛАГОДЖЕННЯ")
     print("=" * 40)
     
-    # Раскомментируйте нужную функцию:
+    # Розкоментуйте потрібну функцію:
     
-    # 1. Показать все сканы
+    # 1. Показати всі сканування
     print_all_scans()
     
-    # 2. Проверить сканы пользователя
+    # 2. Перевірити сканування користувача
     # check_user_scans("user@example.com")
     
-    # 3. Исправить все сканы
+    # 3. Виправити всі сканування
     # fix_all_scans()
     
-    # 4. Тестирование checker
+    # 4. Тестування checker
     # test_checker()

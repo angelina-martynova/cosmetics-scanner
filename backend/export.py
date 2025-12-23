@@ -14,21 +14,21 @@ import sys
 
 class ScanExporter:
     def __init__(self):
-        # Попробуем зарегистрировать Arial для поддержки кириллицы
+        # Спробуємо зареєструвати Arial для підтримки кирилиці
         self._register_fonts()
     
     def _register_fonts(self):
-        """Попытаться зарегистрировать шрифты, поддерживающие кириллицу"""
+        """Спробувати зареєструвати шрифти, що підтримують кирилицю"""
         try:
-            # Проверяем, не зарегистрирован ли уже Arial
+            # Перевіряємо, чи не зареєстрований вже Arial
             try:
                 pdfmetrics.getFont('Arial')
-                print("✅ Шрифт Arial уже зарегистрирован")
+                print("Шрифт Arial вже зареєстрований")
                 return
             except:
                 pass
             
-            # Список возможных путей к шрифтам Arial
+            # Список можливих шляхів до шрифтів Arial
             font_paths = []
             
             # Для Windows
@@ -51,48 +51,48 @@ class ScanExporter:
                     '/Library/Fonts/Arial.ttf'
                 ])
             
-            # Пробуем найти и зарегистрировать шрифт
+            # Пробуємо знайти та зареєструвати шрифт
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     try:
                         pdfmetrics.registerFont(TTFont('Arial', font_path))
-                        print(f"✅ Шрифт Arial зарегистрирован из: {font_path}")
+                        print(f"Шрифт Arial зареєстрований з: {font_path}")
                         
-                        # Пробуем также зарегистрировать жирную версию
+                        # Пробуємо також зареєструвати жирну версію
                         bold_path = font_path.replace('.ttf', 'bd.ttf').replace('.TTF', 'bd.TTF')
                         if os.path.exists(bold_path):
                             pdfmetrics.registerFont(TTFont('Arial-Bold', bold_path))
-                            print(f"✅ Шрифт Arial-Bold зарегистрирован")
+                            print(f"Шрифт Arial-Bold зареєстрований")
                         
                         return
                     except Exception as e:
-                        print(f"⚠️ Не удалось зарегистрировать шрифт {font_path}: {e}")
+                        print(f"Не вдалося зареєструвати шрифт {font_path}: {e}")
                         continue
             
-            # Если не нашли Arial, попробуем DejaVu Sans
+            # Якщо не знайшли Arial, спробуємо DejaVu Sans
             try:
-                # DejaVu Sans обычно есть в Linux
+                # DejaVu Sans зазвичай є в Linux
                 pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
-                print("✅ Используем DejaVuSans как альтернативу")
+                print("Використовуємо DejaVuSans як альтернативу")
             except:
-                # В последнюю очередь используем Helvetica (должен поддерживать кириллицу в PDF)
-                print("ℹ️ Используем стандартный шрифт Helvetica")
+                # В останню чергу використовуємо Helvetica (повинен підтримувати кирилицю в PDF)
+                print("Використовуємо стандартний шрифт Helvetica")
                 
         except Exception as e:
-            print(f"⚠️ Ошибка при регистрации шрифтов: {e}")
+            print(f"Помилка при реєстрації шрифтів: {e}")
     
     def normalize_text(self, text):
-        """Нормализация текста для корректного отображения"""
+        """Нормалізація тексту для коректного відображення"""
         if not text:
             return ""
         
-        # Преобразуем в строку и чистим
+        # Перетворюємо в рядок і чистимо
         text = str(text).strip()
         
-        # Убираем нестандартные символы
+        # Забираємо нестандартні символи
         text = unicodedata.normalize('NFKC', text)
         
-        # Заменяем специфические символы на ASCII-эквиваленты
+        # Замінюємо специфічні символи на ASCII-еквіваленти
         replacements = {
             '—': '-',
             '«': '"',
@@ -109,14 +109,14 @@ class ScanExporter:
         return text
     
     def create_pdf_bytes(self, scan_data, user_email):
-        """Создать PDF отчет по сканированию и вернуть bytes"""
+        """Створити PDF звіт за скануванням та повернути bytes"""
         try:
-            print(f"📝 Создание PDF для скана {scan_data.get('id')}")
+            print(f"Створення PDF для сканування {scan_data.get('id')}")
             
-            # Создаем буфер в памяти
+            # Створюємо буфер в пам'яті
             buffer = io.BytesIO()
             
-            # Создаем документ в памяти
+            # Створюємо документ в пам'яті
             doc = SimpleDocTemplate(
                 buffer,
                 pagesize=A4,
@@ -126,13 +126,13 @@ class ScanExporter:
                 bottomMargin=0.7*inch
             )
             
-            # Собираем содержимое документа
+            # Збираємо вміст документа
             story = []
             
-            # Создаем стили с безопасными шрифтами
+            # Створюємо стилі з безпечними шрифтами
             styles = getSampleStyleSheet()
             
-            # Проверяем, какие шрифты доступны
+            # Перевіряємо, які шрифти доступні
             available_fonts = []
             for font_name in ['Arial', 'Helvetica', 'Times-Roman']:
                 try:
@@ -141,11 +141,11 @@ class ScanExporter:
                 except:
                     pass
             
-            # Используем первый доступный шрифт
+            # Використовуємо перший доступний шрифт
             font_name = available_fonts[0] if available_fonts else 'Helvetica'
             bold_font_name = f"{font_name}-Bold" if f"{font_name}-Bold" in available_fonts else font_name
             
-            print(f"   Используем шрифт: {font_name}")
+            print(f"Використовуємо шрифт: {font_name}")
             
             # Стиль заголовка
             title_style = ParagraphStyle(
@@ -163,7 +163,7 @@ class ScanExporter:
             story.append(title)
             story.append(Spacer(1, 15))
             
-            # Основной стиль текста
+            # Основний стиль тексту
             normal_style = ParagraphStyle(
                 'Normal',
                 parent=styles['Normal'],
@@ -174,19 +174,19 @@ class ScanExporter:
                 alignment=TA_LEFT
             )
             
-            # Дата сканирования
+            # Дата сканування
             created_at = scan_data.get('created_at', '')
             formatted_date = "Невідома дата"
             
             if created_at:
                 try:
-                    # Убираем микросекунды и Z если есть
+                    # Забираємо мікросекунди та Z якщо є
                     if '.' in created_at:
                         created_at = created_at.split('.')[0]
                     if 'Z' in created_at:
                         created_at = created_at.replace('Z', '')
                     
-                    # Пробуем разные форматы
+                    # Пробуємо різні формати
                     for fmt in ['%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d']:
                         try:
                             dt = datetime.strptime(created_at, fmt)
@@ -197,7 +197,7 @@ class ScanExporter:
                 except:
                     formatted_date = created_at[:19] if len(created_at) > 19 else created_at
             
-            # Основная информация в таблице для лучшего форматирования
+            # Основна інформація в таблиці для кращого форматування
             info_data = [
                 ["ID сканування:", str(scan_data.get('id', 'Н/Д'))],
                 ["Дата сканування:", formatted_date],
@@ -208,7 +208,7 @@ class ScanExporter:
                 ["Користувач:", user_email]
             ]
             
-            # Создаем таблицу
+            # Створюємо таблицю
             info_table = Table(info_data, colWidths=[120, 350])
             info_table.setStyle(TableStyle([
                 ('FONTNAME', (0, 0), (-1, -1), font_name),
@@ -224,10 +224,10 @@ class ScanExporter:
             story.append(info_table)
             story.append(Spacer(1, 20))
             
-            # Раздел: Оригінальний текст
+            # Розділ: Оригінальний текст
             original_text = scan_data.get('original_text')
             if original_text:
-                # Заголовок раздела
+                # Заголовок розділу
                 heading_style = ParagraphStyle(
                     'Heading',
                     parent=normal_style,
@@ -251,18 +251,18 @@ class ScanExporter:
                 )
                 
                 text = str(original_text)
-                # Ограничиваем длину
+                # Обмежуємо довжину
                 if len(text) > 1500:
                     text = text[:1500] + "..."
                 
-                # Разбиваем на строки для лучшего отображения
+                # Розбиваємо на рядки для кращого відображення
                 lines = []
                 for line in text.split('\n'):
                     line = line.strip()
                     if line:
                         lines.append(line)
                 
-                # Добавляем первые 20 строк
+                # Додаємо перші 20 рядків
                 for line in lines[:20]:
                     story.append(Paragraph(self.normalize_text(line), text_style))
                     story.append(Spacer(1, 4))
@@ -272,10 +272,10 @@ class ScanExporter:
                 
                 story.append(Spacer(1, 20))
             
-            # Раздел: Знайдені інгредієнти
+            # Розділ: Знайдені інгредієнти
             ingredients = scan_data.get('ingredients_detailed') or scan_data.get('ingredients', [])
             if ingredients:
-                # Заголовок раздела
+                # Заголовок розділу
                 heading_style = ParagraphStyle(
                     'Heading',
                     parent=normal_style,
@@ -288,7 +288,7 @@ class ScanExporter:
                 story.append(Paragraph(f"Знайдені інгредієнти ({len(ingredients)}):", heading_style))
                 story.append(Spacer(1, 8))
                 
-                # Стиль для списка
+                # Стиль для списку
                 list_style = ParagraphStyle(
                     'List',
                     parent=normal_style,
@@ -298,7 +298,7 @@ class ScanExporter:
                     spaceAfter=4
                 )
                 
-                # Добавляем ингредиенты
+                # Додаємо інгредієнти
                 for i, ing in enumerate(ingredients[:30], 1):
                     if isinstance(ing, dict):
                         name = ing.get('name', '')
@@ -306,7 +306,7 @@ class ScanExporter:
                         
                         if name:
                             risk_text = self._get_risk_text(risk)
-                            # Простое форматирование без HTML тегов
+                            # Просте форматування без HTML тегів
                             ingredient_text = f"{i}. {name} ({risk_text})"
                             story.append(Paragraph(self.normalize_text(ingredient_text), list_style))
                 
@@ -315,7 +315,7 @@ class ScanExporter:
                 
                 story.append(Spacer(1, 20))
             
-            # Раздел: Рекомендации
+            # Розділ: Рекомендації
             rec_heading_style = ParagraphStyle(
                 'RecHeading',
                 parent=normal_style,
@@ -332,7 +332,7 @@ class ScanExporter:
             safety_status = scan_data.get('safety_status', 'safe')
             recommendations = self._get_recommendations(safety_status)
             
-            # Простой стиль для рекомендаций без HTML
+            # Простий стиль для рекомендацій без HTML
             rec_style = ParagraphStyle(
                 'Recommendation',
                 parent=normal_style,
@@ -342,7 +342,7 @@ class ScanExporter:
             )
             
             for rec in recommendations:
-                # Убираем HTML теги для простоты
+                # Забираємо HTML теги для простоти
                 clean_rec = rec.replace('<b>', '').replace('</b>', '').replace('<font color="red">', '').replace('</font>', '')
                 story.append(Paragraph(f"• {self.normalize_text(clean_rec)}", rec_style))
             
@@ -367,26 +367,26 @@ class ScanExporter:
                 footer_style
             ))
             
-            # Создаем PDF
+            # Створюємо PDF
             doc.build(story)
             
-            # Получаем bytes
+            # Отримуємо bytes
             pdf_bytes = buffer.getvalue()
             buffer.close()
             
-            print(f"✅ PDF создан, размер: {len(pdf_bytes)} байт")
+            print(f"PDF створено, розмір: {len(pdf_bytes)} байт")
             return pdf_bytes
             
         except Exception as e:
-            print(f"❌ Ошибка создания PDF: {str(e)}")
+            print(f"Помилка створення PDF: {str(e)}")
             import traceback
             traceback.print_exc()
             
-            # Возвращаем простой PDF с сообщением об ошибке
+            # Повертаємо простий PDF з повідомленням про помилку
             return self._create_error_pdf(str(e))
     
     def _create_error_pdf(self, error_message):
-        """Создать простой PDF с сообщением об ошибке"""
+        """Створити простий PDF з повідомленням про помилку"""
         try:
             buffer = io.BytesIO()
             
@@ -408,11 +408,11 @@ class ScanExporter:
             return pdf_bytes
             
         except:
-            # Если даже это не сработало, возвращаем пустой PDF
+            # Якщо навіть це не спрацювало, повертаємо пустий PDF
             return b''
     
     def _get_recommendations(self, safety_status):
-        """Получить рекомендации по уровню безопасности"""
+        """Отримати рекомендації за рівнем безпеки"""
         if safety_status in ['danger', 'high']:
             return [
                 "Продукт містить інгредієнти високого ризику.",
