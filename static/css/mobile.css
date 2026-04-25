@@ -1,390 +1,10 @@
-/* Мобільні стилі */
-@media (max-width: 768px) {
-    .container {
-        padding: 0.5rem;
-        padding-top: 4rem;
-    }
-
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-        padding: 0.5rem 0;
-        margin-bottom: 1rem;
-        position: relative;
-    }
-
-    h1 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        order: 2;
-        margin-top: 0.5rem;
-    }
-
-    .input-methods {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .method-card {
-        padding: 1.5rem;
-        margin: 0.5rem 0;
-    }
-
-    .method-card .icon {
-        font-size: 2.5rem;
-    }
-
-    .auth-buttons {
-        flex-direction: row;
-        width: 100%;
-        gap: 0.5rem;
-        justify-content: center;
-        order: 1;
-    }
-
-    .user-menu {
-        justify-content: flex-end;
-        margin-left: auto;
-        order: 3;
-    }
-
-    .user-menu span:first-child {
-        display: none;
-    }
-
-    button {
-        width: auto;
-        margin: 0.25rem 0;
-        padding: 0.8rem 1.2rem;
-        font-size: 0.9rem;
-    }
-
-    .modal-content {
-        margin: 1rem;
-        padding: 1.5rem;
-        width: 95%;
-        max-height: 85vh;
-    }
-
-    .result {
-        padding: 1rem;
-        margin-top: 1rem;
-    }
-
-    /* Камера - вирівнювання елементів */
-    .camera-preview {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto 1.5rem auto;
-        position: relative;
-        overflow: hidden;
-        border-radius: 12px;
-        background: #000;
-        aspect-ratio: 4/3;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .camera-preview video,
-    .camera-preview canvas {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .camera-controls {
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
-        width: 100%;
-        align-items: center;
-    }
-
-    .camera-controls button {
-        width: 100%;
-        max-width: 300px;
-        margin: 0.25rem 0;
-    }
-
-    @media (orientation: landscape) {
-        .camera-controls {
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .camera-controls button {
-            flex: 1;
-            min-width: 120px;
-        }
-    }
-
-    /* Форми аутентифікації - центрування */
-    .auth-form {
-        padding: 1.5rem;
-        margin: 0 auto;
-        margin-top: 2rem;
-        width: 90%;
-        max-width: 400px;
-    }
-
-    .password-toggle {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-        transform: translateY(-50%) !important;
-        background: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        margin: 0 !important;
-    }
-
-    .password-toggle:hover,
-    .password-toggle:focus,
-    .password-toggle:active {
-        background: none !important;
-        transform: translateY(-50%) !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
-
-    .password-group input {
-        padding-right: 50px;
-    }
-
-    .message {
-        right: 10px;
-        left: 10px;
-        max-width: none;
-        top: 80px;
-    }
-
-    .back-button {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-        z-index: 1001;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        box-shadow: var(--shadow);
-        font-weight: 600;
-    }
-
-    .hero-section {
-        padding: 2rem 1rem;
-        margin: 1rem 0;
-        margin-top: 0.5rem;
-    }
-
-    .hero-section h1 {
-        font-size: 1.8rem;
-    }
-
-    .hero-subtitle {
-        font-size: 1rem;
-        color: var(--accent-color);
-        font-weight: 500;
-        opacity: 0.9;
-        line-height: 1.4;
-    }
-
-    .scans-controls {
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .filters {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .filters select {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-
-    .bulk-actions {
-        width: 100%;
-        justify-content: stretch;
-    }
-
-    .bulk-actions button {
-        flex: 1;
-    }
-
-    .pagination {
-        gap: 0.25rem;
-    }
-
-    .pagination button {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.9rem;
-    }
-
-    .header-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        position: relative;
-        min-height: 60px;
-    }
-
-    .header-actions h1 {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        width: auto;
-        margin: 0;
-        order: 2;
-        margin-top: 0;
-        font-size: 1.5rem;
-    }
-
-    .header-actions .back-button {
-        position: relative;
-        top: auto;
-        left: auto;
-        order: 1;
-        align-self: center;
-        margin: 0;
-    }
-
-    .header-actions .user-menu {
-        position: relative;
-        top: auto;
-        right: auto;
-        order: 3;
-        align-self: center;
-        margin: 0;
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .scan-card-header {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .scan-method {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .scan-actions {
-        align-self: flex-start;
-        margin-top: 0;
-        flex-shrink: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.3rem;
-    }
-
-    .method-card {
-        padding: 1rem;
-    }
-
-    .modal-content {
-        padding: 1rem;
-        margin: 0.5rem;
-    }
-
-    button {
-        padding: 0.8rem 1rem;
-        font-size: 0.9rem;
-    }
-
-    .auth-form {
-        padding: 1rem;
-        width: 95%;
-    }
-
-    .message {
-        padding: 0.8rem 1rem;
-        font-size: 0.9rem;
-        top: 70px;
-    }
-
-    .hero-section {
-        padding: 1.5rem 1rem;
-    }
-
-    .hero-section h1 {
-        font-size: 1.5rem;
-    }
-
-    .scan-card {
-        padding: 1rem;
-    }
-
-    .scan-stats {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .header-actions {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .header-actions h1 {
-        position: static;
-        transform: none;
-        order: 1;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .header-actions .back-button {
-        order: 2;
-        flex: 1;
-    }
-
-    .header-actions .user-menu {
-        order: 3;
-        flex: 1;
-        justify-content: flex-end;
-    }
-
-    .scan-card-header {
-        gap: 0.5rem;
-    }
-
-    .scan-actions {
-        gap: 0.25rem;
-    }
-
-    .camera-preview {
-        max-width: 100%;
-        margin: 0 auto 1rem auto;
-    }
-
-    .camera-controls button {
-        max-width: 100%;
-        padding: 0.9rem;
-    }
-}
+/* ═══════════════════════════════════════════════
+   Skipley — Mobile Overrides
+   ═══════════════════════════════════════════════ */
 
 @media (hover: none) and (pointer: coarse) {
-    button {
+    .btn {
         min-height: 44px;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
     }
 
     .method-card {
@@ -392,367 +12,121 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        border-radius: 16px;
     }
 
     input,
     textarea {
         font-size: 16px;
-        padding: 1rem;
-        border-radius: 12px;
     }
 
     .password-toggle {
         min-height: 44px;
         min-width: 44px;
-        border-radius: 8px;
     }
 
-    .back-button {
+    .sidebar-item {
         min-height: 44px;
-        min-width: 44px;
-        border-radius: 10px;
     }
 
-    .scans-list,
-    .ingredients-list,
-    .original-text {
-        -webkit-overflow-scrolling: touch;
+    .pill-btn {
+        min-height: 36px;
+        padding: 8px 14px;
     }
 
-    .modal-actions button {
-        margin: 0.25rem;
-    }
-
-    .camera-controls button {
+    .camera-controls .btn {
         min-height: 50px;
-        font-size: 1rem;
-        margin: 0.3rem 0;
+        font-size: 15px;
+    }
+
+    .shutter-btn {
+        width: 68px;
+        height: 68px;
+    }
+
+    .shutter-btn .shutter-inner {
+        width: 42px;
+        height: 42px;
     }
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background: linear-gradient(135deg, #2D2D2D 0%, #1A1A1A 100%);
-        color: #F5F5F5;
+@media (max-width: 768px) {
+    .sidebar {
+        width: 260px;
     }
 
-    .method-card,
-    .result,
-    .modal-content,
-    .auth-form {
-        background: #1A1A1A;
-        color: #F5F5F5;
-        border-color: #404040;
+    .camera-page .content-wrap {
+        max-width: 100%;
     }
 
-    .method-card h3 {
-        color: #FFFFFF !important;
+    .viewfinder {
+        border-radius: var(--r-md);
     }
 
-    .method-card p {
-        color: #D991BA !important;
+    .scan-card-method {
+        padding-right: 32px;
     }
 
-    .form-group input {
-        background: #2D2D2D !important;
-        border-color: #404040;
-        color: #F5F5F5 !important;
+    .scan-card-delete {
+        top: 10px;
+        right: 10px;
+        width: 26px;
+        height: 26px;
     }
 
-    .form-group input::placeholder {
-        color: #8A8887;
+    .results-actions {
+        flex-direction: column;
     }
 
-    .form-group input:focus {
-        border-color: #D991BA;
+    .results-actions .btn {
+        width: 100%;
     }
 
-    .password-toggle {
-        background: none;
-        color: #F5F5F5;
+    .modal-actions {
+        flex-direction: column;
     }
 
-    .back-button {
-        background: #D991BA;
-        border: 1px solid #404040;
-        color: white;
-        font-weight: 600;
-    }
-
-    .back-button:hover {
-        background: #C97AA5;
-    }
-
-    h1 {
-        color: #D7C9AA !important;
-    }
-
-    .auth-form h1 {
-        color: #D7C9AA !important;
-    }
-
-    .modal-content h3 {
-        color: #D7C9AA !important;
-    }
-
-    .hero-subtitle,
-    .detail-section h4,
-    .scan-details h4 {
-        color: #D991BA !important;
-    }
-
-    .hero-section h1 {
-        color: #2A002D !important;
-        background: none !important;
-        -webkit-text-fill-color: #2A002D !important;
-    }
-
-    .bulk-actions button {
-        background: linear-gradient(135deg, #D991BA, #C97AA5);
-        color: white !important;
-        font-weight: 600;
-    }
-
-    .bulk-actions button.secondary {
-        background: linear-gradient(135deg, #D7C9AA, #C5B89B);
-        color: #330036 !important;
-        font-weight: 600;
-    }
-
-    .icon-btn.delete {
-        color: #D7C9AA;
-    }
-
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    input:-webkit-autofill:active {
-        -webkit-box-shadow: 0 0 0 30px #2D2D2D inset !important;
-        -webkit-text-fill-color: #F5F5F5 !important;
-    }
-
-    input[autocomplete="off"],
-    input[autocomplete="new-password"] {
-        background-color: #2D2D2D !important;
-        color: #F5F5F5 !important;
-    }
-
-    .filters select {
-        background: #2D2D2D;
-        border-color: #404040;
-        color: #F5F5F5;
-    }
-
-    .scan-card {
-        background: #1A1A1A;
-        border-left-color: #D991BA;
-    }
-
-    .icon-btn:hover {
-        background: #2D2D2D;
-    }
-
-    .pagination button {
-        background: #2D2D2D;
-        color: #F5F5F5;
-        border-color: #404040;
-    }
-
-    .empty-state {
-        color: #B0B0B0;
-    }
-
-    .empty-state h3 {
-        color: #F5F5F5;
-    }
-
-    .hero-subtitle {
-        color: #D991BA !important;
-        opacity: 0.9;
-    }
-
-    .camera-preview {
-        background: #000;
-        border: 2px solid #404040;
-    }
-
-    .icon-btn.delete img {
-        filter: brightness(0) invert(1) !important;
+    .modal-actions .btn {
+        width: 100%;
     }
 }
 
-@media (max-width: 768px) and (min-height: 1000px) {
-    .container {
-        padding: 2rem 1rem;
-        padding-top: 5rem;
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 14px;
     }
 
-    .method-card {
-        padding: 2rem 1.5rem;
+    .topbar-brand {
+        font-size: 15px;
     }
 
-    .hero-section {
-        padding: 3rem 2rem;
+    .hero-badge {
+        font-size: 10px;
+        padding: 3px 10px;
     }
 
-    .auth-form {
-        padding: 2rem 1.5rem;
-    }
-
-    .back-button {
-        top: 25px;
-        left: 25px;
-    }
-
-    .user-menu {
-        top: 25px;
-        right: 25px;
-    }
-
-    .camera-preview {
-        max-height: 50vh;
+    .scan-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
     }
 }
 
-@media (max-width: 1024px) and (orientation: landscape) {
-    .input-methods {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .method-card {
-        padding: 1.5rem;
-    }
-
-    header {
+@media (max-width: 768px) and (orientation: landscape) {
+    .camera-controls {
         flex-direction: row;
-        text-align: left;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    .auth-buttons,
-    .user-menu {
-        flex-direction: row;
-        width: auto;
+    .camera-controls .btn {
+        flex: 1;
+        min-width: 120px;
+        max-width: none;
     }
 
-    button {
-        width: auto;
-        margin: 0;
-    }
-
-    .container {
-        padding-top: 1rem;
-    }
-
-    .back-button {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-    }
-
-    .header-actions h1 {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .camera-preview {
+    .viewfinder {
         max-height: 60vh;
         max-width: 70vh;
-    }
-
-    .camera-controls {
-        flex-direction: row;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .camera-controls button {
-        flex: 1;
-        min-width: 140px;
-    }
-}
-
-@media (max-width: 768px) {
-    .camera-modal-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
-    .camera-modal-content h3 {
-        width: 100%;
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-
-    .camera-preview {
-        order: 2;
-    }
-
-    .camera-controls {
-        order: 3;
-        margin-top: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .scan-card {
-        padding: 1rem;
-    }
-
-    .scan-card-header {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .scan-actions {
-        align-self: flex-end;
-        margin-top: 0.5rem;
-    }
-}
-
-.password-toggle {
-    transition: none !important;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    transform: translateY(-50%) !important;
-}
-
-.password-toggle:hover,
-.password-toggle:focus,
-.password-toggle:active {
-    background: none !important;
-    transform: translateY(-50%) !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-.password-toggle::before {
-    content: none !important;
-}
-
-.password-toggle img {
-    transition: none !important;
-    filter: none !important;
-    display: block;
-    margin: 0;
-}
-
-.password-toggle:hover img {
-    transform: none !important;
-}
-
-@media (prefers-color-scheme: dark) {
-    .password-toggle img {
-        filter: brightness(0) invert(1) !important;
-    }
-}
-
-@media (hover: none) and (pointer: coarse) {
-    .password-toggle:active {
-        opacity: 0.7;
+        margin: 0 auto;
     }
 }

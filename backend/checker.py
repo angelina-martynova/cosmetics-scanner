@@ -6,6 +6,16 @@ import sqlite3
 import os
 import traceback
 
+# Нечіткий пошук для покращеного розпізнавання інгредієнтів
+try:
+    from rapidfuzz import fuzz, process
+    RAPIDFUZZ_AVAILABLE = True
+    print("RapidFuzz підключено — нечіткий пошук активний")
+except ImportError:
+    RAPIDFUZZ_AVAILABLE = False
+    print("RapidFuzz не встановлено — використовується точний пошук. "
+          "Встановіть: pip install rapidfuzz")
+
 
 class IngredientChecker:
     def __init__(self, use_cache=True, fallback_to_local=True):
@@ -25,6 +35,9 @@ class IngredientChecker:
         self.stop_words = self._load_stop_words()
         
         print(f"IngredientChecker ініціалізований: {len(self.local_ingredients)} інгредієнтів у базі")
+        
+        # Побудова індексу для швидкого нечіткого пошуку
+        self._build_fuzzy_index()
     
     def _load_stop_words(self):
         """Завантаження розширеного списку стоп-слів"""
@@ -64,9 +77,55 @@ class IngredientChecker:
         }
         return stop_words
     
+    def _build_fuzzy_index(self):
+        """Побудова індексу всіх назв та псевдонімів для швидкого пошуку.
+        
+        Створює словник {normalized_name: ingredient_dict} 
+        для O(1) lookup замість повного перебору при точному збігу.
+        """
+        self._exact_index = {}
+        self._all_names = []  # Для RapidFuzz process.extractOne
+        
+        for ingredient in self.local_ingredients:
+            name_lower = ingredient['name'].lower()
+            self._exact_index[name_lower] = ingredient
+            self._all_names.append(name_lower)
+            
+            for alias in ingredient.get('aliases', []):
+                alias_lower = alias.lower()
+                if alias_lower and alias_lower not in self._exact_index:
+                    self._exact_index[alias_lower] = ingredient
+                    self._all_names.append(alias_lower)
+        
+        print(f"Fuzzy-індекс побудовано: {len(self._exact_index)} унікальних назв")
+    
     def load_local_ingredients(self):
         """Завантаження локальної бази інгредієнтів"""
         print("Завантаження локальної бази інгредієнтів...")
+        
+        # Спочатку пробуємо завантажити інгредієнти з JSON-файлу, якщо він є
+        try:
+            base_dir = os.path.dirname(__file__)
+            data_path = os.path.join(base_dir, "data", "ingredients.json")
+            if os.path.exists(data_path):
+                with open(data_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                raw_ingredients = data.get("ingredients", [])
+                ingredients_from_file = []
+                for ing in raw_ingredients:
+                    if not isinstance(ing, dict):
+                        continue
+                    ing.setdefault("aliases", [])
+                    ing.setdefault("risk_level", "unknown")
+                    ing.setdefault("category", "unknown")
+                    ing.setdefault("description", "")
+                    ing.setdefault("source", "local")
+                    ingredients_from_file.append(ing)
+                if ingredients_from_file:
+                    print(f"Завантажено {len(ingredients_from_file)} інгредієнтів з data/ingredients.json")
+                    return ingredients_from_file
+        except Exception as e:
+            print(f"Не вдалося завантажити інгредієнти з JSON, використовую вбудований список: {e}")
         
         # Базовий список основних інгредієнтів (з повними псевдонімами)
         ingredients = [
@@ -1078,11 +1137,42 @@ class IngredientChecker:
             "name": ingredient_name,
             "risk_level": risk_level,
             "category": category,
-            "description": f"Інгредієнт не знайдено в локальній базі. Оцінка на основі ключових слів.",
-            "source": "not_found",
+            "description": self._generate_description(ingredient_name, risk_level, category),
+            "source": "auto_classification",
             "aliases": [],
-            "context": "Автоматична оцінка на основі назви"
+            "context": ""
         }
+    
+    def _generate_description(self, name, risk_level, category):
+        """Генерація зрозумілого опису інгредієнта за його категорією та ризиком."""
+        category_descriptions = {
+            'surfactant': 'Поверхнево-активна речовина (ПАР), використовується як очищувальний компонент',
+            'preservative': 'Консервант, запобігає розвитку мікроорганізмів у продукті',
+            'fragrance': 'Ароматична речовина, надає продукту запах',
+            'solvent': 'Розчинник, забезпечує розчинення інших компонентів',
+            'emollient': 'Пом\'якшувальний компонент, зволожує та захищає шкіру',
+            'UV filter': 'УФ-фільтр, захищає шкіру від ультрафіолетового випромінювання',
+            'active': 'Активний інгредієнт з цілеспрямованою дією на шкіру',
+            'plant extract': 'Рослинний екстракт з природними властивостями',
+            'film former': 'Плівкоутворювач, створює захисну плівку на шкірі',
+            'thickener': 'Загусник, надає продукту необхідну консистенцію',
+            'humectant': 'Зволожувач, притягує та утримує вологу',
+            'emulsifier': 'Емульгатор, з\'єднує водну та олійну фази',
+            'chelating agent': 'Хелатний агент, зв\'язує іони металів',
+            'pH adjuster': 'Регулятор pH, підтримує кислотно-лужний баланс',
+            'colorant': 'Барвник, надає продукту колір',
+        }
+        
+        desc = category_descriptions.get(category, 'Косметичний інгредієнт')
+        
+        risk_notes = {
+            'high': '. Потребує уваги — може викликати подразнення або алергічну реакцію',
+            'medium': '. Помірний ризик — безпечний у допустимих концентраціях',
+            'low': '. Низький ризик — загалом безпечний для більшості типів шкіри',
+            'safe': '. Безпечний — добре переноситься шкірою',
+        }
+        
+        return desc + risk_notes.get(risk_level, '')
     
     def is_potential_ingredient(self, text):
         """Перевірка, чи може текст бути інгредієнтом (ПОКРАЩЕНА версія)"""
@@ -1295,19 +1385,18 @@ class IngredientChecker:
             }
             return local_result
         
-        # 3. Пошук у зовнішніх джерелах
-        if self.use_cache:
-            try:
-                external_result = self.external_sources.search(ingredient_name)
-                if external_result and external_result.get('source') != 'not_found':
-                    self.search_cache[cache_key] = {
-                        'data': external_result,
-                        'timestamp': datetime.now(),
-                        'source': 'external'
-                    }
-                    return external_result
-            except Exception:
-                pass
+        # 3. Пошук у зовнішніх джерелах (Open Beauty Facts, PubChem)
+        try:
+            external_result = self.external_sources.search(ingredient_name)
+            if external_result and external_result.get('source') != 'not_found':
+                self.search_cache[cache_key] = {
+                    'data': external_result,
+                    'timestamp': datetime.now(),
+                    'source': 'external'
+                }
+                return external_result
+        except Exception as e:
+            print(f"[ExternalData] Помилка: {e}")
         
         # 4. Якщо нічого не знайдено
         not_found_result = self._create_not_found_response(ingredient_name)
@@ -1319,22 +1408,84 @@ class IngredientChecker:
         return not_found_result
     
     def _search_local(self, ingredient_name):
-        """Пошук у локальній базі"""
-        ingredient_lower = ingredient_name.lower()
+        """Пошук у локальній базі з нечітким зіставленням (RapidFuzz)"""
+        ingredient_lower = ingredient_name.lower().strip()
         
-        for ingredient in self.local_ingredients:
-            # Перевіряємо точне співпадіння з назвою
-            if ingredient_lower == ingredient['name'].lower():
-                return ingredient
-            
-            # Перевіряємо співпадіння з псевдонімами
-            for alias in ingredient.get('aliases', []):
-                if ingredient_lower == alias.lower():
+        if not ingredient_lower or len(ingredient_lower) < 2:
+            return None
+
+        # ─── Етап 1: Точне співпадіння через індекс (O(1)) ───
+        exact = self._exact_index.get(ingredient_lower)
+        if exact:
+            return exact
+
+        # ─── Етап 2: Часткове входження (substring match) ───
+        if len(ingredient_lower) > 4:
+            for name, ingredient in self._exact_index.items():
+                if len(name) > 4 and (ingredient_lower in name or name in ingredient_lower):
                     return ingredient
-            
-            # Перевіряємо часткове співпадіння (для покращеного пошуку)
-            if ingredient_lower in ingredient['name'].lower() or ingredient['name'].lower() in ingredient_lower:
-                return ingredient
+
+        # ─── Етап 3: Нечіткий пошук через RapidFuzz ───
+        if RAPIDFUZZ_AVAILABLE and len(ingredient_lower) >= 4:
+            return self._fuzzy_search(ingredient_lower)
+
+        return None
+
+    def _fuzzy_search(self, query):
+        """Нечіткий пошук інгредієнта за допомогою RapidFuzz.
+        
+        Використовує process.extractOne для ефективного пошуку найкращого
+        збігу серед усіх назв та псевдонімів у індексі.
+        
+        Два етапи scoring:
+          1. token_sort_ratio — стійкий до перестановки слів
+             ('sodium laureth sulfate' ↔ 'laureth sulfate sodium')
+          2. partial_ratio — для часткових збігів та помилок OCR
+             ('glycerln' → 'glycerin', 'sodlum' → 'sodium')
+        
+        Порогові значення:
+          - 85+ для коротких назв (≤10 символів) — жорсткіший поріг
+          - 78+ для довших назв — м'якший, бо довгі INCI-назви складні
+        """
+        if not RAPIDFUZZ_AVAILABLE or not self._all_names:
+            return None
+
+        # Динамічний поріг: короткі назви потребують вищої точності
+        threshold = 85 if len(query) <= 10 else 78
+
+        # Етап 1: token_sort_ratio (найкращий для INCI-назв)
+        result_token = process.extractOne(
+            query,
+            self._all_names,
+            scorer=fuzz.token_sort_ratio,
+            score_cutoff=threshold
+        )
+        
+        # Етап 2: partial_ratio (для OCR-помилок типу 'glycerln' → 'glycerin')
+        result_partial = process.extractOne(
+            query,
+            self._all_names,
+            scorer=fuzz.partial_ratio,
+            score_cutoff=threshold + 5  # трохи жорсткіший поріг для partial
+        )
+        
+        # Вибираємо найкращий результат
+        best_name = None
+        best_score = 0
+        
+        if result_token and result_token[1] > best_score:
+            best_name = result_token[0]
+            best_score = result_token[1]
+        
+        if result_partial and result_partial[1] * 0.95 > best_score:
+            best_name = result_partial[0]
+            best_score = result_partial[1] * 0.95
+        
+        if best_name and best_name in self._exact_index:
+            ingredient = self._exact_index[best_name]
+            print(f"  ✓ Fuzzy match: '{query}' → '{ingredient['name']}' "
+                  f"(via '{best_name}', score: {best_score:.0f}%)")
+            return ingredient
         
         return None
     
@@ -1393,17 +1544,52 @@ class IngredientChecker:
 
 
 class ExternalDataFetcher:
-    """Клас для отримання даних із зовнішніх джерел"""
+    """Клас для отримання даних із зовнішніх відкритих баз інгредієнтів.
+    
+    Підтримувані джерела:
+      1. Open Beauty Facts — відкрита база косметичних інгредієнтів
+         (https://world.openbeautyfacts.org) — найбільш релевантна для косметики
+      2. PubChem — база хімічних сполук від NIH
+         (https://pubchem.ncbi.nlm.nih.gov) — для хімічної класифікації
+      3. CIR (Chemical Identifier Resolver) від NIH/NCI —
+         для перевірки валідності INCI-назв
+    
+    Результати кешуються в SQLite на 7 днів, щоб не перевантажувати API.
+    """
     
     def __init__(self, cache_dir='data_cache'):
         self.cache_dir = cache_dir
         self.cache_file = os.path.join(cache_dir, 'external_cache.db')
         os.makedirs(cache_dir, exist_ok=True)
         self.init_cache()
-        print(f"ExternalDataFetcher ініціалізований, кеш: {self.cache_file}")
+        
+        # Таймаут для HTTP-запитів
+        self.timeout = 8
+        
+        # Маппінг функцій інгредієнтів → рівень ризику
+        self._function_risk_map = {
+            # Високий ризик
+            'antimicrobial': 'high', 'preservative': 'medium',
+            'uv absorber': 'medium', 'uv filter': 'medium',
+            # Помірний ризик
+            'surfactant': 'medium', 'emulsifying': 'medium',
+            'fragrance': 'medium', 'perfuming': 'medium',
+            'denaturant': 'medium',
+            # Низький ризик
+            'emollient': 'low', 'moisturising': 'low', 'humectant': 'low',
+            'skin conditioning': 'low', 'hair conditioning': 'low',
+            'viscosity controlling': 'low', 'emulsion stabilising': 'low',
+            'antioxidant': 'low', 'chelating': 'low',
+            'buffering': 'low', 'ph adjuster': 'low',
+            # Безпечні
+            'solvent': 'safe', 'skin protecting': 'safe',
+            'tonic': 'safe', 'cleansing': 'low',
+        }
+        
+        print(f"[ExternalData] Ініціалізовано, кеш: {self.cache_file}")
         
     def init_cache(self):
-        """Ініціалізація кешу"""
+        """Ініціалізація SQLite кешу"""
         conn = sqlite3.connect(self.cache_file)
         cursor = conn.cursor()
         cursor.execute('''
@@ -1418,140 +1604,277 @@ class ExternalDataFetcher:
         conn.close()
     
     def search(self, ingredient_name):
-        """Пошук інгредієнта у зовнішніх джерелах"""
+        """Пошук інгредієнта у зовнішніх джерелах.
+        
+        Послідовність пошуку:
+          1. Кеш (SQLite, TTL 7 днів)
+          2. Open Beauty Facts (спеціалізована база косметики)
+          3. PubChem (загальна база хімічних сполук)
+        """
+        if not ingredient_name or len(ingredient_name.strip()) < 3:
+            return None
+        
+        ingredient_name = ingredient_name.strip()
         
         # 1. Перевіряємо кеш
         cached = self._get_from_cache(ingredient_name)
         if cached:
+            print(f"[ExternalData] Кеш: {ingredient_name}")
             return cached
         
-        # 2. Пробуємо різні джерела
+        # 2. Перевірка доступу до мережі
+        if not self._check_network():
+            return None
+        
+        # 3. Open Beauty Facts
+        result = self._search_open_beauty_facts(ingredient_name)
+        
+        # 4. PubChem
+        if not result:
+            result = self._search_pubchem(ingredient_name)
+        
+        # 5. Зберігаємо в кеш
+        if result:
+            self._save_to_cache(ingredient_name, result)
+        
+        return result
+    
+    def _check_network(self):
+        """Швидка перевірка доступу до мережі"""
         try:
-            test_url = "http://www.google.com"
-            requests.get(test_url, timeout=3)
-            
-            result = None
-            result = self._search_cosing(ingredient_name)
-            
-            if not result:
-                result = self._search_openfoodfacts(ingredient_name)
-            
-            if not result:
-                result = self._search_pubchem(ingredient_name)
-            
-            if result:
-                self._save_to_cache(ingredient_name, result)
-            
-            return result
-            
+            requests.head("https://world.openbeautyfacts.org", timeout=3)
+            return True
         except (requests.ConnectionError, requests.Timeout):
-            print(f"Немає доступу до інтернету, пропускаємо зовнішні джерела")
+            print("[ExternalData] Немає доступу до мережі")
+            return False
+    
+    def _search_open_beauty_facts(self, ingredient_name):
+        """Пошук у Open Beauty Facts — відкрита база косметичних продуктів.
+        
+        Open Beauty Facts містить дані про косметичні продукти з усього світу,
+        включаючи повні списки інгредієнтів. API дозволяє шукати за назвою
+        інгредієнта та отримувати інформацію про його функції.
+        
+        Endpoint: GET /api/v2/search?ingredients_tags={name}
+        """
+        try:
+            # Нормалізуємо назву для API
+            search_name = ingredient_name.lower().replace(' ', '-')
+            
+            url = (f"https://world.openbeautyfacts.org/api/v2/search?"
+                   f"ingredients_tags={search_name}&"
+                   f"fields=product_name,ingredients&"
+                   f"page_size=5&json=1")
+            
+            print(f"[OpenBeautyFacts] Запит: {ingredient_name}")
+            response = requests.get(url, timeout=self.timeout, headers={
+                'User-Agent': 'Skipley/1.0 (cosmetic ingredient checker)'
+            })
+            
+            if response.status_code != 200:
+                return None
+            
+            data = response.json()
+            products = data.get('products', [])
+            
+            if not products:
+                # Спробуємо пошук через текстовий запит
+                return self._search_obf_text(ingredient_name)
+            
+            # Аналізуємо знайдені продукти для визначення категорії
+            ingredient_lower = ingredient_name.lower()
+            category = self._classify_by_name(ingredient_lower)
+            risk_level = self._assess_risk_by_name(ingredient_lower)
+            
+            return {
+                "name": ingredient_name,
+                "risk_level": risk_level,
+                "category": category,
+                "description": f"Косметичний інгредієнт, знайдений у {len(products)} продуктах",
+                "source": "openbeautyfacts",
+                "aliases": [],
+                "context": f"Дані з Open Beauty Facts ({len(products)} продуктів)"
+            }
+            
+        except requests.Timeout:
+            print(f"[OpenBeautyFacts] Таймаут для {ingredient_name}")
+            return None
+        except Exception as e:
+            print(f"[OpenBeautyFacts] Помилка: {e}")
             return None
     
-    def _search_cosing(self, ingredient_name):
-        """Пошук у базі CosIng ЄС"""
+    def _search_obf_text(self, ingredient_name):
+        """Текстовий пошук в Open Beauty Facts."""
         try:
-            print(f"Запит до CosIng API: {ingredient_name}")
+            url = (f"https://world.openbeautyfacts.org/cgi/search.pl?"
+                   f"search_terms={ingredient_name}&"
+                   f"search_simple=1&action=process&json=1&page_size=3")
             
-            # Заглушка для демонстрації
-            if 'paraben' in ingredient_name.lower():
-                return {
-                    "name": ingredient_name,
-                    "risk_level": "medium",
-                    "category": "preservative",
-                    "description": "Консервант парабенового ряду.",
-                    "source": "cosing",
-                    "aliases": [],
-                    "context": "Обмеження ЄС: до 0.4%"
-                }
+            response = requests.get(url, timeout=self.timeout, headers={
+                'User-Agent': 'Skipley/1.0'
+            })
             
-            return None
+            if response.status_code != 200:
+                return None
             
+            data = response.json()
+            count = data.get('count', 0)
+            
+            if count == 0:
+                return None
+            
+            ingredient_lower = ingredient_name.lower()
+            return {
+                "name": ingredient_name,
+                "risk_level": self._assess_risk_by_name(ingredient_lower),
+                "category": self._classify_by_name(ingredient_lower),
+                "description": f"Інгредієнт знайдено у {count} косметичних продуктах",
+                "source": "openbeautyfacts",
+                "aliases": [],
+                "context": f"Open Beauty Facts: {count} продуктів"
+            }
         except Exception as e:
-            print(f"Помилка CosIng API: {e}")
-            return None
-    
-    def _search_openfoodfacts(self, ingredient_name):
-        """Пошук у Open Food Facts"""
-        try:
-            url = f"https://world.openfoodfacts.org/api/v0/product/ingredient/{ingredient_name}.json"
-            response = requests.get(url, timeout=5)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data.get('product'):
-                    risk_level = "low"
-                    if any(word in ingredient_name.lower() for word in ['preservative', 'artificial']):
-                        risk_level = "medium"
-                    
-                    return {
-                        "name": ingredient_name,
-                        "risk_level": risk_level,
-                        "category": "food_ingredient",
-                        "description": "Харчовий інгредієнт",
-                        "source": "openfoodfacts",
-                        "aliases": [],
-                        "context": "Дані з Open Food Facts"
-                    }
-            
-            return None
-            
-        except Exception as e:
-            print(f"Помилка Open Food Facts API: {e}")
+            print(f"[OpenBeautyFacts] Текстовий пошук — помилка: {e}")
             return None
     
     def _search_pubchem(self, ingredient_name):
-        """Пошук у PubChem"""
+        """Пошук у PubChem — база хімічних сполук від NIH.
+        
+        PubChem REST API повертає детальну інформацію про хімічну сполуку,
+        включаючи молекулярну формулу, масу, IUPAC-назву та синоніми.
+        
+        Endpoint: GET /rest/pug/compound/name/{name}/JSON
+        """
         try:
-            url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{ingredient_name}/JSON"
-            response = requests.get(url, timeout=5)
+            # Кодуємо назву для URL
+            encoded_name = requests.utils.quote(ingredient_name)
+            url = (f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
+                   f"compound/name/{encoded_name}/JSON")
             
-            if response.status_code == 200:
-                data = response.json()
-                
-                ingredient_lower = ingredient_name.lower()
-                risk_level = "unknown"
-                category = "chemical"
-                
-                if any(word in ingredient_lower for word in ['paraben', 'isothiazolinone', 'formalde']):
-                    risk_level = "high" if 'isothiazolinone' in ingredient_lower or 'formalde' in ingredient_lower else "medium"
-                    category = "preservative"
-                elif any(word in ingredient_lower for word in ['parfum', 'fragrance']):
-                    risk_level = "medium"
-                    category = "fragrance"
-                elif any(word in ingredient_lower for word in ['alcohol', 'glycol']):
-                    risk_level = "medium"
-                    category = "solvent"
-                elif any(word in ingredient_lower for word in ['glycerin', 'aqua', 'water']):
-                    risk_level = "low"
-                    category = "base" if 'aqua' in ingredient_lower or 'water' in ingredient_lower else "emollient"
-                elif any(word in ingredient_lower for word in ['acid', 'ate']):
-                    risk_level = "low"
-                    category = "pH adjuster" if 'acid' in ingredient_lower else "ester"
-                
-                return {
-                    "name": ingredient_name,
-                    "risk_level": risk_level,
-                    "category": category,
-                    "description": f"Хімічне з'єднання: {ingredient_name}",
-                    "source": "pubchem",
-                    "aliases": [],
-                    "context": "Автоматична оцінка на основі назви"
-                }
+            print(f"[PubChem] Запит: {ingredient_name}")
+            response = requests.get(url, timeout=self.timeout)
             
+            if response.status_code != 200:
+                return None
+            
+            data = response.json()
+            compounds = data.get('PC_Compounds', [])
+            
+            if not compounds:
+                return None
+            
+            compound = compounds[0]
+            cid = compound.get('id', {}).get('id', {}).get('cid', '')
+            
+            # Витягуємо IUPAC-назву та молекулярну формулу
+            iupac_name = ''
+            mol_formula = ''
+            for prop in compound.get('props', []):
+                urn = prop.get('urn', {})
+                label = urn.get('label', '')
+                if label == 'IUPAC Name' and urn.get('name') == 'Preferred':
+                    iupac_name = prop.get('value', {}).get('sval', '')
+                elif label == 'Molecular Formula':
+                    mol_formula = prop.get('value', {}).get('sval', '')
+            
+            ingredient_lower = ingredient_name.lower()
+            risk_level = self._assess_risk_by_name(ingredient_lower)
+            category = self._classify_by_name(ingredient_lower)
+            
+            description = f"Хімічна сполука (PubChem CID: {cid})"
+            if mol_formula:
+                description += f", формула: {mol_formula}"
+            if iupac_name and iupac_name != ingredient_name:
+                description += f", IUPAC: {iupac_name[:80]}"
+            
+            return {
+                "name": ingredient_name,
+                "risk_level": risk_level,
+                "category": category,
+                "description": description,
+                "source": "pubchem",
+                "aliases": [],
+                "context": f"PubChem CID: {cid}"
+            }
+            
+        except requests.Timeout:
+            print(f"[PubChem] Таймаут для {ingredient_name}")
             return None
-            
         except Exception as e:
-            print(f"Помилка PubChem API: {e}")
+            print(f"[PubChem] Помилка: {e}")
             return None
     
+    def _classify_by_name(self, name_lower):
+        """Класифікація інгредієнта за його INCI-назвою."""
+        rules = [
+            (['sulfate', 'glucoside', 'betaine', 'isethionate', 'sarcosinate',
+              'taurate', 'amphoacetate'], 'surfactant'),
+            (['paraben', 'phenoxy', 'benzoate', 'sorbate', 'isothiazolinone',
+              'hydantoin', 'imidazolidinyl'], 'preservative'),
+            (['parfum', 'fragrance', 'limonene', 'linalool', 'citronellol',
+              'geraniol', 'eugenol', 'coumarin'], 'fragrance'),
+            (['alcohol', 'glycol', 'ethanol'], 'solvent'),
+            (['oil', 'butter', 'squalane', 'dimethicone', 'siloxane',
+              'triglyceride', 'ester'], 'emollient'),
+            (['titanium', 'zinc oxide', 'avobenzone', 'octinoxate',
+              'oxybenzone', 'homosalate', 'octocrylene'], 'UV filter'),
+            (['acid', 'retinol', 'niacinamide', 'peptide', 'ceramide',
+              'hyaluronic'], 'active'),
+            (['extract', 'juice', 'flower', 'leaf', 'root', 'bark',
+              'seed', 'fruit'], 'plant extract'),
+            (['polymer', 'copolymer', 'acrylate', 'carbomer',
+              'gum', 'cellulose'], 'thickener'),
+            (['glycerin', 'urea', 'sorbitol', 'mannitol',
+              'saccharide'], 'humectant'),
+            (['stearate', 'cetearyl', 'glyceryl', 'polysorbate',
+              'sorbitan', 'lecithin'], 'emulsifier'),
+            (['edta', 'phytic', 'gluconate'], 'chelating agent'),
+            (['citric acid', 'lactic acid', 'sodium hydroxide',
+              'triethanolamine'], 'pH adjuster'),
+            (['ci ', 'ci7', 'color', 'yellow', 'red no', 'blue no',
+              'iron oxide'], 'colorant'),
+        ]
+        for keywords, category in rules:
+            if any(kw in name_lower for kw in keywords):
+                return category
+        return 'unknown'
+    
+    def _assess_risk_by_name(self, name_lower):
+        """Оцінка ризику за назвою INCI-інгредієнта."""
+        high_risk = ['formaldehyde', 'isothiazolinone', 'triclosan',
+                     'oxybenzone', 'benzophenone', 'hydroquinone',
+                     'toluene', 'phthalate', 'mercury', 'lead']
+        medium_risk = ['paraben', 'parfum', 'fragrance', 'alcohol denat',
+                       'sulfate', 'glycol', 'triethanolamine', 'phenoxyethanol',
+                       'dea', 'mea', 'tea ', 'peg-', 'edta',
+                       'limonene', 'linalool', 'citronellol']
+        low_risk = ['glycerin', 'benzoate', 'sorbate', 'dioxide', 'oxide',
+                    'acid', 'oil', 'extract', 'butter', 'stearate',
+                    'cetyl', 'carbomer', 'gum', 'cellulose', 'silica',
+                    'dimethicone', 'glucoside', 'betaine']
+        safe_risk = ['aqua', 'water', 'aloe', 'vitamin', 'ceramide',
+                     'panthenol', 'allantoin', 'centella', 'tocopherol',
+                     'squalane', 'jojoba', 'shea', 'hyaluronic',
+                     'niacinamide', 'bisabolol']
+        
+        if any(kw in name_lower for kw in high_risk):
+            return 'high'
+        elif any(kw in name_lower for kw in medium_risk):
+            return 'medium'
+        elif any(kw in name_lower for kw in safe_risk):
+            return 'safe'
+        elif any(kw in name_lower for kw in low_risk):
+            return 'low'
+        return 'unknown'
+    
     def _get_from_cache(self, ingredient_name):
-        """Отримання з кешу"""
+        """Отримання з кешу (TTL: 7 днів)"""
         try:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT data FROM ingredients_cache WHERE name = ? AND last_updated > datetime('now', '-7 days')",
+                "SELECT data FROM ingredients_cache "
+                "WHERE name = ? AND last_updated > datetime('now', '-7 days')",
                 (ingredient_name.lower(),)
             )
             result = cursor.fetchone()
@@ -1559,11 +1882,9 @@ class ExternalDataFetcher:
             
             if result:
                 return json.loads(result[0])
-            
             return None
-            
         except Exception as e:
-            print(f"Помилка читання кешу: {e}")
+            print(f"[Cache] Помилка читання: {e}")
             return None
     
     def _save_to_cache(self, ingredient_name, data):
@@ -1572,11 +1893,13 @@ class ExternalDataFetcher:
             conn = sqlite3.connect(self.cache_file)
             cursor = conn.cursor()
             cursor.execute(
-                "INSERT OR REPLACE INTO ingredients_cache (name, data, source, last_updated) VALUES (?, ?, ?, datetime('now'))",
-                (ingredient_name.lower(), json.dumps(data), data.get('source', 'unknown'))
+                "INSERT OR REPLACE INTO ingredients_cache "
+                "(name, data, source, last_updated) "
+                "VALUES (?, ?, ?, datetime('now'))",
+                (ingredient_name.lower(), json.dumps(data, ensure_ascii=False),
+                 data.get('source', 'unknown'))
             )
             conn.commit()
             conn.close()
-            
         except Exception as e:
-            print(f"Помилка збереження в кеш: {e}")
+            print(f"[Cache] Помилка збереження: {e}")

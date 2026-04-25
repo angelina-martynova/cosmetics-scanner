@@ -1,62 +1,32 @@
-// Відкрити вікно введення тексту
+// text.js — Skipley Text Input Module
+
 function openTextInput() {
-    console.log('Відкриття вікна введення тексту...');
-    const modal = document.getElementById('textInputModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        console.log('Модальне вікно відкрито');
-    } else {
-        console.error('textInputModal не знайдено');
-    }
+    var modal = document.getElementById('textInputModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
-// Закрити вікно введення тексту
 function closeTextInput() {
-    const modal = document.getElementById('textInputModal');
-    const textInput = document.getElementById('manualTextInput');
+    var modal = document.getElementById('textInputModal');
+    var textInput = document.getElementById('manualTextInput');
     if (modal) modal.classList.add('hidden');
     if (textInput) textInput.value = '';
 }
 
-// Функція для виклику файлового введення
 function triggerFileInput() {
-    console.log('Активація файлового введення...');
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        fileInput.click();
-    } else {
-        console.error('fileInput не знайдено');
-    }
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.click();
 }
 
-// Функція для обробки ручного введення тексту
 async function processManualText() {
-    console.log('processManualText викликано');
-    
-    const textInput = document.getElementById('manualTextInput');
-    const resultDiv = document.getElementById('result');
-    
-    console.log('Знайдені елементи:', {
-        textInput: textInput,
-        resultDiv: resultDiv,
-        textInputValue: textInput ? textInput.value : 'null'
-    });
-    
-    if (!textInput) {
-        console.error('Елемент manualTextInput не знайдено');
-        alert('Помилка: текстове поле не знайдено');
+    var textInput = document.getElementById('manualTextInput');
+    var resultDiv = document.getElementById('result');
+
+    if (!textInput || !resultDiv) {
+        alert('Помилка: необхідні елементи не знайдено');
         return;
     }
-    
-    if (!resultDiv) {
-        console.error('Елемент result не знайдено');
-        alert('Помилка: елемент для результатів не знайдено');
-        return;
-    }
-    
-    const textValue = textInput.value.trim();
-    console.log('Значення тексту:', textValue);
-    
+
+    var textValue = textInput.value.trim();
     if (!textValue) {
         alert('Будь ласка, введіть текст для аналізу');
         textInput.focus();
@@ -64,189 +34,124 @@ async function processManualText() {
     }
 
     try {
-        console.log('Початок аналізу...');
-        resultDiv.innerHTML = '<p>Аналізується...</p>';
+        resultDiv.innerHTML = '<div class="loading"><p>Аналізується...</p></div>';
         closeTextInput();
-        
-        const response = await fetch('/api/analyze_text', {
+
+        var response = await fetch('/api/analyze_text', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: textValue })
         });
 
-        console.log('Статус відповіді:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`Помилка сервера: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('Помилка сервера: ' + response.status);
 
-        const data = await response.json();
-        console.log('Дані відповіді:', data);
-        
+        var data = await response.json();
         if (data.status === 'success') {
             displayResults(data);
         } else {
-            resultDiv.innerHTML = `<p class="error">Помилка: ${data.message}</p>`;
+            resultDiv.innerHTML = '<div class="error-msg">Помилка: ' + data.message + '</div>';
         }
-        
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = `<p class="error">Помилка при аналізі: ${error.message}</p>`;
+        resultDiv.innerHTML = '<div class="error-msg">Помилка при аналізі: ' + error.message + '</div>';
     }
 }
 
-// Функція для обробки завантаження текстового файлу
 async function processFileUpload() {
-    console.log('processFileUpload викликано');
-    
-    const fileInput = document.getElementById('fileInput');
-    const resultDiv = document.getElementById('result');
-    
-    console.log('Файлове введення:', fileInput);
-    console.log('Файли файлового введення:', fileInput ? fileInput.files : 'null');
-    
-    if (!fileInput) {
-        console.error('Елемент fileInput не знайдено');
-        alert('Помилка: елемент вибору файлу не знайдено');
-        return;
-    }
-    
-    if (!resultDiv) {
-        console.error('Елемент result не знайдено');
-        alert('Помилка: елемент для результатів не знайдено');
-        return;
-    }
-    
-    if (!fileInput.files || !fileInput.files[0]) {
-        alert('Будь ласка, виберіть файл');
-        return;
-    }
+    var fileInput = document.getElementById('fileInput');
+    var resultDiv = document.getElementById('result');
 
-    const file = fileInput.files[0];
-    console.log('Обраний файл:', file.name, file.type, file.size);
+    if (!fileInput || !resultDiv) { alert('Помилка: елементи не знайдено'); return; }
+    if (!fileInput.files || !fileInput.files[0]) { alert('Будь ласка, виберіть файл'); return; }
+
+    var file = fileInput.files[0];
 
     try {
-        resultDiv.innerHTML = '<p>Обробляється файл...</p>';
+        resultDiv.innerHTML = '<div class="loading"><p>Обробляється файл...</p></div>';
         closeTextInput();
-        
-        const formData = new FormData();
+
+        var formData = new FormData();
         formData.append('file', file);
 
-        console.log('Відправка файлу на сервер...');
-        const response = await fetch('/api/upload_text_file', {
-            method: 'POST',
-            body: formData
-        });
+        var response = await fetch('/api/upload_text_file', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Помилка сервера: ' + response.status);
 
-        console.log('Статус відповіді:', response.status);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Відповідь сервера з помилкою:', errorText);
-            throw new Error(`Помилка сервера: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Дані відповіді:', data);
-        
+        var data = await response.json();
         if (data.status === 'success') {
             displayResults(data);
-            // Очищаємо input після успішного завантаження
             fileInput.value = '';
         } else {
-            resultDiv.innerHTML = `<p class="error">Помилка: ${data.message}</p>`;
+            resultDiv.innerHTML = '<div class="error-msg">Помилка: ' + data.message + '</div>';
         }
-        
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = `<p class="error">Помилка при обробці файлу: ${error.message}</p>`;
+        resultDiv.innerHTML = '<div class="error-msg">Помилка при обробці файлу: ' + error.message + '</div>';
     }
 }
 
-// Функція для відображення результатів
+// Display results in new design
 function displayResults(data) {
-    const resultDiv = document.getElementById('result');
-    
-    if (!resultDiv) {
-        console.error('Елемент result не знайдено при відображенні результатів');
-        return;
-    }
-    
-    let html = `
-        <div class="result-section">
-            <h3>Проаналізований текст:</h3>
-            <div class="text-preview">${data.text || 'Текст не знайдено'}</div>
-        </div>
-    `;
+    var resultDiv = document.getElementById('result');
+    if (!resultDiv) return;
+
+    var html = '';
 
     if (data.ingredients && data.ingredients.length > 0) {
-        html += `
-            <div class="result-section">
-                <h3>Знайдені інгредієнти:</h3>
-                <div class="ingredients-list">
-        `;
-        
-        data.ingredients.forEach(ingredient => {
-            const riskClass = `risk-${ingredient.risk_level || 'unknown'}`;
-            html += `
-                <div class="ingredient-item ${riskClass}">
-                    <div class="ingredient-name">${ingredient.name}</div>
-                    <div class="ingredient-category">Категорія: ${ingredient.category}</div>
-                    <div class="ingredient-description">${ingredient.description}</div>
-                    <div class="risk-level">Рівень ризику: ${ingredient.risk_level}</div>
-                </div>
-            `;
+        // Summary
+        var counts = {};
+        data.ingredients.forEach(function(ing) {
+            var lvl = ing.risk_level || 'safe';
+            counts[lvl] = (counts[lvl] || 0) + 1;
         });
-        
-        html += `
-                </div>
-            </div>
-        `;
-    } else {
-        html += `
-            <div class="result-section">
-                <h3>Інгредієнти:</h3>
-                <p>Не знайдено потенційно шкідливих інгредієнтів</p>
-            </div>
-        `;
+
+        html += '<div class="results-summary"><div class="results-summary-header">';
+        html += '<h2>Аналіз завершено</h2>';
+        html += '<span class="results-count">' + data.ingredients.length + ' інгредієнтів</span>';
+        html += '</div><div class="risk-counts">';
+        for (var lvl in counts) {
+            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + lvl + '</span>';
+        }
+        html += '</div></div>';
+
+        // Ingredients list
+        html += '<div class="ingredients-list">';
+        data.ingredients.forEach(function(ingredient) {
+            var riskClass = 'risk-' + (ingredient.risk_level || 'safe');
+            html += '<div class="ingredient-item">';
+            html += '<div class="ingredient-info">';
+            html += '<div class="ingredient-name">' + ingredient.name + '</div>';
+            html += '<div class="ingredient-desc">' + (ingredient.description || ingredient.category || '') + '</div>';
+            html += '</div>';
+            html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + (ingredient.risk_level || 'safe') + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    if (data.text) {
+        html += '<div style="margin-top:16px"><p class="detail-section-label">Проаналізований текст</p>';
+        html += '<div class="original-text">' + data.text + '</div></div>';
+    }
+
+    if (!data.ingredients || data.ingredients.length === 0) {
+        html += '<div class="success-msg">Не знайдено потенційно шкідливих інгредієнтів</div>';
     }
 
     resultDiv.innerHTML = html;
 }
 
-// Ініціалізація при завантаженні сторінки
+// Ініціалізація
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== TEXT.JS ЗАВАНТАЖЕНО ===');
-    console.log('Перевірка елементів:');
-    console.log('manualTextInput:', document.getElementById('manualTextInput'));
-    console.log('textInputModal:', document.getElementById('textInputModal'));
-    console.log('fileInput:', document.getElementById('fileInput'));
-    console.log('result:', document.getElementById('result'));
-    
-    // Обробник для файлового input - ВАЖЛИВО!
-    const fileInput = document.getElementById('fileInput');
+
+    var fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.addEventListener('change', function(e) {
-            console.log('Файлове введення змінено, файли:', e.target.files);
-            if (e.target.files && e.target.files[0]) {
-                console.log('Виклик processFileUpload...');
-                processFileUpload();
-            }
+            if (e.target.files && e.target.files[0]) processFileUpload();
         });
-    } else {
-        console.error('fileInput елемент не знайдено!');
-    }
-    
-    // Прив'язка кнопки "Скасувати" в модальному вікні
-    const cancelButton = document.querySelector('#textInputModal .modal-actions button:last-child');
-    if (cancelButton && cancelButton.textContent.includes('Скасувати')) {
-        cancelButton.addEventListener('click', closeTextInput);
     }
 });
 
-// Глобальна функція для виклику з HTML
 window.processFileUpload = processFileUpload;
 window.processManualText = processManualText;
 window.triggerFileInput = triggerFileInput;

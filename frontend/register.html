@@ -1,32 +1,21 @@
-<!DOCTYPE html>
-<html lang="uk">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Реєстрація</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/mobile.css') }}"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <header>
-        <h1>Реєстрація</h1>
-      </header>
+{% extends "base.html" %}
 
-      <main>
-        <form id="registerForm" class="auth-form" autocomplete="off" novalidate>
+{% block title %}Реєстрація — Skipley{% endblock %}
+
+{% block content %}
+    <div class="auth-page enter">
+      <div class="auth-card">
+        <h1>Новий акаунт</h1>
+        <p class="auth-subtitle">Починайте безкоштовно — без картки.</p>
+
+        <form id="registerForm" autocomplete="off" novalidate>
           <div class="form-group">
+            <label for="emailRegister">Пошта</label>
             <input
               type="email"
               id="emailRegister"
               name="email"
-              placeholder="Електронна пошта"
+              placeholder="you@example.com"
               required
               autocomplete="off"
               autocorrect="off"
@@ -35,11 +24,12 @@
             />
           </div>
           <div class="form-group password-group">
+            <label for="passwordRegister">Пароль</label>
             <input
               type="password"
               id="passwordRegister"
               name="password"
-              placeholder="Пароль"
+              placeholder="••••••••"
               required
               autocomplete="new-password"
               autocorrect="off"
@@ -51,24 +41,23 @@
               class="password-toggle"
               onclick="togglePasswordVisibility('passwordRegister')"
               tabindex="-1"
+              aria-label="Показати пароль"
             >
-              <img
-                src="/static/images/visible.svg"
-                alt="Показати пароль"
-                width="24"
-                height="24"
-              />
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" id="toggleIconRegister">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
             </button>
           </div>
-          <button type="submit" class="auth-submit">Реєструватися</button>
+          <button type="submit" class="btn btn-primary btn-lg btn-full auth-submit">Створити акаунт</button>
         </form>
+
         <div class="auth-links">
           <p>Вже маєте акаунт? <a href="/login">Увійти</a></p>
         </div>
-      </main>
+      </div>
     </div>
+{% endblock %}
 
-    <!-- Підключення скриптів -->
+{% block scripts %}
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-  </body>
-</html>
+{% endblock %}

@@ -1,57 +1,39 @@
-// Управління камерою для мобільних пристроїв
+// image.js — Skipley Camera Module
+
 class CameraManager {
-    constructor() { 
-        this.stream = null; 
-        this.video = null; 
-        this.canvas = null; 
-        this.isCameraActive = false; 
+    constructor() {
+        this.stream = null;
+        this.video = null;
+        this.canvas = null;
+        this.isCameraActive = false;
         this.modal = null;
     }
-    
+
     async initCamera() {
         try {
             console.log('Ініціалізація камери...');
-            
-            // Використовуємо існуюче модальне вікно з HTML
+
             this.modal = document.getElementById('cameraModal');
-            
-            if (!this.modal) {
-                console.error('Модальне вікно камери не знайдено в HTML');
-                return;
-            }
-            
-            // Отримуємо елементи з існуючого HTML
+            if (!this.modal) { console.error('Модальне вікно камери не знайдено'); return; }
+
             this.video = document.getElementById('cameraVideo');
             this.canvas = document.getElementById('cameraCanvas');
-            
-            if (!this.video || !this.canvas) {
-                console.error('Елементи video або canvas не знайдено');
-                return;
-            }
-            
-            // Скидаємо стан UI
+            if (!this.video || !this.canvas) { console.error('Елементи video або canvas не знайдено'); return; }
+
             this.resetCameraUI();
-            
-            // Зупиняємо попередній потік, якщо він є
             this.stopCamera();
-            
+
             console.log('Запит доступу до камери...');
-            this.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }, 
-                audio: false 
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
             });
-            
+
             console.log('Камера доступна');
             this.video.srcObject = this.stream;
             this.isCameraActive = true;
-            
-            // Показуємо інтерфейс після успішної ініціалізації
             this.showCameraInterface();
-            
+
         } catch (error) {
             console.error('Помилка доступу до камери:', error);
             this.showCameraError();
@@ -59,47 +41,39 @@ class CameraManager {
     }
 
     resetCameraUI() {
-        // Скидаємо UI до початкового стану
         if (this.video) this.video.style.display = 'block';
         if (this.canvas) this.canvas.style.display = 'none';
-        
-        const captureBtn = document.getElementById('captureBtn');
-        const retakeBtn = document.getElementById('retakeBtn');
-        const usePhotoBtn = document.getElementById('usePhotoBtn');
-        
+
+        var captureBtn = document.getElementById('captureBtn');
+        var retakeBtn = document.getElementById('retakeBtn');
+        var usePhotoBtn = document.getElementById('usePhotoBtn');
+
         if (captureBtn) captureBtn.classList.remove('hidden');
         if (retakeBtn) retakeBtn.classList.add('hidden');
         if (usePhotoBtn) usePhotoBtn.classList.add('hidden');
     }
 
     showCameraInterface() {
-        console.log('Показ інтерфейсу камери...');
-        
         if (this.modal) {
             this.modal.classList.remove('hidden');
             console.log('Модальне вікно камери показано');
-        } else {
-            console.error('Модальне вікно не знайдено');
         }
     }
 
     capturePhoto() {
         console.log('Створення фото...');
-        const context = this.canvas.getContext('2d');
+        var context = this.canvas.getContext('2d');
         this.canvas.width = this.video.videoWidth;
         this.canvas.height = this.video.videoHeight;
         context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
         this.stopCamera();
-        
-        // Показуємо/ховаємо кнопки
+
         document.getElementById('captureBtn').classList.add('hidden');
         document.getElementById('retakeBtn').classList.remove('hidden');
         document.getElementById('usePhotoBtn').classList.remove('hidden');
-        
-        // Перемикаємо video на canvas
+
         this.video.style.display = 'none';
         this.canvas.style.display = 'block';
-        
         console.log('Фото створено');
     }
 
@@ -107,151 +81,113 @@ class CameraManager {
         console.log('Перезйомка...');
         this.canvas.style.display = 'none';
         this.video.style.display = 'block';
-        
         document.getElementById('captureBtn').classList.remove('hidden');
         document.getElementById('retakeBtn').classList.add('hidden');
         document.getElementById('usePhotoBtn').classList.add('hidden');
-        
         this.initCamera();
     }
 
     async usePhoto() {
         console.log('Аналіз фото...');
-        this.canvas.toBlob(async (blob) => {
-            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
-            
-            // Передаємо метод введення "camera"
+        this.canvas.toBlob(async function(blob) {
+            var file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
             await processImageFile(file, 'camera');
-            
-            // Закриваємо камеру після аналізу
-            this.closeCamera();
-            
+            cameraManager.closeCamera();
         }, 'image/jpeg', 0.8);
     }
 
     stopCamera() {
         if (this.stream) {
-            this.stream.getTracks().forEach(track => track.stop());
+            this.stream.getTracks().forEach(function(track) { track.stop(); });
             this.stream = null;
             this.isCameraActive = false;
-            console.log('Камера зупинена');
         }
     }
 
     closeCamera() {
-        console.log('Закриття камери...');
         this.stopCamera();
-        if (this.modal) {
-            this.modal.classList.add('hidden');
-            console.log('Модальне вікно приховано');
-        }
+        if (this.modal) this.modal.classList.add('hidden');
     }
 
     showCameraError() {
-        alert('Не вдалося отримати доступ до камери. Перевірте дозволи браузера або використовуйте інший пристрій.');
+        alert('Не вдалося отримати доступ до камери. Перевірте дозволи браузера.');
         this.closeCamera();
     }
 }
 
 // Функція для обробки зображень
 async function processImageFile(file, source) {
-    const resultDiv = document.getElementById('result');
-    
-    if (!resultDiv) {
-        console.error('Елемент result не знайдено');
-        alert('Помилка: елемент для результатів не знайдено');
-        return;
-    }
+    var resultDiv = document.getElementById('result');
+    if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
     try {
-        resultDiv.innerHTML = '<p class="loading">Обробляється зображення...</p>';
-        
-        const formData = new FormData();
+        resultDiv.innerHTML = '<div class="loading"><p>Обробляється зображення...</p></div>';
+
+        var formData = new FormData();
         formData.append('image', file);
-        
-        // Передаємо метод введення в залежності від джерела
-        if (source === 'camera') {
-            formData.append('input_method', 'camera');
-        } else {
-            formData.append('input_method', 'device'); // Для галереї
-        }
+        formData.append('input_method', source === 'camera' ? 'camera' : 'device');
 
-        console.log('Відправка зображення на сервер...');
-        const response = await fetch('/api/analyze', {
-            method: 'POST',
-            body: formData
-        });
+        var response = await fetch('/api/analyze', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Помилка сервера: ' + response.status);
 
-        console.log('Відповідь сервера:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`Помилка сервера: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Дані відповіді:', data);
-        
+        var data = await response.json();
         if (data.status === 'success') {
             displayImageResults(data);
         } else {
-            resultDiv.innerHTML = `<p class="error">Помилка: ${data.message}</p>`;
+            resultDiv.innerHTML = '<div class="error-msg">Помилка: ' + data.message + '</div>';
         }
-        
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = `<p class="error">Помилка при обробці зображення: ${error.message}</p>`;
+        resultDiv.innerHTML = '<div class="error-msg">Помилка при обробці зображення: ' + error.message + '</div>';
     }
 }
 
-// Функція для відображення результатів
+// Функція для відображення результатів (новий дизайн)
 function displayImageResults(data) {
-    const resultDiv = document.getElementById('result');
-    
-    if (!resultDiv) {
-        console.error('Елемент result не знайдено при відображенні результатів');
-        return;
-    }
-    
-    let html = `
-        <div class="result-section">
-            <h3>Розпізнаний текст:</h3>
-            <div class="text-preview">${data.text || 'Текст не знайдено'}</div>
-        </div>
-    `;
+    var resultDiv = document.getElementById('result');
+    if (!resultDiv) return;
+
+    var html = '';
 
     if (data.ingredients && data.ingredients.length > 0) {
-        html += `
-            <div class="result-section">
-                <h3>Знайдені інгредієнти:</h3>
-                <div class="ingredients-list">
-        `;
-        
-        data.ingredients.forEach(ingredient => {
-            const riskClass = ingredient.risk_level === 'high' ? 'high-risk' : 
-                            ingredient.risk_level === 'medium' ? 'medium-risk' :
-                            ingredient.risk_level === 'low' ? 'low-risk' : 'safe';
-            
-            html += `
-                <div class="ingredient-item ${riskClass}">
-                    <div class="ingredient-name"><strong>${ingredient.name}</strong></div>
-                    <div class="ingredient-category">Категорія: ${ingredient.category}</div>
-                    <div class="ingredient-description">${ingredient.description}</div>
-                    <div class="risk-level">Рівень ризику: ${ingredient.risk_level}</div>
-                </div>
-            `;
+        // Summary
+        var counts = {};
+        data.ingredients.forEach(function(ing) {
+            var lvl = ing.risk_level || 'safe';
+            counts[lvl] = (counts[lvl] || 0) + 1;
         });
-        
-        html += `
-                </div>
-            </div>
-        `;
-    } else {
-        html += `
-            <div class="result-section">
-                <h3>Інгредієнти:</h3>
-                <p class="success">Не знайдено потенційно шкідливих інгредієнтів</p>
-            </div>
-        `;
+
+        html += '<div class="results-summary"><div class="results-summary-header">';
+        html += '<h2>Аналіз завершено</h2>';
+        html += '<span class="results-count">' + data.ingredients.length + ' інгредієнтів</span>';
+        html += '</div><div class="risk-counts">';
+        for (var lvl in counts) {
+            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + lvl + '</span>';
+        }
+        html += '</div></div>';
+
+        // Ingredients list
+        html += '<div class="ingredients-list">';
+        data.ingredients.forEach(function(ingredient) {
+            var riskClass = 'risk-' + (ingredient.risk_level || 'safe');
+            html += '<div class="ingredient-item">';
+            html += '<div class="ingredient-info">';
+            html += '<div class="ingredient-name">' + ingredient.name + '</div>';
+            html += '<div class="ingredient-desc">' + (ingredient.description || ingredient.category || '') + '</div>';
+            html += '</div>';
+            html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + (ingredient.risk_level || 'safe') + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+
+    if (data.text) {
+        html += '<div style="margin-top:16px"><p class="detail-section-label">Розпізнаний текст</p>';
+        html += '<div class="original-text">' + data.text + '</div></div>';
+    }
+
+    if (!data.ingredients || data.ingredients.length === 0) {
+        html += '<div class="success-msg">Не знайдено потенційно шкідливих інгредієнтів</div>';
     }
 
     resultDiv.innerHTML = html;
@@ -259,7 +195,6 @@ function displayImageResults(data) {
 
 // Глобальні функції
 function openCamera() {
-    console.log('openCamera викликана');
     cameraManager.initCamera();
 }
 
@@ -268,55 +203,38 @@ function closeCamera() {
 }
 
 function openGallery() {
-    console.log('openGallery викликана');
-    // Закриваємо модальне вікно камери перед відкриттям галереї
     closeCamera();
     document.getElementById('galleryInput').click();
 }
 
-// Ініціалізація при завантаженні сторінки
+// Ініціалізація
 document.addEventListener('DOMContentLoaded', function() {
     console.log('IMAGE.JS ЗАВАНТАЖЕНО');
-    
-    // Прив'язуємо події для кнопок в існуючому модальному вікні
-    const captureBtn = document.getElementById('captureBtn');
-    const retakeBtn = document.getElementById('retakeBtn');
-    const usePhotoBtn = document.getElementById('usePhotoBtn');
-    
-    if (captureBtn) {
-        captureBtn.addEventListener('click', () => cameraManager.capturePhoto());
-    }
-    if (retakeBtn) {
-        retakeBtn.addEventListener('click', () => cameraManager.retakePhoto());
-    }
-    if (usePhotoBtn) {
-        usePhotoBtn.addEventListener('click', () => cameraManager.usePhoto());
-    }
-    
-    // Обробник для галереї
-    const galleryInput = document.getElementById('galleryInput');
+
+    var captureBtn = document.getElementById('captureBtn');
+    var retakeBtn = document.getElementById('retakeBtn');
+    var usePhotoBtn = document.getElementById('usePhotoBtn');
+
+    if (captureBtn) captureBtn.addEventListener('click', function() { cameraManager.capturePhoto(); });
+    if (retakeBtn) retakeBtn.addEventListener('click', function() { cameraManager.retakePhoto(); });
+    if (usePhotoBtn) usePhotoBtn.addEventListener('click', function() { cameraManager.usePhoto(); });
+
+    var galleryInput = document.getElementById('galleryInput');
     if (galleryInput) {
         galleryInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
+            var file = e.target.files[0];
             if (file) {
-                console.log('Файл вибрано з галереї:', file.name);
-                // Закриваємо модальне вікно камери при виборі файлу
                 closeCamera();
                 processImageFile(file, 'gallery');
-                // Очищаємо input
                 e.target.value = '';
             }
         });
     }
 });
 
-// Глобальний екземпляр
-const cameraManager = new CameraManager();
+var cameraManager = new CameraManager();
 
-// Робимо функції глобальними
 window.openCamera = openCamera;
 window.closeCamera = closeCamera;
 window.openGallery = openGallery;
 window.processImageFile = processImageFile;
-
-console.log('Image.js модуль завантажено та готовий');

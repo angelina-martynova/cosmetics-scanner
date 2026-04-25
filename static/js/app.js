@@ -1,3 +1,5 @@
+// app.js — Skipley
+
 class CosmeticsScanner {
     constructor() {
         this.currentUser = null;
@@ -5,95 +7,37 @@ class CosmeticsScanner {
     }
 
     init() {
-        this.bindEvents();
         this.checkAuthStatus();
-    }
-
-    bindEvents() {
-        this.initAuthEvents();
-        this.initNavigationEvents();
-    }
-
-    initAuthEvents() {
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const myScansBtn = document.getElementById('myScansBtn');
-
-        if (loginBtn) loginBtn.addEventListener('click', () => this.navigateToLogin());
-        if (registerBtn) registerBtn.addEventListener('click', () => this.navigateToRegister());
-        if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
-        if (myScansBtn) myScansBtn.addEventListener('click', () => this.showMyScans());
-    }
-
-    initNavigationEvents() {
-        // Навігація вже обробляється в auth.js
-    }
-
-    navigateToLogin() {
-        window.location.href = '/login';
-    }
-
-    navigateToRegister() {
-        window.location.href = '/register';
-    }
-
-    logout() {
-        if (window.logout) {
-            window.logout();
-        }
-    }
-
-    showMyScans() {
-        window.location.href = '/scans';
     }
 
     checkAuthStatus() {
         fetch('/api/status')
-            .then(response => {
-                if (!response.ok) {
-                    this.currentUser = null;
-                    this.updateUI();
-                    throw new Error('Not authenticated');
-                }
+            .then(function(response) {
+                if (!response.ok) throw new Error('Not authenticated');
                 return response.json();
             })
-            .then(data => {
+            .then(function(data) {
                 if (data.status === 'authenticated') {
                     this.currentUser = data.user;
-                    this.updateUI();
+                    // Show scans link in sidebar
+                    var scansLink = document.getElementById('sidebarScansLink');
+                    if (scansLink) scansLink.style.display = 'flex';
+                    // Show logged-in sidebar state
+                    var loggedOut = document.getElementById('sidebarAuthLoggedOut');
+                    var loggedIn = document.getElementById('sidebarAuthLoggedIn');
+                    if (loggedOut) loggedOut.style.display = 'none';
+                    if (loggedIn) loggedIn.style.display = 'block';
                 }
-            })
-            .catch(() => {
+            }.bind(this))
+            .catch(function() {
                 this.currentUser = null;
-                this.updateUI();
-            });
-    }
-
-    updateUI() {
-        const authButtons = document.getElementById('authButtons');
-        const userMenu = document.getElementById('userMenu');
-        const userEmail = document.getElementById('userEmail');
-
-        if (authButtons && userMenu && userEmail) {
-            if (this.currentUser) {
-                authButtons.classList.add('hidden');
-                userMenu.classList.remove('hidden');
-                userEmail.textContent = this.currentUser.email;
-            } else {
-                authButtons.classList.remove('hidden');
-                userMenu.classList.add('hidden');
-            }
-        }
+            }.bind(this));
     }
 
     showMessage(message, type) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        messageDiv.textContent = message;
-        
-        document.body.appendChild(messageDiv);
-        setTimeout(() => messageDiv.remove(), 5000);
+        if (typeof showMessage === 'function') {
+            showMessage(message, type);
+        }
     }
 }
 

@@ -6,6 +6,7 @@ from datetime import datetime
 from ocr import extract_text
 from checker import IngredientChecker
 from export import ScanExporter
+from config import config
 import os
 import json
 import requests
@@ -18,10 +19,8 @@ static_css_folder = os.path.join(os.getcwd(), 'static')
 
 app = Flask(__name__, template_folder=frontend_folder, static_folder=static_css_folder)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:AdminPostgres123!@localhost:5432/cosmetics_db'
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB максимум
+# Завантажуємо конфігурацію з config.py, щоб уникнути дублювання налаштувань
+app.config.from_object(config.get('default'))
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -161,6 +160,10 @@ class Scan(db.Model):
         return stats
 
 def calculate_safety_status_with_message(detected_ingredients):
+    """
+    Обчислює зведений статус безпеки продукту та текстове повідомлення
+    на основі списку знайдених інгредієнтів і їх рівнів ризику.
+    """
     if not detected_ingredients:
         return {
             'status': 'safe',
@@ -250,20 +253,34 @@ def check_ingredients(text):
         return []
     return ingredient_checker.find_ingredients(text)
 
+
+def _normalize_detected_ingredients(detected_ingredients):
+    """
+    Приводить список знайдених інгредієнтів до уніфікованого JSON-сумісного формату.
+    """
+    normalized = []
+    if not detected_ingredients:
+        return normalized
+    
+    for ing in detected_ingredients:
+        if isinstance(ing, dict):
+            normalized.append({
+                'id': ing.get('id', 0),
+                'name': ing.get('name', 'Unknown'),
+                'risk_level': ing.get('risk_level', 'unknown'),
+                'category': ing.get('category', ''),
+                'description': ing.get('description', '')
+            })
+    return normalized
+
+
 def create_scan(user_id, text, detected_ingredients, input_type='manual', input_method='text'):
+    """
+    Створює об'єкт Scan, зберігає його в базу та повертає ID нового сканування.
+    """
     safety_info = calculate_safety_status_with_message(detected_ingredients)
     
-    ingredients_for_json = []
-    if detected_ingredients:
-        for ing in detected_ingredients:
-            if isinstance(ing, dict):
-                ingredients_for_json.append({
-                    'id': ing.get('id', 0),
-                    'name': ing.get('name', 'Unknown'),
-                    'risk_level': ing.get('risk_level', 'unknown'),
-                    'category': ing.get('category', ''),
-                    'description': ing.get('description', '')
-                })
+    ingredients_for_json = _normalize_detected_ingredients(detected_ingredients)
     
     image_filename = None
     
@@ -772,6 +789,7 @@ def test_checker():
 @app.route('/api/debug-scans/<email>', methods=['GET'])
 @login_required
 def debug_scans(email):
+    """Адмін-ендпоінт для налагодження збережених сканувань конкретного користувача."""
     if current_user.role != 'admin':
         return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
     
@@ -802,6 +820,7 @@ def debug_scans(email):
 @app.route('/api/fix-all-scans', methods=['POST'])
 @login_required
 def fix_all_scans():
+    """Адмін-ендпоінт для повторного перерахунку всіх збережених сканувань."""
     if current_user.role != 'admin':
         return jsonify({"status": "error", "message": "Потрібні права адміністратора"}), 403
     
@@ -816,18 +835,7 @@ def fix_all_scans():
                 detected_ingredients = check_ingredients(scan.original_text)
                 
                 if detected_ingredients:
-                    ingredients_for_json = []
-                    for ing in detected_ingredients:
-                        if isinstance(ing, dict):
-                            ingredients_for_json.append({
-                                'id': ing.get('id', 0),
-                                'name': ing.get('name', 'Unknown'),
-                                'risk_level': ing.get('risk_level', 'unknown'),
-                                'category': ing.get('category', ''),
-                                'description': ing.get('description', '')
-                            })
-                    
-                    scan.ingredients_detected = ingredients_for_json
+                    scan.ingredients_detected = _normalize_detected_ingredients(detected_ingredients)
                     
                     safety_info = calculate_safety_status_with_message(detected_ingredients)
                     scan.safety_status = safety_info['status']
