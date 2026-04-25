@@ -1,153 +1,289 @@
-{% extends "base.html" %}
-
-{% block title %}Skipley — Сканер косметичних інгредієнтів{% endblock %}
-
-{% block content %}
-    <div class="main-content enter">
-      <div class="content-wrap">
-        <!-- Hero -->
-        <div class="hero">
-          <span class="hero-badge">Сканер безпеки інгредієнтів</span>
-          <h1>Знайте, що у вашій косметиці</h1>
-          <p>Сфотографуйте етикетку або введіть склад — ми миттєво визначаємо небезпечні компоненти.</p>
-        </div>
-
-        <!-- Method cards -->
-        <div class="input-methods">
-          <div class="method-card" role="button" aria-label="Сканувати етикетку камерою" onclick="openCamera()">
-            <div class="method-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2m0 10v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1.5"/>
-              </svg>
-            </div>
-            <h3>Сканувати камерою</h3>
-            <p>Наведіть камеру на етикетку</p>
-            <span class="btn btn-primary btn-sm btn-full">Відкрити камеру</span>
-          </div>
-          <div class="method-card" role="button" aria-label="Ввести склад косметики текстом" onclick="openTextInput()">
-            <div class="method-icon-wrap">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>
-              </svg>
-            </div>
-            <h3>Ввести текст</h3>
-            <p>Вставте або введіть список інгредієнтів</p>
-            <span class="btn btn-primary btn-sm btn-full">Ввести склад</span>
-          </div>
-        </div>
-
-        <!-- Trust badges -->
-        <div class="trust-row">
-          <span class="trust-item"><span class="trust-dot"></span>18 000+ інгредієнтів</span>
-          <span class="trust-item"><span class="trust-dot"></span>База INCI</span>
-          <span class="trust-item"><span class="trust-dot"></span>Безкоштовно</span>
-        </div>
-      </div>
-
-      <!-- Progress bar -->
-      <div class="scan-progress hidden">
-        <div class="progress-bar">
-          <div class="progress-fill"></div>
-        </div>
-      </div>
-
-      <!-- Hidden inputs -->
-      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
-      <input type="file" id="galleryInput" accept="image/*" style="display:none" />
-      <input type="file" id="fileInput" style="display:none" accept=".txt,.doc,.docx,.pdf" />
-
-      <!-- Result -->
-      <div class="content-wrap">
-        <div id="result"></div>
-      </div>
-    </div>
-{% endblock %}
-
-{% block scripts %}
-    <!-- Camera Modal -->
-    <div id="cameraModal" class="modal hidden">
-      <div class="modal-content" style="max-width:480px">
-        <div class="modal-header">
-          <div>
-            <h3>Сканування камерою</h3>
-            <p style="font-size:13px;color:var(--txt-3);margin-top:4px">Наведіть етикетку у рамку</p>
-          </div>
-          <button class="modal-close" onclick="closeCamera()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-        <div class="viewfinder">
-          <video id="cameraVideo" autoplay playsinline></video>
-          <canvas id="cameraCanvas" style="display:none"></canvas>
-          <div class="viewfinder-guides">
-            <div class="corner corner-tl"></div>
-            <div class="corner corner-tr"></div>
-            <div class="corner corner-bl"></div>
-            <div class="corner corner-br"></div>
-          </div>
-        </div>
-        <div class="camera-controls">
-          <button id="captureBtn" class="shutter-btn" title="Зробити знімок">
-            <span class="shutter-inner"></span>
-          </button>
-          <button id="retakeBtn" class="btn btn-ghost btn-md hidden">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-            Перезняти
-          </button>
-          <button id="usePhotoBtn" class="btn btn-primary btn-lg hidden">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Аналізувати
-          </button>
-          <button class="btn btn-ghost btn-md" onclick="openGallery()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Завантажити
-          </button>
-          <button class="btn btn-ghost btn-md" onclick="closeCamera()">Скасувати</button>
-        </div>
-      </div>
+{% extends "base.html" %} {% block title %}Skipley — Сканер косметичних
+інгредієнтів{% endblock %} {% block content %}
+<div class="main-content enter">
+  <div class="content-wrap">
+    <!-- Hero -->
+    <div class="hero">
+      <span class="hero-badge" data-i18n="heroBadge"
+        >Сканер безпеки інгредієнтів</span
+      >
+      <h1 data-i18n="heroTitle">Знайте, що у вашій косметиці</h1>
+      <p data-i18n="heroDesc">
+        Сфотографуйте етикетку або введіть склад — ми миттєво визначаємо
+        небезпечні компоненти.
+      </p>
     </div>
 
-    <!-- Text Input Modal -->
-    <div id="textInputModal" class="modal hidden">
-      <div class="modal-content" style="max-width:560px">
-        <div class="modal-header">
-          <div>
-            <h3>Ввести склад косметики</h3>
-            <p style="font-size:13px;color:var(--txt-3);margin-top:4px">Ми миттєво визначаємо небезпечні компоненти</p>
-          </div>
-          <button class="modal-close" onclick="closeTextInput()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-        <div class="textarea-wrap">
-          <textarea
-            id="manualTextInput"
-            placeholder="Наприклад: Aqua, Glycerin, Sodium Laureth Sulfate..."
-            rows="8"
-          ></textarea>
-        </div>
-        <div class="upload-zone" onclick="triggerFileInput()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    <!-- Method cards -->
+    <div class="input-methods">
+      <div
+        class="method-card"
+        role="button"
+        aria-label="Сканувати етикетку камерою"
+        onclick="openCamera()"
+      >
+        <div class="method-icon-wrap">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2m0 10v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"
+            />
+            <rect x="7" y="7" width="10" height="10" rx="1.5" />
           </svg>
-          <p>Завантажити файл (.txt, .pdf, .docx)</p>
         </div>
-        <div class="modal-actions">
-          <button class="btn btn-ghost btn-md" onclick="closeTextInput()">Скасувати</button>
-          <button class="btn btn-primary btn-md btn-full" onclick="processManualText()" style="flex:1">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Аналізувати
-          </button>
+        <h3 data-i18n="scanCamera">Сканувати камерою</h3>
+        <p data-i18n="scanCameraDesc">Наведіть камеру на етикетку</p>
+        <span class="btn btn-primary btn-sm btn-full" data-i18n="scanCameraBtn"
+          >Відкрити камеру</span
+        >
+      </div>
+      <div
+        class="method-card"
+        role="button"
+        aria-label="Ввести склад косметики текстом"
+        onclick="openTextInput()"
+      >
+        <div class="method-icon-wrap">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="4 7 4 4 20 4 20 7" />
+            <line x1="9" y1="20" x2="15" y2="20" />
+            <line x1="12" y1="4" x2="12" y2="20" />
+          </svg>
         </div>
+        <h3 data-i18n="scanText">Ввести текст</h3>
+        <p data-i18n="scanTextDesc">Вставте або введіть список інгредієнтів</p>
+        <span class="btn btn-primary btn-sm btn-full" data-i18n="scanTextBtn"
+          >Ввести склад</span
+        >
       </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/image.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/text.js') }}"></script>
+    <!-- Trust badges -->
+    <div class="trust-row">
+      <span class="trust-item"
+        ><span class="trust-dot"></span
+        ><span data-i18n="trust1">18 000+ інгредієнтів</span></span
+      >
+      <span class="trust-item"
+        ><span class="trust-dot"></span
+        ><span data-i18n="trust2">База INCI</span></span
+      >
+      <span class="trust-item"
+        ><span class="trust-dot"></span
+        ><span data-i18n="trust3">Безкоштовно</span></span
+      >
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="scan-progress hidden">
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Hidden inputs -->
+  <input
+    type="file"
+    id="cameraInput"
+    accept="image/*"
+    capture="environment"
+    style="display: none"
+  />
+  <input type="file" id="galleryInput" accept="image/*" style="display: none" />
+  <input
+    type="file"
+    id="fileInput"
+    style="display: none"
+    accept=".txt,.doc,.docx,.pdf"
+  />
+
+  <!-- Result -->
+  <div class="content-wrap">
+    <div id="result"></div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- Camera Modal -->
+<div id="cameraModal" class="modal hidden">
+  <div class="modal-content" style="max-width: 480px">
+    <div class="modal-header">
+      <div>
+        <h3 data-i18n="modalCameraTitle">Сканування камерою</h3>
+        <p
+          style="font-size: 13px; color: var(--txt-3); margin-top: 4px"
+          data-i18n="modalCameraHint"
+        >
+          Наведіть етикетку у рамку
+        </p>
+      </div>
+      <button class="modal-close" onclick="closeCamera()">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="viewfinder">
+      <video id="cameraVideo" autoplay playsinline></video>
+      <canvas id="cameraCanvas" style="display: none"></canvas>
+      <div class="viewfinder-guides">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+      </div>
+    </div>
+    <div class="camera-controls">
+      <button id="captureBtn" class="shutter-btn" title="Зробити знімок">
+        <span class="shutter-inner"></span>
+      </button>
+      <button
+        id="retakeBtn"
+        class="btn btn-ghost btn-md hidden"
+        data-i18n="retakeBtn"
+      >
+        Перезняти
+      </button>
+      <button
+        id="usePhotoBtn"
+        class="btn btn-primary btn-lg hidden"
+        data-i18n="analyseBtn"
+      >
+        Аналізувати
+      </button>
+      <button
+        class="btn btn-ghost btn-md"
+        onclick="openGallery()"
+        data-i18n="uploadBtn"
+      >
+        Завантажити
+      </button>
+      <button
+        class="btn btn-ghost btn-md"
+        onclick="closeCamera()"
+        data-i18n="cancelBtn"
+      >
+        Скасувати
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Text Input Modal -->
+<div id="textInputModal" class="modal hidden">
+  <div class="modal-content" style="max-width: 560px">
+    <div class="modal-header">
+      <div>
+        <h3 data-i18n="modalTextTitle">Ввести склад косметики</h3>
+        <p
+          style="font-size: 13px; color: var(--txt-3); margin-top: 4px"
+          data-i18n="modalTextHint"
+        >
+          Ми миттєво визначаємо небезпечні компоненти
+        </p>
+      </div>
+      <button class="modal-close" onclick="closeTextInput()">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="textarea-wrap">
+      <textarea
+        id="manualTextInput"
+        data-i18n-placeholder="textPlaceholder"
+        placeholder="Наприклад: Aqua, Glycerin, Sodium Laureth Sulfate..."
+        rows="8"
+      ></textarea>
+    </div>
+    <div class="upload-zone" onclick="triggerFileInput()">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--accent)"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        style="margin: 0 auto"
+      >
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+      <p data-i18n="uploadFileText">Завантажити файл (.txt, .pdf, .docx)</p>
+    </div>
+    <div class="modal-actions">
+      <button
+        class="btn btn-ghost btn-md"
+        onclick="closeTextInput()"
+        data-i18n="cancelBtn"
+      >
+        Скасувати
+      </button>
+      <button
+        class="btn btn-primary btn-md btn-full"
+        onclick="processManualText()"
+        style="flex: 1"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
+        <span data-i18n="analyseBtnFull">Аналізувати</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/image.js') }}"></script>
+<script src="{{ url_for('static', filename='js/text.js') }}"></script>
 {% endblock %}

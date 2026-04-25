@@ -1,63 +1,82 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Увійти — Skipley{% endblock %} {%
+block content %}
+<div class="auth-page enter">
+  <div class="auth-card">
+    <h1 data-i18n="loginTitle">З поверненням</h1>
+    <p class="auth-subtitle" data-i18n="loginSubtitle">
+      Увійдіть, щоб переглянути історію сканувань.
+    </p>
 
-{% block title %}Увійти — Skipley{% endblock %}
-
-{% block content %}
-    <div class="auth-page enter">
-      <div class="auth-card">
-        <h1>З поверненням</h1>
-        <p class="auth-subtitle">Увійдіть, щоб переглянути історію сканувань.</p>
-
-        <form id="loginForm" autocomplete="off" novalidate>
-          <div class="form-group">
-            <label for="emailLogin">Пошта</label>
-            <input
-              type="email"
-              id="emailLogin"
-              name="email"
-              placeholder="you@example.com"
-              required
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-            />
-          </div>
-          <div class="form-group password-group">
-            <label for="passwordLogin">Пароль</label>
-            <input
-              type="password"
-              id="passwordLogin"
-              name="password"
-              placeholder="••••••••"
-              required
-              autocomplete="new-password"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-            />
-            <button
-              type="button"
-              class="password-toggle"
-              onclick="togglePasswordVisibility('passwordLogin')"
-              tabindex="-1"
-              aria-label="Показати пароль"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" id="toggleIconLogin">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
-          </div>
-          <button type="submit" class="btn btn-primary btn-lg btn-full auth-submit">Увійти</button>
-        </form>
-
-        <div class="auth-links">
-          <p>Немає акаунту? <a href="/register">Зареєструватися</a></p>
-        </div>
+    <form id="loginForm" autocomplete="off" novalidate>
+      <div class="form-group">
+        <label for="emailLogin" data-i18n="emailLabel">Пошта</label>
+        <input
+          type="email"
+          id="emailLogin"
+          name="email"
+          data-i18n-placeholder="emailPlaceholder"
+          placeholder="you@example.com"
+          required
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
       </div>
-    </div>
-{% endblock %}
+      <div class="form-group password-group">
+        <label for="passwordLogin" data-i18n="passwordLabel">Пароль</label>
+        <input
+          type="password"
+          id="passwordLogin"
+          name="password"
+          data-i18n-placeholder="passwordPlaceholder"
+          placeholder="••••••••"
+          required
+          autocomplete="new-password"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <button
+          type="button"
+          class="password-toggle"
+          onclick="togglePasswordVisibility('passwordLogin')"
+          tabindex="-1"
+          aria-label="Показати пароль"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            id="toggleIconLogin"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      </div>
+      <button
+        type="submit"
+        class="btn btn-primary btn-lg btn-full auth-submit"
+        data-i18n="loginSubmit"
+      >
+        Увійти
+      </button>
+    </form>
 
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <div class="auth-links">
+      <p>
+        <span data-i18n="noAccount">Немає акаунту?</span>
+        <a href="/register" data-i18n="registerLink">Зареєструватися</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 {% endblock %}

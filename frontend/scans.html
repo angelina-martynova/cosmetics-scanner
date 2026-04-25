@@ -1,95 +1,211 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Мої сканування — Skipley{% endblock
+%} {% block content %}
+<div class="main-content scans-page enter">
+  <div class="content-wrap">
+    <h2 data-i18n="scansTitle">Сканування</h2>
 
-{% block title %}Мої сканування — Skipley{% endblock %}
-
-{% block content %}
-    <div class="main-content scans-page enter">
-      <div class="content-wrap">
-        <h2>Сканування</h2>
-
-        <!-- Filter bar -->
-        <div class="filter-bar">
-          <div class="filter-groups">
-            <!-- Level group -->
-            <div class="filter-group">
-              <span class="filter-label">Рівень</span>
-              <button class="pill-btn active" data-filter="risk" data-value="">Усі</button>
-              <button class="pill-btn" data-filter="risk" data-value="safe">Безпеч.</button>
-              <button class="pill-btn" data-filter="risk" data-value="low">Низький</button>
-              <button class="pill-btn" data-filter="risk" data-value="medium">Середній</button>
-              <button class="pill-btn" data-filter="risk" data-value="high">Високий</button>
-            </div>
-            <div class="filter-divider"></div>
-            <!-- Type group -->
-            <div class="filter-group">
-              <span class="filter-label">Тип</span>
-              <button class="pill-btn active" data-filter="method" data-value="">Усі</button>
-              <button class="pill-btn" data-filter="method" data-value="camera">Камера</button>
-              <button class="pill-btn" data-filter="method" data-value="device">Файл</button>
-              <button class="pill-btn" data-filter="method" data-value="text">Вручну</button>
-            </div>
-            <button class="filter-clear hidden" id="filterClear">Скинути</button>
-          </div>
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-groups">
+        <!-- Level group -->
+        <div class="filter-group">
+          <span class="filter-label" data-i18n="filterLevel">Рівень</span>
+          <button
+            class="pill-btn active"
+            data-filter="risk"
+            data-value=""
+            data-i18n="all"
+          >
+            Усі
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="risk"
+            data-value="safe"
+            data-i18n="safe"
+          >
+            Безпеч.
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="risk"
+            data-value="low"
+            data-i18n="low"
+          >
+            Низький
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="risk"
+            data-value="medium"
+            data-i18n="medium"
+          >
+            Середній
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="risk"
+            data-value="high"
+            data-i18n="high"
+          >
+            Високий
+          </button>
         </div>
-
-        <!-- Bulk actions -->
-        <div class="bulk-actions">
-          <button id="selectAllBtn" class="btn btn-ghost btn-sm">Обрати всі</button>
-          <button id="deleteSelectedBtn" class="btn btn-danger btn-sm" disabled>Видалити обрані</button>
+        <div class="filter-divider"></div>
+        <!-- Type group -->
+        <div class="filter-group">
+          <span class="filter-label" data-i18n="filterType">Тип</span>
+          <button
+            class="pill-btn active"
+            data-filter="method"
+            data-value=""
+            data-i18n="all"
+          >
+            Усі
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="method"
+            data-value="camera"
+            data-i18n="camera"
+          >
+            Камера
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="method"
+            data-value="device"
+            data-i18n="file"
+          >
+            Файл
+          </button>
+          <button
+            class="pill-btn"
+            data-filter="method"
+            data-value="text"
+            data-i18n="manual"
+          >
+            Вручну
+          </button>
         </div>
+        <button
+          class="filter-clear hidden"
+          id="filterClear"
+          data-i18n="clearFilters"
+        >
+          Скинути
+        </button>
+      </div>
+    </div>
 
-        <!-- Scans count -->
-        <p class="scans-count" id="scansCount"></p>
+    <!-- Bulk actions -->
+    <div class="bulk-actions">
+      <button
+        id="selectAllBtn"
+        class="btn btn-ghost btn-sm"
+        data-i18n="selectAll"
+      >
+        Обрати всі
+      </button>
+      <button
+        id="deleteSelectedBtn"
+        class="btn btn-danger btn-sm"
+        disabled
+        data-i18n="deleteSelected"
+      >
+        Видалити обрані
+      </button>
+    </div>
 
-        <!-- Loading state -->
-        <div id="loadingState" class="loading hidden">
-          <p>Завантаження сканувань...</p>
-        </div>
+    <!-- Scans count -->
+    <p class="scans-count" id="scansCount"></p>
 
-        <!-- Empty state -->
-        <div id="emptyState" class="empty-state hidden">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--txt-3)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+    <!-- Loading state -->
+    <div id="loadingState" class="loading hidden">
+      <p data-i18n="loadingText">Завантаження сканувань...</p>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="empty-state hidden">
+      <svg
+        width="52"
+        height="52"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="var(--txt-3)"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+        />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+      <h3 data-i18n="noScansTitle">Немає сканувань</h3>
+      <p data-i18n="noScansDesc">
+        Тут будуть зберігатися всі ваші сканування косметики
+      </p>
+      <a href="/" class="btn btn-primary btn-md" data-i18n="firstScanBtn"
+        >Зробити перше сканування</a
+      >
+    </div>
+
+    <!-- Scans list -->
+    <div id="scansList" class="scans-list"></div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="pagination hidden"></div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- Detail Modal -->
+<div id="scanDetailsModal" class="modal hidden">
+  <div class="modal-content wide">
+    <div class="modal-header">
+      <div>
+        <h3 data-i18n="scanDetailsTitle">Деталі сканування</h3>
+        <span class="detail-meta" id="detailMeta"></span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button id="exportScanBtn" class="btn btn-subtle btn-sm">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          <h3>Немає сканувань</h3>
-          <p>Тут будуть зберігатися всі ваші сканування косметики</p>
-          <a href="/" class="btn btn-primary btn-md">Зробити перше сканування</a>
-        </div>
-
-        <!-- Scans list -->
-        <div id="scansList" class="scans-list"></div>
-
-        <!-- Pagination -->
-        <div id="pagination" class="pagination hidden"></div>
+          <span data-i18n="exportBtn">Експорт</span>
+        </button>
+        <button class="modal-close" id="closeDetailsBtn">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
     </div>
-{% endblock %}
+    <div id="scanDetailsContent"></div>
+  </div>
+</div>
 
-{% block scripts %}
-    <!-- Detail Modal -->
-    <div id="scanDetailsModal" class="modal hidden">
-      <div class="modal-content wide">
-        <div class="modal-header">
-          <div>
-            <h3>Деталі сканування</h3>
-            <span class="detail-meta" id="detailMeta"></span>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button id="exportScanBtn" class="btn btn-subtle btn-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Експорт
-            </button>
-            <button class="modal-close" id="closeDetailsBtn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div id="scanDetailsContent"></div>
-      </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/scans.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scans.js') }}"></script>
 {% endblock %}

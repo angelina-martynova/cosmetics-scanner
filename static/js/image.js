@@ -56,12 +56,10 @@ class CameraManager {
     showCameraInterface() {
         if (this.modal) {
             this.modal.classList.remove('hidden');
-            console.log('Модальне вікно камери показано');
         }
     }
 
     capturePhoto() {
-        console.log('Створення фото...');
         var context = this.canvas.getContext('2d');
         this.canvas.width = this.video.videoWidth;
         this.canvas.height = this.video.videoHeight;
@@ -78,7 +76,6 @@ class CameraManager {
     }
 
     retakePhoto() {
-        console.log('Перезйомка...');
         this.canvas.style.display = 'none';
         this.video.style.display = 'block';
         document.getElementById('captureBtn').classList.remove('hidden');
@@ -88,7 +85,6 @@ class CameraManager {
     }
 
     async usePhoto() {
-        console.log('Аналіз фото...');
         this.canvas.toBlob(async function(blob) {
             var file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
             await processImageFile(file, 'camera');
@@ -110,7 +106,7 @@ class CameraManager {
     }
 
     showCameraError() {
-        alert('Не вдалося отримати доступ до камери. Перевірте дозволи браузера.');
+        alert(window.i18n('cameraAccessError'));
         this.closeCamera();
     }
 }
@@ -121,28 +117,29 @@ async function processImageFile(file, source) {
     if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
     try {
-        resultDiv.innerHTML = '<div class="loading"><p>Обробляється зображення...</p></div>';
+        resultDiv.innerHTML = `<div class="loading"><p>${window.i18n('processingImage')}</p></div>`;
 
         var formData = new FormData();
         formData.append('image', file);
         formData.append('input_method', source === 'camera' ? 'camera' : 'device');
 
         var response = await fetch('/api/analyze', { method: 'POST', body: formData });
-        if (!response.ok) throw new Error('Помилка сервера: ' + response.status);
+        if (!response.ok) throw new Error(window.i18n('serverError') + ': ' + response.status);
 
         var data = await response.json();
         if (data.status === 'success') {
+            window.__lastImageResultData = data;
             displayImageResults(data);
         } else {
-            resultDiv.innerHTML = '<div class="error-msg">Помилка: ' + data.message + '</div>';
+            resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
         }
     } catch (error) {
         console.error('Error:', error);
-        resultDiv.innerHTML = '<div class="error-msg">Помилка при обробці зображення: ' + error.message + '</div>';
+        resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', error.message)}</div>`;
     }
 }
 
-// Функція для відображення результатів (новий дизайн)
+// Функція для відображення результатів
 function displayImageResults(data) {
     var resultDiv = document.getElementById('result');
     if (!resultDiv) return;
@@ -150,7 +147,6 @@ function displayImageResults(data) {
     var html = '';
 
     if (data.ingredients && data.ingredients.length > 0) {
-        // Summary
         var counts = {};
         data.ingredients.forEach(function(ing) {
             var lvl = ing.risk_level || 'safe';
@@ -158,36 +154,37 @@ function displayImageResults(data) {
         });
 
         html += '<div class="results-summary"><div class="results-summary-header">';
-        html += '<h2>Аналіз завершено</h2>';
-        html += '<span class="results-count">' + data.ingredients.length + ' інгредієнтів</span>';
+        html += '<h2>' + window.i18n('analysisComplete') + '</h2>';
+        html += '<span class="results-count">' + window.i18n('ingredientsFound', data.ingredients.length) + '</span>';
         html += '</div><div class="risk-counts">';
         for (var lvl in counts) {
-            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + lvl + '</span>';
+            var riskLabel = window.i18n('risk_' + lvl) || lvl;
+            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + riskLabel + '</span>';
         }
         html += '</div></div>';
 
-        // Ingredients list
         html += '<div class="ingredients-list">';
         data.ingredients.forEach(function(ingredient) {
             var riskClass = 'risk-' + (ingredient.risk_level || 'safe');
+            var riskLabel = window.i18n('risk_' + (ingredient.risk_level || 'safe')) || (ingredient.risk_level || 'safe');
             html += '<div class="ingredient-item">';
             html += '<div class="ingredient-info">';
             html += '<div class="ingredient-name">' + ingredient.name + '</div>';
             html += '<div class="ingredient-desc">' + (ingredient.description || ingredient.category || '') + '</div>';
             html += '</div>';
-            html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + (ingredient.risk_level || 'safe') + '</span>';
+            html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + riskLabel + '</span>';
             html += '</div>';
         });
         html += '</div>';
     }
 
     if (data.text) {
-        html += '<div style="margin-top:16px"><p class="detail-section-label">Розпізнаний текст</p>';
+        html += '<div style="margin-top:16px"><p class="detail-section-label">' + window.i18n('recognizedText') + '</p>';
         html += '<div class="original-text">' + data.text + '</div></div>';
     }
 
     if (!data.ingredients || data.ingredients.length === 0) {
-        html += '<div class="success-msg">Не знайдено потенційно шкідливих інгредієнтів</div>';
+        html += '<div class="success-msg">' + window.i18n('noHarmfulIngredients') + '</div>';
     }
 
     resultDiv.innerHTML = html;
@@ -206,6 +203,12 @@ function openGallery() {
     closeCamera();
     document.getElementById('galleryInput').click();
 }
+
+window.addEventListener('languageChanged', function() {
+    if (window.__lastImageResultData) {
+        displayImageResults(window.__lastImageResultData);
+    }
+});
 
 // Ініціалізація
 document.addEventListener('DOMContentLoaded', function() {

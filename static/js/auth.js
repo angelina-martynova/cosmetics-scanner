@@ -1,16 +1,14 @@
 // auth.js — Skipley
 
-// SVG paths for password visibility
 var EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 var EYE_OFF = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
 
-// Функція для входу
 function login() {
     var email = document.getElementById('emailLogin').value;
     var password = document.getElementById('passwordLogin').value;
 
     if (!email || !password) {
-        showMessage('Будь ласка, заповніть всі поля', 'error');
+        showMessage(window.i18n('fillAllFields'), 'error');
         return;
     }
 
@@ -22,23 +20,22 @@ function login() {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.status === 'success') {
-            showMessage('Вхід виконано успішно!', 'success');
+            showMessage(window.i18n('loginSuccess'), 'success');
             resetLoginForm();
             setTimeout(function() { window.location.href = '/'; }, 1000);
         } else {
             showMessage(data.message, 'error');
         }
     })
-    .catch(function(err) { showMessage('Помилка: ' + err.message, 'error'); });
+    .catch(function(err) { showMessage(window.i18n('errorOccurred').replace('{{message}}', err.message), 'error'); });
 }
 
-// Функція для реєстрації
 function register() {
     var email = document.getElementById('emailRegister').value;
     var password = document.getElementById('passwordRegister').value;
 
     if (!email || !password) {
-        showMessage('Будь ласка, заповніть всі поля', 'error');
+        showMessage(window.i18n('fillAllFields'), 'error');
         return;
     }
 
@@ -50,27 +47,25 @@ function register() {
     .then(function(response) { return response.json(); })
     .then(function(data) {
         if (data.status === 'success') {
-            showMessage('Реєстрація успішна! Тепер ви можете увійти.', 'success');
+            showMessage(window.i18n('registerSuccess'), 'success');
             resetRegisterForm();
             setTimeout(function() { window.location.href = '/login'; }, 2000);
         } else {
             showMessage(data.message, 'error');
         }
     })
-    .catch(function(err) { showMessage('Помилка: ' + err.message, 'error'); });
+    .catch(function(err) { showMessage(window.i18n('errorOccurred').replace('{{message}}', err.message), 'error'); });
 }
 
-// Функція для виходу
 function logout() {
     fetch('/api/logout', { method: 'POST' })
         .then(function() {
-            showMessage('Ви вийшли з системи!', 'success');
+            showMessage(window.i18n('logoutSuccess'), 'success');
             setTimeout(function() { window.location.reload(); }, 1000);
         })
-        .catch(function(err) { showMessage('Помилка: ' + err.message, 'error'); });
+        .catch(function(err) { showMessage(window.i18n('errorOccurred').replace('{{message}}', err.message), 'error'); });
 }
 
-// Функція для скидання форми входу
 function resetLoginForm() {
     var loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -84,7 +79,6 @@ function resetLoginForm() {
     }
 }
 
-// Функція для скидання форми реєстрації
 function resetRegisterForm() {
     var registerForm = document.getElementById('registerForm');
     if (registerForm) {
@@ -98,7 +92,6 @@ function resetRegisterForm() {
     }
 }
 
-// Функція для показу/приховування пароля
 function togglePasswordVisibility(inputId) {
     var passwordInput = document.getElementById(inputId);
     var iconId = inputId === 'passwordLogin' ? 'toggleIconLogin' : 'toggleIconRegister';
@@ -113,7 +106,6 @@ function togglePasswordVisibility(inputId) {
     }
 }
 
-// Функція для показу повідомлень
 function showMessage(message, type) {
     var messageDiv = document.createElement('div');
     messageDiv.className = 'message ' + type;
@@ -124,7 +116,6 @@ function showMessage(message, type) {
     }, 5000);
 }
 
-// Функція для запобігання автозаповнення
 function preventAutofill(formId) {
     var form = document.getElementById(formId);
     if (form) {
@@ -138,7 +129,6 @@ function preventAutofill(formId) {
     }
 }
 
-// Обробники форм
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Auth.js завантажено - поточна сторінка:', window.location.pathname);
 
@@ -162,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() { resetRegisterForm(); }, 100);
     }
 
-    // Logout button in sidebar
     var logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {

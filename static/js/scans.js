@@ -16,6 +16,14 @@ class ScansManager {
         this.bindFilterEvents();
         this.loadScans();
         this.checkAuthStatus();
+        window.addEventListener('languageChanged', () => { this.rerender(); });
+    }
+
+    rerender() {
+        if (this.currentDetailScan) {
+            this.showScanDetails(this.currentDetailScan);
+        }
+        this.loadScans(this.currentPage);
     }
 
     bindEvents() {
@@ -31,13 +39,12 @@ class ScansManager {
 
         var exportBtn = document.getElementById('exportScanBtn');
         if (exportBtn) exportBtn.addEventListener('click', function() {
-            if (self.currentDetailScan) self.exportSingleScanToTxt(self.currentDetailScan.id);
+            if (self.currentDetailScan) self.exportSingleScanToPdf(self.currentDetailScan.id);
         });
     }
 
     bindFilterEvents() {
         var self = this;
-        // Pill button filters
         document.querySelectorAll('.pill-btn[data-filter]').forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var filterType = btn.getAttribute('data-filter');
@@ -46,13 +53,11 @@ class ScansManager {
                 self.filters[filterType] = value;
                 self.currentPage = 1;
 
-                // Update active state for the group
                 document.querySelectorAll('.pill-btn[data-filter="' + filterType + '"]').forEach(function(b) {
                     b.classList.remove('active');
                 });
                 btn.classList.add('active');
 
-                // Show/hide clear button
                 var clearBtn = document.getElementById('filterClear');
                 if (clearBtn) {
                     if (self.filters.risk || self.filters.method) {
@@ -93,24 +98,21 @@ class ScansManager {
             var response = await fetch('/api/scans');
             if (!response.ok) {
                 if (response.status === 401) { window.location.href = '/login'; return; }
-                throw new Error('Помилка завантаження сканувань');
+                throw new Error(window.i18n('serverError'));
             }
 
             var data = await response.json();
             if (data.status === 'success') {
                 var filteredScans = data.scans;
 
-                // Filter by risk
                 if (this.filters.risk) {
                     var riskFilter = this.filters.risk;
-                    var self = this;
                     filteredScans = filteredScans.filter(function(scan) {
-                        var rl = scan.safety_status || self.calculateRiskLevel(scan.ingredients || []);
+                        var rl = scan.safety_status || scansManager.calculateRiskLevel(scan.ingredients || []);
                         return rl === riskFilter;
                     });
                 }
 
-                // Filter by method
                 if (this.filters.method) {
                     var methodFilter = this.filters.method;
                     filteredScans = filteredScans.filter(function(scan) {
@@ -154,14 +156,14 @@ class ScansManager {
     }
 
     createScanCard(scan) {
-        var date = new Date(scan.created_at).toLocaleString('uk-UA');
+        var date = new Date(scan.created_at).toLocaleString(window.getCurrentLang() === 'en' ? 'en-US' : 'uk-UA');
         var riskLevel = scan.safety_status || this.calculateRiskLevel(scan.ingredients || []);
         var methodIconSvg = this.getMethodSvg(scan.input_method);
         var methodText = this.getMethodText(scan.input_method);
-        var preview = scan.original_text ? this.truncateText(scan.original_text, 100) : 'Текст не знайдено';
+        var preview = scan.original_text ? this.truncateText(scan.original_text, 100) : '';
 
         return '<div class="scan-card" data-scan-id="' + scan.id + '">' +
-            '<button class="scan-card-delete" data-scan-id="' + scan.id + '" title="Видалити" onclick="event.stopPropagation(); scansManager.deleteScan(' + scan.id + ')">' +
+            '<button class="scan-card-delete" data-scan-id="' + scan.id + '" title="' + window.i18n('deleteBtn') + '" onclick="event.stopPropagation(); scansManager.deleteScan(' + scan.id + ')">' +
                 '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
             '</button>' +
             '<div class="scan-card-method">' +
@@ -174,7 +176,7 @@ class ScansManager {
             '<p class="scan-preview-text">' + preview + '</p>' +
             '<div class="scan-stats">' +
                 '<span class="risk-badge risk-sm risk-' + riskLevel + '"><span class="dot"></span>' + this.getRiskText(riskLevel) + '</span>' +
-                '<span class="scan-ingredients-count">' + (scan.ingredients_count || 0) + ' інгредієнтів</span>' +
+                '<span class="scan-ingredients-count">' + window.i18n('ingredientsFound', (scan.ingredients_count || 0)) + '</span>' +
             '</div>' +
             '<div class="scan-card-footer" style="display:flex;align-items:center;gap:8px">' +
                 '<input type="checkbox" class="scan-checkbox" data-scan-id="' + scan.id + '" onclick="event.stopPropagation(); scansManager.handleCheckboxClick(' + scan.id + ')">' +
@@ -211,9 +213,10 @@ class ScansManager {
     async viewScanDetails(scanId) {
         try {
             var response = await fetch('/api/scans/' + scanId);
-            if (!response.ok) throw new Error('Помилка завантаження деталей');
+            if (!response.ok) throw new Error(window.i18n('serverError'));
             var data = await response.json();
             if (data.status === 'success') {
+                this.currentDetailScan = data.scan;
                 this.showScanDetails(data.scan);
             } else { throw new Error(data.message); }
         } catch (error) {
@@ -222,17 +225,15 @@ class ScansManager {
     }
 
     showScanDetails(scan) {
-        this.currentDetailScan = scan;
         var modal = document.getElementById('scanDetailsModal');
         var content = document.getElementById('scanDetailsContent');
         var meta = document.getElementById('detailMeta');
-        var date = new Date(scan.created_at).toLocaleString('uk-UA');
+        var date = new Date(scan.created_at).toLocaleString(window.getCurrentLang() === 'en' ? 'en-US' : 'uk-UA');
 
         if (meta) meta.textContent = this.getMethodText(scan.input_method) + ' · ' + date;
 
         var ingredients = scan.ingredients_detailed || scan.ingredients || [];
 
-        // Risk counts
         var counts = {};
         ingredients.forEach(function(ing) {
             var lvl = ing.risk_level || 'safe';
@@ -241,34 +242,33 @@ class ScansManager {
 
         var html = '';
 
-        // Summary badges
         html += '<div class="risk-counts" style="margin-bottom:20px">';
         for (var lvl in counts) {
-            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + lvl + '</span>';
+            var riskLabel = window.i18n('risk_' + lvl) || lvl;
+            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + riskLabel + '</span>';
         }
         html += '</div>';
 
-        // Ingredients
-        html += '<p class="detail-section-label">Інгредієнти</p>';
+        html += '<p class="detail-section-label">' + window.i18n('ingredients') + '</p>';
         html += '<div class="detail-ingredients">';
         if (ingredients.length > 0) {
             ingredients.forEach(function(ing) {
                 var riskClass = 'risk-' + (ing.risk_level || 'safe');
+                var riskLabel = window.i18n('risk_' + (ing.risk_level || 'safe')) || (ing.risk_level || 'safe');
                 html += '<div class="detail-ingredient">';
-                html += '<div style="flex:1"><div class="name">' + (ing.name || 'Невідомий') + '</div>';
+                html += '<div style="flex:1"><div class="name">' + (ing.name || window.i18n('unknown')) + '</div>';
                 if (ing.description) html += '<div class="desc">' + ing.description + '</div>';
                 html += '</div>';
-                html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + (ing.risk_level || 'safe') + '</span>';
+                html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + riskLabel + '</span>';
                 html += '</div>';
             });
         } else {
-            html += '<div style="padding:16px;text-align:center;color:var(--txt-3)">Не знайдено інгредієнтів</div>';
+            html += '<div style="padding:16px;text-align:center;color:var(--txt-3)">' + window.i18n('scanNotFound') + '</div>';
         }
         html += '</div>';
 
-        // Original text
         if (scan.original_text) {
-            html += '<p class="detail-section-label">Розпізнаний текст</p>';
+            html += '<p class="detail-section-label">' + window.i18n('recognizedText') + '</p>';
             html += '<div class="original-text">' + scan.original_text + '</div>';
         }
 
@@ -278,24 +278,15 @@ class ScansManager {
 
     exportSingleScanToPdf(scanId) {
         try {
-            this.showMessage('Створення PDF...', 'success');
+            this.showMessage(window.i18n('creatingPdf'), 'success');
             window.open('/api/scans/' + scanId + '/export/pdf', '_blank');
         } catch (error) {
-            this.showMessage('Помилка: ' + error.message, 'error');
-        }
-    }
-
-    exportSingleScanToTxt(scanId) {
-        try {
-            this.showMessage('Створення TXT...', 'success');
-            window.open('/api/scans/' + scanId + '/export/txt', '_blank');
-        } catch (error) {
-            this.showMessage('Помилка: ' + error.message, 'error');
+            this.showMessage(window.i18n('errorOccurred').replace('{{message}}', error.message), 'error');
         }
     }
 
     async deleteScan(scanId) {
-        if (!confirm('Ви впевнені, що хочете видалити це сканування?')) return;
+        if (!confirm(window.i18n('deleteConfirm'))) return;
         try {
             var response = await fetch('/api/scans/' + scanId, { method: 'DELETE' });
             var data = await response.json();
@@ -312,8 +303,11 @@ class ScansManager {
 
     async deleteSelectedScans() {
         var selectedIds = Array.from(this.selectedScans);
-        if (selectedIds.length === 0) { this.showMessage('Оберіть сканування', 'error'); return; }
-        if (!confirm('Видалити ' + selectedIds.length + ' сканувань?')) return;
+        if (selectedIds.length === 0) {
+            this.showMessage(window.i18n('pleaseSelect'), 'error');
+            return;
+        }
+        if (!confirm(window.i18n('deleteSelectedConfirm', selectedIds.length))) return;
 
         try {
             var response = await fetch('/api/scans/bulk-delete', {
@@ -344,18 +338,17 @@ class ScansManager {
     }
 
     toggleSelectAll() {
-        var self = this;
         var checkboxes = document.querySelectorAll('.scan-checkbox');
         if (this.allScansSelected) {
-            checkboxes.forEach(function(cb) {
+            checkboxes.forEach(cb => {
                 cb.checked = false;
-                self.selectedScans.delete(parseInt(cb.dataset.scanId));
+                this.selectedScans.delete(parseInt(cb.dataset.scanId));
             });
             this.allScansSelected = false;
         } else {
-            checkboxes.forEach(function(cb) {
+            checkboxes.forEach(cb => {
                 cb.checked = true;
-                self.selectedScans.add(parseInt(cb.dataset.scanId));
+                this.selectedScans.add(parseInt(cb.dataset.scanId));
             });
             this.allScansSelected = true;
         }
@@ -368,20 +361,22 @@ class ScansManager {
         if (deleteBtn) {
             deleteBtn.disabled = this.selectedScans.size === 0;
             deleteBtn.textContent = this.selectedScans.size > 0
-                ? 'Видалити обрані (' + this.selectedScans.size + ')' : 'Видалити обрані';
+                ? window.i18n('deleteSelectedBtn', this.selectedScans.size)
+                : window.i18n('deleteSelected');
         }
         if (selectAllBtn) {
-            selectAllBtn.textContent = this.allScansSelected ? 'Зняти виділення' : 'Обрати всі';
+            selectAllBtn.textContent = this.allScansSelected
+                ? window.i18n('deselectAll')
+                : window.i18n('selectAll');
         }
     }
 
-    // Helpers
     getMethodText(method) {
-        return { 'text': 'Вручну', 'device': 'З пристрою', 'camera': 'Камера' }[method] || 'Невідомий';
+        return window.i18n('method_' + method) || window.i18n('method_unknown');
     }
 
     getTypeText(type) {
-        return { 'manual': 'Текст', 'camera': 'Фото' }[type] || '';
+        return window.i18n('type_' + type) || '';
     }
 
     calculateRiskLevel(ingredients) {
@@ -396,8 +391,7 @@ class ScansManager {
     }
 
     getRiskText(riskLevel) {
-        return { 'high': 'Високий', 'danger': 'Високий', 'medium': 'Середній',
-                 'warning': 'Середній', 'low': 'Низький', 'safe': 'Безпечно' }[riskLevel] || 'Невідомо';
+        return window.i18n('risk_' + riskLevel) || riskLevel;
     }
 
     truncateText(text, maxLength) {
@@ -410,17 +404,17 @@ class ScansManager {
         var emptyTitle = emptyState.querySelector('h3');
         var emptyText = emptyState.querySelector('p');
         if (this.filters.risk || this.filters.method) {
-            emptyTitle.textContent = 'Немає сканувань за фільтром';
-            emptyText.textContent = 'Спробуйте змінити критерії пошуку.';
+            emptyTitle.textContent = window.i18n('noScansFilter');
+            emptyText.textContent = window.i18n('changeFilter');
         } else {
-            emptyTitle.textContent = 'Немає сканувань';
-            emptyText.textContent = 'Тут будуть зберігатися всі ваші сканування косметики';
+            emptyTitle.textContent = window.i18n('noScansTitle');
+            emptyText.textContent = window.i18n('noScansDesc');
         }
     }
 
     updateScansCount(total) {
         var el = document.getElementById('scansCount');
-        if (el) el.textContent = total + ' результат' + (total !== 1 ? 'ів' : '');
+        if (el) el.textContent = window.i18n('scansResult', total);
     }
 
     updatePagination(totalItems) {

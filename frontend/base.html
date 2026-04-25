@@ -22,7 +22,7 @@
     <!-- ═══ TOP BAR ═══ -->
     <header class="topbar">
       <button class="topbar-brand" onclick="window.location.href = '/'">
-        Skipley
+        <span data-i18n="brand">Skipley</span>
       </button>
 
       <div
@@ -108,7 +108,7 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Увійти
+            <span data-i18n="topbarLogin">Увійти</span>
           </a>
         </div>
       </div>
@@ -117,7 +117,7 @@
     <!-- ═══ SIDEBAR ═══ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <span class="sidebar-brand">Меню</span>
+        <span class="sidebar-brand" data-i18n="menu">Меню</span>
         <button class="sidebar-close" id="sidebarClose" aria-label="Закрити">
           <svg
             width="17"
@@ -153,7 +153,7 @@
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
-          Головна
+          <span data-i18n="home">Головна</span>
         </a>
         <a
           href="/scans"
@@ -174,7 +174,7 @@
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          Сканування
+          <span data-i18n="scans">Сканування</span>
         </a>
       </nav>
 
@@ -199,7 +199,7 @@
               d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
             />
           </svg>
-          <span style="flex: 1">Мова</span>
+          <span style="flex: 1" data-i18n="lang">Мова</span>
           <span class="sidebar-badge" id="langBadge">УК</span>
         </button>
 
@@ -218,7 +218,7 @@
           >
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
-          <span style="flex: 1">Тема</span>
+          <span style="flex: 1" data-i18n="theme">Тема</span>
           <span class="sidebar-hint" id="themeHint">Dark</span>
         </button>
 
@@ -240,7 +240,7 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-            Увійти
+            <span data-i18n="login">Увійти</span>
           </a>
         </div>
         <div id="sidebarAuthLoggedIn" style="display: none">
@@ -259,7 +259,7 @@
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Вийти
+            <span data-i18n="logout">Вийти</span>
           </button>
         </div>
       </div>
@@ -271,6 +271,302 @@
 
     <!-- ═══ SCRIPTS ═══ -->
     <script>
+      // ── Многоязычный словарь ★
+      const I18N = {
+        uk: {
+          brand: "Skipley",
+          menu: "Меню",
+          home: "Головна",
+          scans: "Сканування",
+          lang: "Мова",
+          theme: "Тема",
+          login: "Увійти",
+          logout: "Вийти",
+          topbarLogin: "Увійти",
+
+          heroBadge: "Сканер безпеки інгредієнтів",
+          heroTitle: "Знайте, що у вашій косметиці",
+          heroDesc:
+            "Сфотографуйте етикетку або введіть склад — ми миттєво визначаємо небезпечні компоненти.",
+          scanCamera: "Сканувати камерою",
+          scanCameraDesc: "Наведіть камеру на етикетку",
+          scanCameraBtn: "Відкрити камеру",
+          scanText: "Ввести текст",
+          scanTextDesc: "Вставте або введіть список інгредієнтів",
+          scanTextBtn: "Ввести склад",
+          trust1: "18 000+ інгредієнтів",
+          trust2: "База INCI",
+          trust3: "Безкоштовно",
+
+          modalCameraTitle: "Сканування камерою",
+          modalCameraHint: "Наведіть етикетку у рамку",
+          captureBtn: "Знімок",
+          retakeBtn: "Перезняти",
+          analyseBtn: "Аналізувати",
+          uploadBtn: "Завантажити",
+          cancelBtn: "Скасувати",
+
+          modalTextTitle: "Ввести склад косметики",
+          modalTextHint: "Ми миттєво визначаємо небезпечні компоненти",
+          textPlaceholder:
+            "Наприклад: Aqua, Glycerin, Sodium Laureth Sulfate...",
+          uploadFileText: "Завантажити файл (.txt, .pdf, .docx)",
+          analyseBtnFull: "Аналізувати",
+
+          loginTitle: "З поверненням",
+          loginSubtitle: "Увійдіть, щоб переглянути історію сканувань.",
+          emailLabel: "Пошта",
+          emailPlaceholder: "you@example.com",
+          passwordLabel: "Пароль",
+          passwordPlaceholder: "••••••••",
+          loginSubmit: "Увійти",
+          noAccount: "Немає акаунту?",
+          registerLink: "Зареєструватися",
+          showPassword: "Показати пароль",
+
+          registerTitle: "Новий акаунт",
+          registerSubtitle: "Починайте безкоштовно — без картки.",
+          registerSubmit: "Створити акаунт",
+          hasAccount: "Вже маєте акаунт?",
+          loginLink: "Увійти",
+
+          scansTitle: "Сканування",
+          filterLevel: "Рівень",
+          filterType: "Тип",
+          all: "Усі",
+          safe: "Безпеч.",
+          low: "Низький",
+          medium: "Середній",
+          high: "Високий",
+          camera: "Камера",
+          file: "Файл",
+          manual: "Вручну",
+          clearFilters: "Скинути",
+          selectAll: "Обрати всі",
+          deleteSelected: "Видалити обрані",
+          loadingText: "Завантаження сканувань...",
+          noScansTitle: "Немає сканувань",
+          noScansDesc: "Тут будуть зберігатися всі ваші сканування косметики",
+          firstScanBtn: "Зробити перше сканування",
+          scanDetailsTitle: "Деталі сканування",
+          exportBtn: "Експорт",
+
+          method_camera: "Камера",
+          method_device: "Файл",
+          method_text: "Вручну",
+          method_unknown: "Невідомий",
+
+          type_manual: "Текст",
+          type_camera: "Фото",
+
+          risk_high: "Високий",
+          risk_danger: "Високий",
+          risk_medium: "Середній",
+          risk_warning: "Середній",
+          risk_low: "Низький",
+          risk_safe: "Безпечно",
+          risk_unknown: "Невідомо",
+
+          analysisComplete: "Аналіз завершено",
+          ingredientsFound: (n) => `${n} інгредієнтів`,
+          noHarmfulIngredients: "Не знайдено потенційно шкідливих інгредієнтів",
+          recognizedText: "Розпізнаний текст",
+          analyzedText: "Проаналізований текст",
+          scanNotFound: "Не знайдено інгредієнтів",
+          noScansFilter: "Немає сканувань за фільтром",
+          changeFilter: "Спробуйте змінити критерії пошуку.",
+          scansResult: (total) =>
+            `${total} результат${total === 1 ? "" : "ів"}`,
+          deleteConfirm: "Ви впевнені, що хочете видалити це сканування?",
+          deleteSelectedConfirm: (n) => `Видалити ${n} сканувань?`,
+          deleteBtn: "Видалити",
+          deleteSelectedBtn: (n) => `Видалити обрані (${n})`,
+          deselectAll: "Зняти виділення",
+
+          serverError: "Помилка сервера",
+          pleaseSelect: "Оберіть сканування",
+          processingImage: "Обробляється зображення...",
+          analyzing: "Аналізується...",
+          processingFile: "Обробляється файл...",
+          creatingPdf: "Створення PDF...",
+          fillAllFields: "Будь ласка, заповніть всі поля",
+          loginSuccess: "Вхід виконано успішно!",
+          registerSuccess: "Реєстрація успішна! Тепер ви можете увійти.",
+          logoutSuccess: "Ви вийшли з системи!",
+          errorOccurred: "Помилка: {{message}}",
+          selectFile: "Будь ласка, виберіть файл",
+          cameraAccessError:
+            "Не вдалося отримати доступ до камери. Перевірте дозволи браузера.",
+        },
+        en: {
+          brand: "Skipley",
+          menu: "Menu",
+          home: "Home",
+          scans: "Scans",
+          lang: "Language",
+          theme: "Theme",
+          login: "Sign in",
+          logout: "Sign out",
+          topbarLogin: "Sign in",
+
+          heroBadge: "Ingredient Safety Scanner",
+          heroTitle: "Know what's in your cosmetics",
+          heroDesc:
+            "Photograph a label or enter the ingredient list — we flag harmful compounds instantly.",
+          scanCamera: "Scan Label",
+          scanCameraDesc: "Point camera at any product label",
+          scanCameraBtn: "Open Camera",
+          scanText: "Enter Text",
+          scanTextDesc: "Paste or type the ingredient list",
+          scanTextBtn: "Enter Ingredients",
+          trust1: "18,000+ ingredients",
+          trust2: "INCI database",
+          trust3: "Free to use",
+
+          modalCameraTitle: "Camera Scan",
+          modalCameraHint: "Align the label within the frame",
+          captureBtn: "Capture",
+          retakeBtn: "Retake",
+          analyseBtn: "Analyse",
+          uploadBtn: "Upload",
+          cancelBtn: "Cancel",
+
+          modalTextTitle: "Enter Ingredients",
+          modalTextHint: "We instantly detect harmful components",
+          textPlaceholder: "e.g. Aqua, Glycerin, Sodium Laureth Sulfate...",
+          uploadFileText: "Upload file (.txt, .pdf, .docx)",
+          analyseBtnFull: "Analyse",
+
+          loginTitle: "Welcome back",
+          loginSubtitle: "Sign in to view your scan history.",
+          emailLabel: "Email",
+          emailPlaceholder: "you@example.com",
+          passwordLabel: "Password",
+          passwordPlaceholder: "••••••••",
+          loginSubmit: "Sign in",
+          noAccount: "No account?",
+          registerLink: "Sign up",
+          showPassword: "Show password",
+
+          registerTitle: "Create account",
+          registerSubtitle: "Start for free — no credit card required.",
+          registerSubmit: "Create account",
+          hasAccount: "Already have an account?",
+          loginLink: "Sign in",
+
+          scansTitle: "Scan History",
+          filterLevel: "Level",
+          filterType: "Type",
+          all: "All",
+          safe: "Safe",
+          low: "Low",
+          medium: "Medium",
+          high: "High",
+          camera: "Camera",
+          file: "File",
+          manual: "Manual",
+          clearFilters: "Clear",
+          selectAll: "Select all",
+          deleteSelected: "Delete selected",
+          loadingText: "Loading scans...",
+          noScansTitle: "No scans yet",
+          noScansDesc: "All your cosmetic scans will appear here.",
+          firstScanBtn: "Make first scan",
+          scanDetailsTitle: "Scan Details",
+          exportBtn: "Export",
+
+          method_camera: "Camera",
+          method_device: "File",
+          method_text: "Manual",
+          method_unknown: "Unknown",
+
+          type_manual: "Text",
+          type_camera: "Photo",
+
+          risk_high: "High",
+          risk_danger: "High",
+          risk_medium: "Medium",
+          risk_warning: "Medium",
+          risk_low: "Low",
+          risk_safe: "Safe",
+          risk_unknown: "Unknown",
+
+          analysisComplete: "Analysis complete",
+          ingredientsFound: (n) => `${n} ingredients`,
+          noHarmfulIngredients: "No potentially harmful ingredients found",
+          recognizedText: "Recognized text",
+          analyzedText: "Analyzed text",
+          scanNotFound: "No ingredients found",
+          noScansFilter: "No scans match this filter",
+          changeFilter: "Try changing filter criteria.",
+          scansResult: (total) => `${total} result${total === 1 ? "" : "s"}`,
+          deleteConfirm: "Are you sure you want to delete this scan?",
+          deleteSelectedConfirm: (n) => `Delete ${n} scans?`,
+          deleteBtn: "Delete",
+          deleteSelectedBtn: (n) => `Delete selected (${n})`,
+          deselectAll: "Deselect all",
+
+          serverError: "Server error",
+          pleaseSelect: "Please select scans",
+          processingImage: "Processing image...",
+          analyzing: "Analyzing...",
+          processingFile: "Processing file...",
+          creatingPdf: "Creating PDF...",
+          fillAllFields: "Please fill in all fields",
+          loginSuccess: "Logged in successfully!",
+          registerSuccess: "Registration successful! You can now log in.",
+          logoutSuccess: "You have logged out!",
+          errorOccurred: "Error: {{message}}",
+          selectFile: "Please select a file",
+          cameraAccessError:
+            "Could not access camera. Check browser permissions.",
+        },
+      };
+
+      // ── Глобальная функция перевода ★
+      window.i18n = function (key, ...args) {
+        const lang = getCurrentLang();
+        const val = (I18N[lang] && I18N[lang][key]) || key;
+        return typeof val === "function" ? val(...args) : val;
+      };
+
+      // ── Применение языка ★
+      function applyLanguage(lang) {
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (I18N[lang] && I18N[lang][key]) {
+            el.textContent = I18N[lang][key];
+          }
+        });
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+          const key = el.getAttribute("data-i18n-placeholder");
+          if (I18N[lang] && I18N[lang][key]) {
+            el.placeholder = I18N[lang][key];
+          }
+        });
+        // Обновляем aria-label для кнопок переключения пароля
+        const showPasswordLabel = I18N[lang]?.showPassword || "Show password";
+        document.querySelectorAll(".password-toggle").forEach((btn) => {
+          btn.setAttribute("aria-label", showPasswordLabel);
+        });
+        const badge = document.getElementById("langBadge");
+        if (badge) badge.textContent = lang === "uk" ? "УК" : "EN";
+        document.documentElement.lang = lang;
+        localStorage.setItem("skipley-lang", lang);
+      }
+
+      function getCurrentLang() {
+        return localStorage.getItem("skipley-lang") || "uk";
+      }
+
+      function toggleLanguage() {
+        const newLang = getCurrentLang() === "uk" ? "en" : "uk";
+        applyLanguage(newLang);
+        window.dispatchEvent(
+          new CustomEvent("languageChanged", { detail: { lang: newLang } }),
+        );
+      }
+
       // ── Sidebar toggle ──
       document
         .getElementById("menuOpenBtn")
@@ -362,7 +658,6 @@
               : "flex";
           })
           .catch(function () {
-            // не авторизован
             document.getElementById("menuOpenBtn").style.display = "none";
             document.getElementById("topbarGuestActions").style.display =
               "flex";
@@ -385,7 +680,6 @@
           updateThemeUI();
           updateThemeTopUI();
         });
-      // Функция обновления иконки в топбаре (можно вызывать из существующей updateThemeUI)
       function updateThemeTopUI() {
         var isDark = document.body.getAttribute("data-theme") === "dark";
         var icon = document.getElementById("themeIconTop");
@@ -395,14 +689,23 @@
             : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
         }
       }
-      // Вызов при загрузке
       updateThemeTopUI();
-      // Язык пока заглушка
+
+      // ★ Обработчики языка
       document
         .getElementById("langToggleTop")
-        .addEventListener("click", function () {
-          alert("Зміна мови буде доступна пізніше");
-        });
+        .addEventListener("click", toggleLanguage);
+      document
+        .getElementById("langToggle")
+        .addEventListener("click", toggleLanguage);
+
+      // ★ Делаем функцию определения языка глобальной
+      window.getCurrentLang = getCurrentLang;
+
+      // ★ Применяем язык после полной загрузки DOM (включая модальные окна)
+      document.addEventListener("DOMContentLoaded", function () {
+        applyLanguage(getCurrentLang());
+      });
     </script>
 
     {% block scripts %}{% endblock %}
