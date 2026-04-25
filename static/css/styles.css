@@ -1735,6 +1735,7 @@ body {
     max-width: 300px;
     animation: slideUp 0.3s ease-out;
     box-shadow: var(--shadow-lg);
+    display: none !important;
 }
 
 .message.success {
@@ -1796,8 +1797,12 @@ body {
     }
 
     .camera-controls {
-        flex-direction: column;
+        margin-top: 28px;
+        display: flex;
+        gap: 12px;
         align-items: center;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
     .camera-controls .btn {
