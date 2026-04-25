@@ -2,6 +2,11 @@
 <html lang="uk">
   <head>
     <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='images/favicon.svg') }}"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Skipley{% endblock %}</title>
     <link
@@ -29,7 +34,6 @@
         class="topbar-actions"
         style="margin-left: auto; display: flex; align-items: center; gap: 8px"
       >
-        <!-- Бургер (для авторизованных) -->
         <button
           class="topbar-menu"
           id="menuOpenBtn"
@@ -52,7 +56,6 @@
           </svg>
         </button>
 
-        <!-- Блок для неавторизованных: язык, тема, войти -->
         <div
           id="topbarGuestActions"
           style="display: flex; align-items: center; gap: 8px"
@@ -181,7 +184,6 @@
       <div class="sidebar-divider"></div>
 
       <div class="sidebar-bottom">
-        <!-- Language -->
         <button class="sidebar-item" id="langToggle">
           <svg
             width="17"
@@ -203,7 +205,6 @@
           <span class="sidebar-badge" id="langBadge">УК</span>
         </button>
 
-        <!-- Theme -->
         <button class="sidebar-item" id="themeToggle">
           <svg
             width="17"
@@ -224,7 +225,6 @@
 
         <div class="sidebar-divider"></div>
 
-        <!-- Auth: Login / Logout -->
         <div id="sidebarAuthLoggedOut">
           <a href="/login" class="sidebar-item login-item">
             <svg
@@ -271,7 +271,7 @@
 
     <!-- ═══ SCRIPTS ═══ -->
     <script>
-      // ── Многоязычный словарь ★
+      // ── ГЛОБАЛЬНЫЙ СЛОВАРЬ ПЕРЕВОДОВ ──
       const I18N = {
         uk: {
           brand: "Skipley",
@@ -283,7 +283,6 @@
           login: "Увійти",
           logout: "Вийти",
           topbarLogin: "Увійти",
-
           heroBadge: "Сканер безпеки інгредієнтів",
           heroTitle: "Знайте, що у вашій косметиці",
           heroDesc:
@@ -297,7 +296,6 @@
           trust1: "18 000+ інгредієнтів",
           trust2: "База INCI",
           trust3: "Безкоштовно",
-
           modalCameraTitle: "Сканування камерою",
           modalCameraHint: "Наведіть етикетку у рамку",
           captureBtn: "Знімок",
@@ -305,14 +303,12 @@
           analyseBtn: "Аналізувати",
           uploadBtn: "Завантажити",
           cancelBtn: "Скасувати",
-
           modalTextTitle: "Ввести склад косметики",
           modalTextHint: "Ми миттєво визначаємо небезпечні компоненти",
           textPlaceholder:
             "Наприклад: Aqua, Glycerin, Sodium Laureth Sulfate...",
           uploadFileText: "Завантажити файл (.txt, .pdf, .docx)",
           analyseBtnFull: "Аналізувати",
-
           loginTitle: "З поверненням",
           loginSubtitle: "Увійдіть, щоб переглянути історію сканувань.",
           emailLabel: "Пошта",
@@ -323,22 +319,21 @@
           noAccount: "Немає акаунту?",
           registerLink: "Зареєструватися",
           showPassword: "Показати пароль",
-
           registerTitle: "Новий акаунт",
           registerSubtitle: "Починайте безкоштовно — без картки.",
           registerSubmit: "Створити акаунт",
           hasAccount: "Вже маєте акаунт?",
           loginLink: "Увійти",
-
           scansTitle: "Сканування",
-          filterLevel: "Рівень",
-          filterType: "Тип",
+          filterLevel: "Рівень безпеки",
+          filterType: "Тип вводу",
           all: "Усі",
-          safe: "Безпеч.",
+          safe: "Безпечний",
           low: "Низький",
           medium: "Середній",
           high: "Високий",
           camera: "Камера",
+          gallery: "Галерея",
           file: "Файл",
           manual: "Вручну",
           clearFilters: "Скинути",
@@ -350,23 +345,20 @@
           firstScanBtn: "Зробити перше сканування",
           scanDetailsTitle: "Деталі сканування",
           exportBtn: "Експорт",
-
           method_camera: "Камера",
+          method_gallery: "Галерея",
           method_device: "Файл",
           method_text: "Вручну",
           method_unknown: "Невідомий",
-
           type_manual: "Текст",
           type_camera: "Фото",
-
           risk_high: "Високий",
           risk_danger: "Високий",
           risk_medium: "Середній",
           risk_warning: "Середній",
           risk_low: "Низький",
-          risk_safe: "Безпечно",
+          risk_safe: "Безпечний",
           risk_unknown: "Невідомо",
-
           analysisComplete: "Аналіз завершено",
           ingredientsFound: (n) => `${n} інгредієнтів`,
           noHarmfulIngredients: "Не знайдено потенційно шкідливих інгредієнтів",
@@ -382,7 +374,6 @@
           deleteBtn: "Видалити",
           deleteSelectedBtn: (n) => `Видалити обрані (${n})`,
           deselectAll: "Зняти виділення",
-
           serverError: "Помилка сервера",
           pleaseSelect: "Оберіть сканування",
           processingImage: "Обробляється зображення...",
@@ -397,6 +388,26 @@
           selectFile: "Будь ласка, виберіть файл",
           cameraAccessError:
             "Не вдалося отримати доступ до камери. Перевірте дозволи браузера.",
+          newScan: "Новий скан",
+          save: "Зберегти",
+          ingredients: "Інгредієнти",
+          noIngredients: "Інгредієнти не знайдені",
+          unknownIngredient: "Невідомий інгредієнт",
+          exportSelected: "Експортувати обрані",
+          exportSelectedBtn: (n) => `Експортувати обрані (${n})`,
+          exportScan: "Експортувати скан",
+          pleaseSelectForExport: "Оберіть сканування для експорту",
+          safetyLegendTitle: "Рівні безпеки інгредієнтів",
+          safetyLegendSafe:
+            "Інгредієнт безпечний для використання, не викликає побічних ефектів.",
+          safetyLegendLow:
+            "Мінімальний ризик. Безпечний для більшості людей, рідко викликає чутливість.",
+          safetyLegendMedium:
+            "Може викликати подразнення або алергію у чутливих людей. Використовуйте з обережністю.",
+          safetyLegendHigh:
+            "Потенційно небезпечний. Може бути токсичним, канцерогенним або заборонений у деяких країнах.",
+          prevPage: "Попередня",
+          nextPage: "Наступна",
         },
         en: {
           brand: "Skipley",
@@ -408,7 +419,6 @@
           login: "Sign in",
           logout: "Sign out",
           topbarLogin: "Sign in",
-
           heroBadge: "Ingredient Safety Scanner",
           heroTitle: "Know what's in your cosmetics",
           heroDesc:
@@ -422,7 +432,6 @@
           trust1: "18,000+ ingredients",
           trust2: "INCI database",
           trust3: "Free to use",
-
           modalCameraTitle: "Camera Scan",
           modalCameraHint: "Align the label within the frame",
           captureBtn: "Capture",
@@ -430,13 +439,11 @@
           analyseBtn: "Analyse",
           uploadBtn: "Upload",
           cancelBtn: "Cancel",
-
           modalTextTitle: "Enter Ingredients",
           modalTextHint: "We instantly detect harmful components",
           textPlaceholder: "e.g. Aqua, Glycerin, Sodium Laureth Sulfate...",
           uploadFileText: "Upload file (.txt, .pdf, .docx)",
           analyseBtnFull: "Analyse",
-
           loginTitle: "Welcome back",
           loginSubtitle: "Sign in to view your scan history.",
           emailLabel: "Email",
@@ -447,24 +454,23 @@
           noAccount: "No account?",
           registerLink: "Sign up",
           showPassword: "Show password",
-
           registerTitle: "Create account",
           registerSubtitle: "Start for free — no credit card required.",
           registerSubmit: "Create account",
           hasAccount: "Already have an account?",
           loginLink: "Sign in",
-
           scansTitle: "Scan History",
-          filterLevel: "Level",
-          filterType: "Type",
+          filterLevel: "Safety Level",
+          filterType: "Input type",
           all: "All",
           safe: "Safe",
           low: "Low",
           medium: "Medium",
           high: "High",
           camera: "Camera",
+          gallery: "Gallery",
           file: "File",
-          manual: "Manual",
+          manual: "Text",
           clearFilters: "Clear",
           selectAll: "Select all",
           deleteSelected: "Delete selected",
@@ -474,15 +480,13 @@
           firstScanBtn: "Make first scan",
           scanDetailsTitle: "Scan Details",
           exportBtn: "Export",
-
           method_camera: "Camera",
+          method_gallery: "Gallery",
           method_device: "File",
-          method_text: "Manual",
+          method_text: "Text",
           method_unknown: "Unknown",
-
           type_manual: "Text",
           type_camera: "Photo",
-
           risk_high: "High",
           risk_danger: "High",
           risk_medium: "Medium",
@@ -490,7 +494,6 @@
           risk_low: "Low",
           risk_safe: "Safe",
           risk_unknown: "Unknown",
-
           analysisComplete: "Analysis complete",
           ingredientsFound: (n) => `${n} ingredients`,
           noHarmfulIngredients: "No potentially harmful ingredients found",
@@ -505,7 +508,6 @@
           deleteBtn: "Delete",
           deleteSelectedBtn: (n) => `Delete selected (${n})`,
           deselectAll: "Deselect all",
-
           serverError: "Server error",
           pleaseSelect: "Please select scans",
           processingImage: "Processing image...",
@@ -520,34 +522,49 @@
           selectFile: "Please select a file",
           cameraAccessError:
             "Could not access camera. Check browser permissions.",
+          newScan: "New scan",
+          save: "Save",
+          ingredients: "Ingredients",
+          noIngredients: "No ingredients found",
+          unknownIngredient: "Unknown ingredient",
+          exportSelected: "Export selected",
+          exportSelectedBtn: (n) => `Export selected (${n})`,
+          exportScan: "Export scan",
+          pleaseSelectForExport: "Please select scans to export",
+          safetyLegendTitle: "Ingredient Safety Levels",
+          safetyLegendSafe: "Ingredient is safe to use, no known side effects.",
+          safetyLegendLow:
+            "Minimal risk. Safe for most people, rarely causes sensitivity.",
+          safetyLegendMedium:
+            "May cause irritation or allergies in sensitive individuals. Use with caution.",
+          safetyLegendHigh:
+            "Potentially dangerous. May be toxic, carcinogenic, or banned in some countries.",
+          prevPage: "Previous",
+          nextPage: "Next",
         },
       };
 
-      // ── Глобальная функция перевода ★
+      // ── ГЛОБАЛЬНЫЕ ФУНКЦИИ ПЕРЕВОДА ──
       window.i18n = function (key, ...args) {
         const lang = getCurrentLang();
         const val = (I18N[lang] && I18N[lang][key]) || key;
         return typeof val === "function" ? val(...args) : val;
       };
 
-      // ── Применение языка ★
       function applyLanguage(lang) {
         document.querySelectorAll("[data-i18n]").forEach((el) => {
           const key = el.getAttribute("data-i18n");
-          if (I18N[lang] && I18N[lang][key]) {
-            el.textContent = I18N[lang][key];
-          }
+          if (I18N[lang] && I18N[lang][key]) el.textContent = I18N[lang][key];
         });
         document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
           const key = el.getAttribute("data-i18n-placeholder");
-          if (I18N[lang] && I18N[lang][key]) {
-            el.placeholder = I18N[lang][key];
-          }
+          if (I18N[lang] && I18N[lang][key]) el.placeholder = I18N[lang][key];
         });
-        // Обновляем aria-label для кнопок переключения пароля
-        const showPasswordLabel = I18N[lang]?.showPassword || "Show password";
         document.querySelectorAll(".password-toggle").forEach((btn) => {
-          btn.setAttribute("aria-label", showPasswordLabel);
+          btn.setAttribute(
+            "aria-label",
+            I18N[lang]?.showPassword || "Show password",
+          );
         });
         const badge = document.getElementById("langBadge");
         if (badge) badge.textContent = lang === "uk" ? "УК" : "EN";
@@ -558,6 +575,7 @@
       function getCurrentLang() {
         return localStorage.getItem("skipley-lang") || "uk";
       }
+      window.getCurrentLang = getCurrentLang;
 
       function toggleLanguage() {
         const newLang = getCurrentLang() === "uk" ? "en" : "uk";
@@ -567,7 +585,7 @@
         );
       }
 
-      // ── Sidebar toggle ──
+      // ── Сайдбар ──
       document
         .getElementById("menuOpenBtn")
         .addEventListener("click", function () {
@@ -585,7 +603,7 @@
         .getElementById("sidebarBackdrop")
         .addEventListener("click", closeSidebar);
 
-      // ── Theme toggle ──
+      // ── Тема ──
       (function () {
         var saved = localStorage.getItem("skipley-theme");
         if (saved === "dark") document.body.setAttribute("data-theme", "dark");
@@ -616,13 +634,11 @@
           : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
       }
 
-      // ── Auth state in sidebar ──
+      // ── Авторизация ──
       function updateSidebarAuth() {
         fetch("/api/status")
-          .then(function (r) {
-            return r.ok ? r.json() : Promise.reject();
-          })
-          .then(function (data) {
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((data) => {
             if (data.status === "authenticated") {
               document.getElementById("sidebarAuthLoggedOut").style.display =
                 "none";
@@ -630,25 +646,24 @@
                 "block";
               document.getElementById("sidebarScansLink").style.display =
                 "flex";
+              window.isUserAuthenticated = true;
             }
           })
-          .catch(function () {
+          .catch(() => {
             document.getElementById("sidebarAuthLoggedOut").style.display =
               "block";
             document.getElementById("sidebarAuthLoggedIn").style.display =
               "none";
             document.getElementById("sidebarScansLink").style.display = "none";
+            window.isUserAuthenticated = false;
           });
       }
       updateSidebarAuth();
 
-      // ── Topbar state ──
       function updateTopbarAuth() {
         fetch("/api/status")
-          .then(function (r) {
-            return r.ok ? r.json() : Promise.reject();
-          })
-          .then(function (data) {
+          .then((r) => (r.ok ? r.json() : Promise.reject()))
+          .then((data) => {
             var isAuth = data.status === "authenticated";
             document.getElementById("menuOpenBtn").style.display = isAuth
               ? "flex"
@@ -657,7 +672,7 @@
               ? "none"
               : "flex";
           })
-          .catch(function () {
+          .catch(() => {
             document.getElementById("menuOpenBtn").style.display = "none";
             document.getElementById("topbarGuestActions").style.display =
               "flex";
@@ -665,7 +680,7 @@
       }
       updateTopbarAuth();
 
-      // Продублируем обработчики темы и языка для верхнего бара
+      // ── Дублируем тему для верхнего бара ──
       document
         .getElementById("themeToggleTop")
         .addEventListener("click", function () {
@@ -691,7 +706,7 @@
       }
       updateThemeTopUI();
 
-      // ★ Обработчики языка
+      // ── Обработчики языка ──
       document
         .getElementById("langToggleTop")
         .addEventListener("click", toggleLanguage);
@@ -699,10 +714,144 @@
         .getElementById("langToggle")
         .addEventListener("click", toggleLanguage);
 
-      // ★ Делаем функцию определения языка глобальной
-      window.getCurrentLang = getCurrentLang;
+      // ── ГЛОБАЛЬНОЕ МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТОВ ──
+      window.lastScanResult = null;
 
-      // ★ Применяем язык после полной загрузки DOM (включая модальные окна)
+      window.normalizeRiskLevel = function (level) {
+        if (!level) return "safe";
+        var l = level.toLowerCase().trim();
+        if (l === "danger") return "high";
+        if (l === "warning") return "medium";
+        if (l === "low_warning") return "low";
+        if (["safe", "low", "medium", "high", "unknown"].indexOf(l) !== -1)
+          return l;
+        return "safe";
+      };
+
+      window.openScanResult = function (data) {
+        var modal = document.getElementById("scanResultModal");
+        var content = document.getElementById("scanResultContent");
+        var meta = document.getElementById("resultMeta");
+        window.lastScanResult = data;
+
+        var ingredients = data.ingredients || [];
+        var counts = {};
+        ingredients.forEach(function (ing) {
+          var lvl = window.normalizeRiskLevel(ing.risk_level);
+          counts[lvl] = (counts[lvl] || 0) + 1;
+        });
+
+        if (meta)
+          meta.textContent = window.i18n(
+            "ingredientsFound",
+            ingredients.length,
+          );
+
+        var isEn = window.getCurrentLang() === "en";
+
+        var html = '<div class="risk-counts" style="margin-bottom:20px">';
+        for (var lvl in counts) {
+          var riskLabel = window.i18n("risk_" + lvl) || lvl;
+          html +=
+            '<span class="risk-badge risk-' +
+            lvl +
+            '"><span class="dot"></span>' +
+            counts[lvl] +
+            " " +
+            riskLabel +
+            "</span>";
+        }
+        html += "</div>";
+
+        html +=
+          '<p class="detail-section-label">' +
+          window.i18n("ingredients") +
+          "</p>";
+        html += '<div class="detail-ingredients">';
+        if (ingredients.length > 0) {
+          ingredients.forEach(function (ing) {
+            var normalizedRisk = window.normalizeRiskLevel(ing.risk_level);
+            var riskClass = "risk-" + normalizedRisk;
+            var riskLabel =
+              window.i18n("risk_" + normalizedRisk) || normalizedRisk;
+            var desc = isEn
+              ? ing.description_en || ing.description || ing.category
+              : ing.description || ing.category;
+            html += '<div class="detail-ingredient">';
+            html +=
+              '<div style="flex:1"><div class="name">' +
+              (ing.name || window.i18n("unknownIngredient")) +
+              "</div>";
+            if (desc) {
+              html += '<div class="desc">' + desc + "</div>";
+            }
+            html += "</div>";
+            html +=
+              '<span class="risk-badge risk-sm ' +
+              riskClass +
+              '"><span class="dot"></span>' +
+              riskLabel +
+              "</span>";
+            html += "</div>";
+          });
+        } else {
+          html +=
+            '<div style="padding:16px;text-align:center;color:var(--txt-3)">' +
+            window.i18n("noIngredients") +
+            "</div>";
+        }
+        html += "</div>";
+
+        if (data.text) {
+          html +=
+            '<p class="detail-section-label">' +
+            window.i18n("recognizedText") +
+            "</p>";
+          html += '<div class="original-text">' + data.text + "</div>";
+        }
+
+        content.innerHTML = html;
+        modal.classList.remove("hidden");
+      };
+
+      window.closeScanResult = function () {
+        document.getElementById("scanResultModal").classList.add("hidden");
+      };
+
+      // Закрытие модальных окон при клике на затемнённый фон
+      document.addEventListener("click", function (e) {
+        if (
+          !e.target.classList.contains("modal") ||
+          e.target.classList.contains("hidden")
+        )
+          return;
+
+        switch (e.target.id) {
+          case "cameraModal":
+            if (typeof closeCamera === "function") closeCamera();
+            break;
+          case "textInputModal":
+            if (typeof closeTextInput === "function") closeTextInput();
+            break;
+          case "scanResultModal":
+            if (typeof closeScanResult === "function") closeScanResult();
+            break;
+          // здесь можно добавить другие модальные окна по мере необходимости
+        }
+      });
+
+      window.addEventListener("languageChanged", function () {
+        if (
+          window.lastScanResult &&
+          !document
+            .getElementById("scanResultModal")
+            .classList.contains("hidden")
+        ) {
+          window.openScanResult(window.lastScanResult);
+        }
+      });
+
+      // ── Применяем язык после загрузки DOM ──
       document.addEventListener("DOMContentLoaded", function () {
         applyLanguage(getCurrentLang());
       });

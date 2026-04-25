@@ -13,6 +13,8 @@ import requests
 from functools import lru_cache
 import time
 import traceback
+import io
+import zipfile
 
 frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
@@ -594,6 +596,67 @@ def get_scan(scan_id):
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route('/api/scans/export-multiple/zip', methods=['GET'])
+@login_required
+def export_multiple_scans_zip():
+    lang = request.args.get('lang', 'uk')
+    scan_ids_str = request.args.get('ids', '')
+    if not scan_ids_str:
+        return jsonify({"status": "error", "message": "Не вказано ідентифікатори сканувань"}), 400
+
+    try:
+        scan_ids = [int(s.strip()) for s in scan_ids_str.split(',') if s.strip().isdigit()]
+    except ValueError:
+        return jsonify({"status": "error", "message": "Невірний формат параметра ids"}), 400
+
+    if not scan_ids:
+        return jsonify({"status": "error", "message": "Список сканувань порожній"}), 400
+
+    # Завантажуємо тільки скани поточного користувача
+    scans = Scan.query.filter(
+        Scan.id.in_(scan_ids),
+        Scan.user_id == current_user.id
+    ).all()
+
+    if not scans:
+        return jsonify({"status": "error", "message": "Сканування не знайдено або доступ заборонено"}), 404
+
+    # Створюємо ZIP-архів у пам'яті
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for scan in scans:
+            try:
+                # Отримуємо дані для PDF
+                scan_data = scan.to_dict()
+                ingredients_list = scan.get_ingredients_list()
+
+                export_data = {
+                    'id': scan_data['id'],
+                    'created_at': scan_data['created_at'],
+                    'input_type': scan_data['input_type'],
+                    'input_method': scan_data['input_method'],
+                    'safety_status': scan_data['safety_status'],
+                    'safety_message': scan_data['safety_message'],
+                    'contains_unknown': scan_data['contains_unknown'],
+                    'unknown_count': scan_data['unknown_count'],
+                    'original_text': scan_data['original_text'],
+                    'ingredients_count': scan_data['ingredients_count'],
+                    'ingredients_detailed': ingredients_list,
+                    'risk_statistics': scan_data['risk_statistics']
+                }
+
+                pdf_bytes = scan_exporter.create_pdf_bytes(export_data, current_user.email, lang=lang)
+                zf.writestr(f"scan_{scan.id}.pdf", pdf_bytes)
+            except Exception as e:
+                print(f"Помилка експорту сканування {scan.id}: {e}")
+                continue
+
+    zip_buffer.seek(0)
+    response = make_response(zip_buffer.read())
+    response.headers['Content-Type'] = 'application/zip'
+    response.headers['Content-Disposition'] = f'attachment; filename=scans_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip'
+    return response
+
 @app.route('/api/scans/<int:scan_id>', methods=['DELETE'])
 @login_required
 def delete_scan(scan_id):
@@ -645,6 +708,7 @@ def bulk_delete_scans():
 @app.route('/api/scans/<int:scan_id>/export/pdf', methods=['GET'])
 @login_required
 def export_scan_to_pdf(scan_id):
+    lang = request.args.get('lang', 'uk')
     try:
         scan = Scan.query.filter_by(id=scan_id, user_id=current_user.id).first()
         
@@ -671,7 +735,7 @@ def export_scan_to_pdf(scan_id):
         
         print(f"Експорт сканування {scan_id} в PDF")
         
-        pdf_bytes = scan_exporter.create_pdf_bytes(export_data, current_user.email)
+        pdf_bytes = scan_exporter.create_pdf_bytes(export_data, current_user.email, lang=lang)
         
         response = make_response(pdf_bytes)
         response.headers['Content-Type'] = 'application/pdf'

@@ -201,7 +201,7 @@ body {
 
 .topbar-brand {
     font-weight: 800;
-    font-size: 17px;
+    font-size: 24px;
     letter-spacing: -0.035em;
     color: var(--accent);
     line-height: 1;
@@ -407,7 +407,7 @@ body {
 }
 
 .content-wrap {
-    max-width: 560px;
+    max-width: 700px;
     margin: 0 auto;
 }
 
@@ -423,8 +423,8 @@ body {
     display: inline-block;
     background: var(--accent-sub);
     border-radius: var(--r-pill);
-    padding: 4px 14px;
-    font-size: 11px;
+    padding: 6px 16px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--accent);
     letter-spacing: 0.06em;
@@ -433,7 +433,7 @@ body {
 }
 
 .hero h1 {
-    font-size: 28px;
+    font-size: 36px;
     font-weight: 800;
     color: var(--txt-1);
     letter-spacing: -0.03em;
@@ -442,7 +442,7 @@ body {
 }
 
 .hero p {
-    font-size: 15px;
+    font-size: 16px;
     color: var(--txt-2);
     line-height: 1.65;
     max-width: 380px;
@@ -740,6 +740,33 @@ body {
     background: var(--rh-dot, #C94444);
 }
 
+.risk-danger {
+    background: var(--rh-bg);
+    color: var(--rh-fg);
+}
+
+.risk-danger .dot {
+    background: var(--rh-dot, #C94444);
+}
+
+.risk-warning {
+    background: var(--rm-bg);
+    color: var(--rm-fg);
+}
+
+.risk-warning .dot {
+    background: var(--rm-dot, #C99A38);
+}
+
+.risk-unknown {
+    background: var(--sl-100);
+    color: var(--txt-3);
+}
+
+.risk-unknown .dot {
+    background: var(--txt-3);
+}
+
 /* ══════════════════════════════════════════════════════════════
    MODAL
    ══════════════════════════════════════════════════════════════ */
@@ -770,9 +797,11 @@ body {
     width: 100%;
     max-width: 480px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
     box-shadow: var(--shadow-xl);
     animation: slideUp 0.22s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-content.wide {
@@ -786,11 +815,25 @@ body {
     margin-bottom: 4px;
 }
 
+/* Отключаем backdrop-filter для модальных окон, где он вызывает артефакты */
+.modal-content.no-blur {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+#scanDetailsContent,
+#scanResultContent {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .modal-close {
@@ -818,6 +861,7 @@ body {
     display: flex;
     gap: 10px;
     margin-top: 18px;
+    flex-shrink: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1077,14 +1121,37 @@ body {
 .camera-controls {
     margin-top: 28px;
     display: flex;
-    gap: 12px;
     align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    position: relative;
+    /* важно! */
+    padding: 0 24px;
+    /* добавит воздух слева/справа, увеличивая расстояние от краёв */
+    gap: 0;
+    flex-wrap: nowrap;
 }
 
-/* Shutter button */
+/* Кнопка галереи в камере – розовая и с пунктирной обводкой при наведении */
+.camera-controls .btn-icon {
+    color: var(--accent);
+    /* розовый цвет иконки */
+    background: transparent;
+    /* прозрачный фон */
+}
+
+.camera-controls .btn-icon:hover {
+    outline: 2px dashed var(--accent);
+    /* пунктирная обводка */
+    outline-offset: 2px;
+    background: transparent;
+    /* без фона, чтобы не перекрывал обводку */
+}
+
+/* Кнопка съёмки – всегда точно по центру */
 .shutter-btn {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     width: 60px;
     height: 60px;
     border-radius: 50%;
@@ -1104,7 +1171,7 @@ body {
 }
 
 .shutter-btn:hover {
-    transform: scale(0.95);
+    transform: translateX(-50%) scale(0.95);
     box-shadow: 0 0 0 8px var(--accent-sub);
 }
 
@@ -1306,7 +1373,7 @@ body {
 }
 
 .scans-page .content-wrap {
-    max-width: 640px;
+    max-width: 900px;
 }
 
 .scans-page h2 {
@@ -1317,27 +1384,59 @@ body {
     margin-bottom: 20px;
 }
 
+/* ── Sticky container (фильтры сверху, кнопки снизу слева) ── */
+.sticky-filters {
+    position: sticky;
+    top: var(--topbar-h);
+    z-index: 90;
+    background: var(--bg);
+    padding: 8px 0 4px 0;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    margin: 0 6px;
+    flex-shrink: 0;
+}
+
 /* Filter bar */
 .filter-bar {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow-sm);
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.sticky-filters .filter-bar {
+    margin-bottom: 8px;
 }
 
 .filter-groups {
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.filter-row {
+    display: flex;
     align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
 }
 
 .filter-group {
     display: flex;
     gap: 4px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .filter-label {
@@ -1349,11 +1448,13 @@ body {
     margin-right: 4px;
 }
 
-.filter-divider {
-    width: 1px;
-    height: 20px;
-    background: var(--border);
+/* Кнопки массовых действий */
+.bulk-actions-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     flex-shrink: 0;
+    justify-content: flex-start;
 }
 
 .pill-btn {
@@ -1408,6 +1509,58 @@ body {
     transform: none;
 }
 
+/* Safety info button */
+.safety-info-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--txt-3);
+    padding: 2px;
+    margin-right: 4px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: color 0.15s, background 0.15s;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+.safety-info-btn::before {
+    content: none !important;
+}
+
+.safety-info-btn:hover {
+    color: var(--accent);
+    background: var(--accent-sub);
+    transform: none;
+}
+
+/* Safety legend modal */
+.safety-legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.safety-legend-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.safety-legend-item .risk-badge {
+    flex-shrink: 0;
+    min-width: 90px;
+    justify-content: center;
+}
+
+.safety-legend-item p {
+    font-size: 13px;
+    color: var(--txt-2);
+    line-height: 1.5;
+    margin: 0;
+}
+
 .scans-count {
     font-size: 12px;
     color: var(--txt-3);
@@ -1438,46 +1591,11 @@ body {
     transform: none;
 }
 
-.scan-card-delete {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 28px;
-    height: 28px;
-    border: none;
-    cursor: pointer;
-    background: var(--surface-2);
-    border-radius: var(--r-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.4;
-    transition: all 0.15s;
-    color: var(--txt-3);
-    box-shadow: none;
-    padding: 0;
-}
-
-.scan-card-delete::before {
-    content: none !important;
-}
-
-.scan-card:hover .scan-card-delete {
-    opacity: 1;
-}
-
-.scan-card-delete:hover {
-    background: var(--rh-bg);
-    color: var(--rh-fg);
-    transform: none;
-}
-
 .scan-card-method {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 10px;
-    padding-right: 36px;
 }
 
 .scan-method-icon {
@@ -1517,25 +1635,13 @@ body {
 
 .scan-stats {
     display: flex;
-    gap: 8px;
     align-items: center;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0;
 }
 
 .scan-ingredients-count {
-    font-size: 11px;
-    color: var(--txt-3);
-}
-
-.scan-card-footer {
-    border-top: 1px solid var(--border);
-    padding-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.scan-product {
     font-size: 11px;
     color: var(--txt-3);
 }
@@ -1584,6 +1690,18 @@ body {
     border: 1.5px solid var(--accent);
     background: var(--accent);
     color: #fff;
+}
+
+/* Элемент многоточия в пагинации */
+.page-ellipsis {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--txt-3);
+    font-weight: 600;
+    user-select: none;
 }
 
 /* Empty state */
@@ -1799,12 +1917,24 @@ body {
     .camera-controls {
         margin-top: 28px;
         display: flex;
-        gap: 12px;
+        gap: 32px;
         align-items: center;
         justify-content: center;
         flex-wrap: nowrap;
     }
 
+    /* Чтобы круглая кнопка была точно по центру, 
+    даём левому краю такой же отступ, как правому */
+    .camera-controls>.btn-icon:first-child {
+        margin-right: 0;
+    }
+    
+    /* Компенсируем разницу в ширине между иконкой и текстовыми кнопками */
+    .camera-controls>.shutter-btn {
+        flex-shrink: 0;
+        /* не даём кнопке сжиматься */
+    }
+    
     .camera-controls .btn {
         width: 100%;
         max-width: 300px;
@@ -1826,8 +1956,11 @@ body {
     }
 
     .filter-groups {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .filter-divider {
+        display: none;
     }
 }
 
@@ -1867,9 +2000,7 @@ input:-webkit-autofill:active {
     transform: none;
 }
 
-/* Bulk actions */
 .bulk-actions {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
+    display: none;
+    /* старый класс скрыт, используется .bulk-actions-inline */
 }

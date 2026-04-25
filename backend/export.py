@@ -11,112 +11,79 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 import sys
+import traceback
 
 class ScanExporter:
     def __init__(self):
-        # Спробуємо зареєструвати Arial для підтримки кирилиці
         self._register_fonts()
-    
+
     def _register_fonts(self):
-        """Спробувати зареєструвати шрифти, що підтримують кирилицю"""
+        """Регистрация шрифтов с поддержкой кириллицы"""
         try:
-            # Перевіряємо, чи не зареєстрований вже Arial
             try:
                 pdfmetrics.getFont('Arial')
                 print("Шрифт Arial вже зареєстрований")
                 return
             except:
                 pass
-            
-            # Список можливих шляхів до шрифтів Arial
+
             font_paths = []
-            
-            # Для Windows
+
+            # Windows
             if sys.platform == 'win32':
                 windows_fonts = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts')
-                font_paths.extend([
-                    os.path.join(windows_fonts, 'arial.ttf'),
+                font_paths = [
                     os.path.join(windows_fonts, 'arial.ttf'),
                     os.path.join(windows_fonts, 'Arial.ttf'),
                     os.path.join(windows_fonts, 'ARIAL.TTF')
-                ])
-            
-            # Для Linux/Mac
+                ]
             else:
-                font_paths.extend([
+                # Linux / Mac
+                font_paths = [
                     '/usr/share/fonts/truetype/msttcorefonts/arial.ttf',
                     '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
                     '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
                     '/System/Library/Fonts/Arial.ttf',
                     '/Library/Fonts/Arial.ttf'
-                ])
-            
-            # Пробуємо знайти та зареєструвати шрифт
+                ]
+
             for font_path in font_paths:
                 if os.path.exists(font_path):
                     try:
                         pdfmetrics.registerFont(TTFont('Arial', font_path))
                         print(f"Шрифт Arial зареєстрований з: {font_path}")
-                        
-                        # Пробуємо також зареєструвати жирну версію
+
+                        # Bold вариант
                         bold_path = font_path.replace('.ttf', 'bd.ttf').replace('.TTF', 'bd.TTF')
                         if os.path.exists(bold_path):
                             pdfmetrics.registerFont(TTFont('Arial-Bold', bold_path))
-                            print(f"Шрифт Arial-Bold зареєстрований")
-                        
+                            print("Шрифт Arial-Bold зареєстрований")
                         return
                     except Exception as e:
-                        print(f"Не вдалося зареєструвати шрифт {font_path}: {e}")
+                        print(f"Не вдалося зареєструвати {font_path}: {e}")
                         continue
-            
-            # Якщо не знайшли Arial, спробуємо DejaVu Sans
-            try:
-                # DejaVu Sans зазвичай є в Linux
-                pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
-                print("Використовуємо DejaVuSans як альтернативу")
-            except:
-                # В останню чергу використовуємо Helvetica (повинен підтримувати кирилицю в PDF)
-                print("Використовуємо стандартний шрифт Helvetica")
-                
+
+            # Fallback
+            print("Використовуємо стандартний шрифт Helvetica")
         except Exception as e:
-            print(f"Помилка при реєстрації шрифтів: {e}")
-    
+            print(f"Помилка реєстрації шрифтів: {e}")
+
     def normalize_text(self, text):
-        """Нормалізація тексту для коректного відображення"""
         if not text:
             return ""
-        
-        # Перетворюємо в рядок і чистимо
         text = str(text).strip()
-        
-        # Забираємо нестандартні символи
         text = unicodedata.normalize('NFKC', text)
-        
-        # Замінюємо специфічні символи на ASCII-еквіваленти
         replacements = {
-            '—': '-',
-            '«': '"',
-            '»': '"',
-            '„': '"',
-            '…': '...',
-            'ё': 'е',
-            'Ё': 'Е'
+            '—': '-', '«': '"', '»': '"', '„': '"', '…': '...'
         }
-        
         for old, new in replacements.items():
             text = text.replace(old, new)
-        
         return text
-    
-    def create_pdf_bytes(self, scan_data, user_email):
-        """Створити PDF звіт за скануванням та повернути bytes"""
+
+    def create_pdf_bytes(self, scan_data, user_email, lang='uk'):
+        """Создать PDF с учётом языка"""
         try:
-            print(f"Створення PDF для сканування {scan_data.get('id')}")
-            
-            # Створюємо буфер в пам'яті
             buffer = io.BytesIO()
-            
-            # Створюємо документ в пам'яті
             doc = SimpleDocTemplate(
                 buffer,
                 pagesize=A4,
@@ -125,14 +92,10 @@ class ScanExporter:
                 topMargin=0.7*inch,
                 bottomMargin=0.7*inch
             )
-            
-            # Збираємо вміст документа
             story = []
-            
-            # Створюємо стилі з безпечними шрифтами
+
+            # Шрифты
             styles = getSampleStyleSheet()
-            
-            # Перевіряємо, які шрифти доступні
             available_fonts = []
             for font_name in ['Arial', 'Helvetica', 'Times-Roman']:
                 try:
@@ -140,53 +103,34 @@ class ScanExporter:
                     available_fonts.append(font_name)
                 except:
                     pass
-            
-            # Використовуємо перший доступний шрифт
             font_name = available_fonts[0] if available_fonts else 'Helvetica'
             bold_font_name = f"{font_name}-Bold" if f"{font_name}-Bold" in available_fonts else font_name
-            
-            print(f"Використовуємо шрифт: {font_name}")
-            
-            # Стиль заголовка
-            title_style = ParagraphStyle(
-                'Title',
-                parent=styles['Title'],
-                fontSize=16,
-                textColor=colors.HexColor('#330036'),
-                spaceAfter=20,
-                alignment=TA_CENTER,
-                fontName=bold_font_name
-            )
-            
+
             # Заголовок
-            title = Paragraph("ЗВІТ ПО СКАНУВАННЮ КОСМЕТИКИ", title_style)
-            story.append(title)
-            story.append(Spacer(1, 15))
-            
-            # Основний стиль тексту
-            normal_style = ParagraphStyle(
-                'Normal',
-                parent=styles['Normal'],
-                fontSize=11,
-                textColor=colors.black,
-                spaceAfter=8,
-                fontName=font_name,
-                alignment=TA_LEFT
+            title_text = "ЗВІТ ПО СКАНУВАННЮ КОСМЕТИКИ" if lang == 'uk' else "COSMETICS SCAN REPORT"
+            title_style = ParagraphStyle(
+                'Title', parent=styles['Title'],
+                fontSize=16, textColor=colors.HexColor('#330036'),
+                spaceAfter=20, alignment=TA_CENTER, fontName=bold_font_name
             )
-            
-            # Дата сканування
+            story.append(Paragraph(title_text, title_style))
+            story.append(Spacer(1, 15))
+
+            normal_style = ParagraphStyle(
+                'Normal', parent=styles['Normal'],
+                fontSize=11, textColor=colors.black,
+                spaceAfter=8, fontName=font_name, alignment=TA_LEFT
+            )
+
+            # Дата
             created_at = scan_data.get('created_at', '')
-            formatted_date = "Невідома дата"
-            
+            formatted_date = "Невідома дата" if lang == 'uk' else "Unknown date"
             if created_at:
                 try:
-                    # Забираємо мікросекунди та Z якщо є
                     if '.' in created_at:
                         created_at = created_at.split('.')[0]
                     if 'Z' in created_at:
                         created_at = created_at.replace('Z', '')
-                    
-                    # Пробуємо різні формати
                     for fmt in ['%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d']:
                         try:
                             dt = datetime.strptime(created_at, fmt)
@@ -196,282 +140,228 @@ class ScanExporter:
                             continue
                 except:
                     formatted_date = created_at[:19] if len(created_at) > 19 else created_at
-            
-            # Основна інформація в таблиці для кращого форматування
+
+            # Таблица информации
+            labels = {
+                'id': "ID сканування:" if lang == 'uk' else "Scan ID:",
+                'date': "Дата сканування:" if lang == 'uk' else "Scan date:",
+                'type': "Тип введення:" if lang == 'uk' else "Input type:",
+                'method': "Метод введення:" if lang == 'uk' else "Input method:",
+                'status': "Статус безпеки:" if lang == 'uk' else "Safety status:",
+                'count': "Кількість інгредієнтів:" if lang == 'uk' else "Ingredients count:",
+                'user': "Користувач:" if lang == 'uk' else "User:"
+            }
             info_data = [
-                ["ID сканування:", str(scan_data.get('id', 'Н/Д'))],
-                ["Дата сканування:", formatted_date],
-                ["Тип введення:", self._get_type_text(scan_data.get('input_type', ''))],
-                ["Метод введення:", self._get_method_text(scan_data.get('input_method', ''))],
-                ["Статус безпеки:", self._get_safety_status_text(scan_data.get('safety_status', 'safe'))],
-                ["Кількість інгредієнтів:", str(scan_data.get('ingredients_count', 0))],
-                ["Користувач:", user_email]
+                [labels['id'], str(scan_data.get('id', 'N/A'))],
+                [labels['date'], formatted_date],
+                [labels['type'], self._get_type_text(scan_data.get('input_type', ''), lang)],
+                [labels['method'], self._get_method_text(scan_data.get('input_method', ''), lang)],
+                [labels['status'], self._get_safety_status_text(scan_data.get('safety_status', 'safe'), lang)],
+                [labels['count'], str(scan_data.get('ingredients_count', 0))],
+                [labels['user'], user_email]
             ]
-            
-            # Створюємо таблицю
-            info_table = Table(info_data, colWidths=[120, 350])
+
+            info_table = Table(info_data, colWidths=[130, 340])
             info_table.setStyle(TableStyle([
-                ('FONTNAME', (0, 0), (-1, -1), font_name),
-                ('FONTSIZE', (0, 0), (-1, -1), 11),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-                ('FONTNAME', (0, 0), (0, -1), bold_font_name),
+                ('FONTNAME', (0,0), (-1,-1), font_name),
+                ('FONTSIZE', (0,0), (-1,-1), 11),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+                ('TOPPADDING', (0,0), (-1,-1), 8),
+                ('VALIGN', (0,0), (-1,-1), 'TOP'),
+                ('ALIGN', (0,0), (0,-1), 'RIGHT'),
+                ('ALIGN', (1,0), (1,-1), 'LEFT'),
+                ('FONTNAME', (0,0), (0,-1), bold_font_name),
             ]))
-            
             story.append(info_table)
             story.append(Spacer(1, 20))
-            
-            # Розділ: Оригінальний текст
+
+            # Оригинальный текст
             original_text = scan_data.get('original_text')
             if original_text:
-                # Заголовок розділу
                 heading_style = ParagraphStyle(
-                    'Heading',
-                    parent=normal_style,
-                    fontSize=12,
-                    fontName=bold_font_name,
-                    spaceAfter=10,
-                    spaceBefore=15
+                    'Heading', parent=normal_style,
+                    fontSize=12, fontName=bold_font_name,
+                    spaceAfter=10, spaceBefore=15
                 )
-                
-                story.append(Paragraph("Оригінальний текст:", heading_style))
+                orig_title = "Оригінальний текст:" if lang == 'uk' else "Original text:"
+                story.append(Paragraph(orig_title, heading_style))
                 story.append(Spacer(1, 8))
-                
-                # Текст
+
                 text_style = ParagraphStyle(
-                    'Text',
-                    parent=normal_style,
-                    fontSize=10,
-                    leading=12,
-                    alignment=TA_JUSTIFY,
-                    fontName=font_name
+                    'Text', parent=normal_style,
+                    fontSize=10, leading=12,
+                    fontName=font_name, alignment=TA_JUSTIFY
                 )
-                
-                text = str(original_text)
-                # Обмежуємо довжину
-                if len(text) > 1500:
-                    text = text[:1500] + "..."
-                
-                # Розбиваємо на рядки для кращого відображення
-                lines = []
+                text = str(original_text)[:1500]
                 for line in text.split('\n'):
                     line = line.strip()
                     if line:
-                        lines.append(line)
-                
-                # Додаємо перші 20 рядків
-                for line in lines[:20]:
-                    story.append(Paragraph(self.normalize_text(line), text_style))
-                    story.append(Spacer(1, 4))
-                
-                if len(lines) > 20:
-                    story.append(Paragraph("...", normal_style))
-                
+                        story.append(Paragraph(self.normalize_text(line), text_style))
+                        story.append(Spacer(1, 4))
                 story.append(Spacer(1, 20))
-            
-            # Розділ: Знайдені інгредієнти
+
+            # Ингредиенты
             ingredients = scan_data.get('ingredients_detailed') or scan_data.get('ingredients', [])
             if ingredients:
-                # Заголовок розділу
-                heading_style = ParagraphStyle(
-                    'Heading',
-                    parent=normal_style,
-                    fontSize=12,
-                    fontName=bold_font_name,
-                    spaceAfter=10,
-                    spaceBefore=15
-                )
-                
-                story.append(Paragraph(f"Знайдені інгредієнти ({len(ingredients)}):", heading_style))
+                ing_title = f"Знайдені інгредієнти ({len(ingredients)}):" if lang == 'uk' else f"Found ingredients ({len(ingredients)}):"
+                story.append(Paragraph(ing_title, heading_style))
                 story.append(Spacer(1, 8))
-                
-                # Стиль для списку
+
                 list_style = ParagraphStyle(
-                    'List',
-                    parent=normal_style,
-                    fontSize=10,
-                    leftIndent=20,
-                    firstLineIndent=-20,
-                    spaceAfter=4
+                    'List', parent=normal_style,
+                    fontSize=10, leftIndent=20,
+                    firstLineIndent=-20, spaceAfter=4
                 )
-                
-                # Додаємо інгредієнти
                 for i, ing in enumerate(ingredients[:30], 1):
                     if isinstance(ing, dict):
                         name = ing.get('name', '')
                         risk = ing.get('risk_level', 'unknown')
-                        
-                        if name:
-                            risk_text = self._get_risk_text(risk)
-                            # Просте форматування без HTML тегів
-                            ingredient_text = f"{i}. {name} ({risk_text})"
-                            story.append(Paragraph(self.normalize_text(ingredient_text), list_style))
-                
+                        risk_text = self._get_risk_text(risk, lang)
+                        story.append(Paragraph(f"{i}. {name} ({risk_text})", list_style))
                 if len(ingredients) > 30:
-                    story.append(Paragraph(f"... та ще {len(ingredients) - 30} інгредієнтів", normal_style))
-                
+                    more = f"... та ще {len(ingredients)-30} інгредієнтів" if lang == 'uk' else f"... and {len(ingredients)-30} more ingredients"
+                    story.append(Paragraph(more, normal_style))
                 story.append(Spacer(1, 20))
-            
-            # Розділ: Рекомендації
+
+            # Рекомендации
+            rec_title = "Рекомендації та висновки:" if lang == 'uk' else "Recommendations & Conclusions:"
             rec_heading_style = ParagraphStyle(
-                'RecHeading',
-                parent=normal_style,
-                fontSize=13,
-                fontName=bold_font_name,
+                'RecHeading', parent=normal_style,
+                fontSize=13, fontName=bold_font_name,
                 textColor=colors.HexColor('#2A002D'),
-                spaceAfter=12,
-                spaceBefore=20
+                spaceAfter=12, spaceBefore=20
             )
-            
-            story.append(Paragraph("Рекомендації та висновки:", rec_heading_style))
+            story.append(Paragraph(rec_title, rec_heading_style))
             story.append(Spacer(1, 10))
-            
+
             safety_status = scan_data.get('safety_status', 'safe')
-            recommendations = self._get_recommendations(safety_status)
-            
-            # Простий стиль для рекомендацій без HTML
+            recommendations = self._get_recommendations(safety_status, lang)
             rec_style = ParagraphStyle(
-                'Recommendation',
-                parent=normal_style,
-                leftIndent=20,
-                firstLineIndent=-20,
+                'Recommendation', parent=normal_style,
+                leftIndent=20, firstLineIndent=-20,
                 spaceAfter=8
             )
-            
             for rec in recommendations:
-                # Забираємо HTML теги для простоти
-                clean_rec = rec.replace('<b>', '').replace('</b>', '').replace('<font color="red">', '').replace('</font>', '')
-                story.append(Paragraph(f"• {self.normalize_text(clean_rec)}", rec_style))
-            
+                story.append(Paragraph(f"• {self.normalize_text(rec)}", rec_style))
             story.append(Spacer(1, 30))
-            
+
             # Футер
             footer_style = ParagraphStyle(
-                'Footer',
-                parent=normal_style,
-                fontSize=9,
-                textColor=colors.grey,
-                spaceAfter=6,
-                alignment=TA_CENTER
+                'Footer', parent=normal_style,
+                fontSize=9, textColor=colors.grey,
+                spaceAfter=6, alignment=TA_CENTER
             )
-            
-            story.append(Paragraph(
-                f"Звіт створено: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}",
-                footer_style
-            ))
-            story.append(Paragraph(
-                "Згенеровано за допомогою Skipley - сканера косметичних інгредієнтів",
-                footer_style
-            ))
-            
-            # Створюємо PDF
+            footer1 = f"Звіт створено: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}" if lang == 'uk' else f"Report generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            footer2 = "Згенеровано за допомогою Skipley - сканера косметичних інгредієнтів" if lang == 'uk' else "Generated by Skipley - Cosmetic Ingredient Scanner"
+            story.append(Paragraph(footer1, footer_style))
+            story.append(Paragraph(footer2, footer_style))
+
             doc.build(story)
-            
-            # Отримуємо bytes
             pdf_bytes = buffer.getvalue()
             buffer.close()
-            
             print(f"PDF створено, розмір: {len(pdf_bytes)} байт")
             return pdf_bytes
-            
+
         except Exception as e:
-            print(f"Помилка створення PDF: {str(e)}")
-            import traceback
+            print(f"Помилка створення PDF: {e}")
             traceback.print_exc()
-            
-            # Повертаємо простий PDF з повідомленням про помилку
             return self._create_error_pdf(str(e))
-    
+
     def _create_error_pdf(self, error_message):
-        """Створити простий PDF з повідомленням про помилку"""
+        """Запасной PDF при ошибке"""
         try:
             buffer = io.BytesIO()
-            
             doc = SimpleDocTemplate(buffer, pagesize=A4)
             styles = getSampleStyleSheet()
-            
-            story = []
-            
-            story.append(Paragraph("ПОМИЛКА ПРИ СТВОРЕННІ ЗВІТУ", styles['Title']))
-            story.append(Spacer(1, 20))
-            story.append(Paragraph(f"Помилка: {error_message}", styles['Normal']))
-            story.append(Spacer(1, 20))
-            story.append(Paragraph("Будь ласка, спробуйте ще раз або зверніться до адміністратора.", styles['Normal']))
-            
+            story = [
+                Paragraph("ПОМИЛКА ПРИ СТВОРЕННІ ЗВІТУ", styles['Title']),
+                Spacer(1, 20),
+                Paragraph(f"Помилка: {error_message}", styles['Normal']),
+                Spacer(1, 20),
+                Paragraph("Будь ласка, спробуйте ще раз або зверніться до адміністратора.", styles['Normal'])
+            ]
             doc.build(story)
-            pdf_bytes = buffer.getvalue()
-            buffer.close()
-            
-            return pdf_bytes
-            
+            return buffer.getvalue()
         except:
-            # Якщо навіть це не спрацювало, повертаємо пустий PDF
             return b''
-    
-    def _get_recommendations(self, safety_status):
-        """Отримати рекомендації за рівнем безпеки"""
+
+    # ---------- Вспомогательные методы с языком ----------
+    def _get_type_text(self, type_code, lang):
+        if lang == 'uk':
+            return {'manual': 'Текст', 'camera': 'Фото'}.get(type_code, 'Невідомий тип')
+        return {'manual': 'Text', 'camera': 'Photo'}.get(type_code, 'Unknown type')
+
+    def _get_method_text(self, method_code, lang):
+        if lang == 'uk':
+            return {'text': 'Ручний ввід', 'device': 'З пристрою', 'camera': 'Камера'}.get(method_code, 'Невідомий метод')
+        return {'text': 'Manual input', 'device': 'From device', 'camera': 'Camera'}.get(method_code, 'Unknown method')
+
+    def _get_safety_status_text(self, status, lang):
+        if lang == 'uk':
+            return {
+                'danger': 'Високий ризик', 'high': 'Високий ризик',
+                'warning': 'Середній ризик', 'medium': 'Середній ризик',
+                'safe': 'Безпечно', 'low': 'Низький ризик'
+            }.get(status, 'Невідомий статус')
+        return {
+            'danger': 'High risk', 'high': 'High risk',
+            'warning': 'Medium risk', 'medium': 'Medium risk',
+            'safe': 'Safe', 'low': 'Low risk'
+        }.get(status, 'Unknown status')
+
+    def _get_risk_text(self, risk_level, lang):
+        if lang == 'uk':
+            return {
+                'high': 'Високий', 'danger': 'Високий',
+                'medium': 'Середній', 'warning': 'Середній',
+                'low': 'Низький', 'safe': 'Безпечний', 'unknown': 'Невідомий'
+            }.get(risk_level, 'Невідомий')
+        return {
+            'high': 'High', 'danger': 'High',
+            'medium': 'Medium', 'warning': 'Medium',
+            'low': 'Low', 'safe': 'Safe', 'unknown': 'Unknown'
+        }.get(risk_level, 'Unknown')
+
+    def _get_recommendations(self, safety_status, lang):
         if safety_status in ['danger', 'high']:
+            if lang == 'uk':
+                return [
+                    "Продукт містить інгредієнти високого ризику.",
+                    "Рекомендуємо уникати регулярного використання.",
+                    "Розгляньте альтернативні продукти без небезпечних компонентів.",
+                    "Консультуйтеся з дерматологом при виникненні подразнень."
+                ]
             return [
-                "Продукт містить інгредієнти високого ризику.",
-                "Рекомендуємо уникати регулярного використання цього продукту.",
-                "Розгляньте альтернативні продукти без небезпечних компонентів.",
-                "Консультуйтеся з дерматологом при виникненні подразнень.",
-                "Завжди перевіряйте склад перед придбанням косметики."
+                "Product contains high-risk ingredients.",
+                "Avoid regular use of this product.",
+                "Consider alternative products without hazardous components.",
+                "Consult a dermatologist if irritation occurs."
             ]
         elif safety_status in ['warning', 'medium']:
+            if lang == 'uk':
+                return [
+                    "Продукт містить інгредієнти середнього ризику.",
+                    "Використовуйте продукт з обережністю та спостерігайте за реакцією шкіри.",
+                    "Не використовуйте продукт на пошкодженій шкірі.",
+                    "При тривалому використанні робіть перерви."
+                ]
             return [
-                "Продукт містить інгредієнти середнього ризику.",
-                "Використовуйте продукт з обережністю та спостерігайте за реакцією шкіри.",
-                "Не використовуйте продукт на пошкодженій шкірі.",
-                "При тривалому використанні робіть перерви.",
-                "Проводьте тест на алергію перед першим використанням."
+                "Product contains moderate-risk ingredients.",
+                "Use with caution and monitor skin reaction.",
+                "Do not apply to damaged skin.",
+                "Take breaks during prolonged use."
             ]
         else:
+            if lang == 'uk':
+                return [
+                    "Продукт відносно безпечний для використання.",
+                    "Дотримуйтесь інструкцій використання від виробника.",
+                    "Проводьте тест на алергію перед першим використанням.",
+                    "Зберігайте продукт відповідно до вказівок виробника."
+                ]
             return [
-                "Продукт відносно безпечний для використання.",
-                "Дотримуйтесь інструкцій використання від виробника.",
-                "Проводьте тест на алергію перед першим використанням.",
-                "Зберігайте продукт відповідно до вказівок виробника.",
-                "Регулярно оновлюйте інформацію про безпеку інгредієнтів."
+                "Product is relatively safe to use.",
+                "Follow the manufacturer's instructions.",
+                "Perform an allergy test before first use.",
+                "Store the product as recommended."
             ]
-    
-    def _get_type_text(self, type_code):
-        types = {
-            'manual': 'Текст',
-            'camera': 'Фото'
-        }
-        return types.get(type_code, 'Невідомий тип')
-    
-    def _get_method_text(self, method_code):
-        methods = {
-            'text': 'Ручний ввід',
-            'device': 'З пристрою',
-            'camera': 'Камера'
-        }
-        return methods.get(method_code, 'Невідомий метод')
-    
-    def _get_safety_status_text(self, status):
-        statuses = {
-            'danger': 'Високий ризик',
-            'high': 'Високий ризик',
-            'warning': 'Середній ризик',
-            'medium': 'Середній ризик',
-            'safe': 'Безпечно',
-            'low': 'Низький ризик'
-        }
-        return statuses.get(status, 'Невідомий статус')
-    
-    def _get_risk_text(self, risk_level):
-        texts = {
-            'high': 'Високий',
-            'danger': 'Високий',
-            'medium': 'Середній',
-            'warning': 'Середній',
-            'low': 'Низький',
-            'safe': 'Безпечний',
-            'unknown': 'Невідомий'
-        }
-        return texts.get(risk_level, 'Невідомий')

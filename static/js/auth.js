@@ -107,13 +107,7 @@ function togglePasswordVisibility(inputId) {
 }
 
 function showMessage(message, type) {
-    var messageDiv = document.createElement('div');
-    messageDiv.className = 'message ' + type;
-    messageDiv.textContent = message;
-    document.body.appendChild(messageDiv);
-    setTimeout(function() {
-        if (messageDiv.parentNode) messageDiv.parentNode.removeChild(messageDiv);
-    }, 5000);
+    // Уведомления отключены глобально через CSS
 }
 
 function preventAutofill(formId) {

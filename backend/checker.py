@@ -133,6 +133,7 @@ class IngredientChecker:
             {
                 "id": 1001, "name": "Aqua", "risk_level": "safe", "category": "solvent",
                 "description": "Вода, основа косметичних засобів (INCI: Aqua)",
+                "description_en": "Water, base of cosmetic products (INCI: Aqua)",
                 "aliases": ["aqua", "вода", "water", "eau", "h2o", "purified water", 
                            "distilled water", "deionized water", "spring water", 
                            "маріс аква", "maris aqua", "дистильована вода", "очищена вода"],
@@ -141,6 +142,7 @@ class IngredientChecker:
             {
                 "id": 1002, "name": "Water", "risk_level": "safe", "category": "solvent",
                 "description": "Очищена вода",
+                "description_en": "Purified water",
                 "aliases": ["water", "вода", "aqua", "eau", "purified h2o", "deionized h2o"],
                 "source": "local"
             },
@@ -149,6 +151,7 @@ class IngredientChecker:
             {
                 "id": 1003, "name": "Sodium Laureth Sulfate", "risk_level": "medium", "category": "surfactant",
                 "description": "SLES, піноутворювач, може висушувати шкіру при частому використанні",
+                "description_en": "SLES, foaming agent, may dry skin with frequent use",
                 "aliases": ["sodium laureth sulfate", "sles", "натрію лаурет сульфат", 
                            "sls", "sodium lauryl ether sulfate", "sodium lauryl sulfate ether",
                            "содиум лаурет сульфат", "натрій лаурет сульфат"],
@@ -157,6 +160,7 @@ class IngredientChecker:
             {
                 "id": 1004, "name": "Sodium Lauryl Sulfate", "risk_level": "medium", "category": "surfactant",
                 "description": "SLS, більш агресивний ніж SLES, може викликати подразнення",
+                "description_en": "SLS, more aggressive than SLES, may cause irritation",
                 "aliases": ["sodium lauryl sulfate", "sls", "натрію лауріл сульфат", 
                            "sodium dodecyl sulfate", "содиум лауріл сульфат",
                            "натрій лауріл сульфат", "sds"],
@@ -165,6 +169,7 @@ class IngredientChecker:
             {
                 "id": 1005, "name": "Cocamidopropyl Betaine", "risk_level": "low", "category": "surfactant",
                 "description": "М'який ПАР з кокосової олії, підходить для чутливої шкіри",
+                "description_en": "Mild surfactant from coconut oil, suitable for sensitive skin",
                 "aliases": ["cocamidopropyl betaine", "копамідопропіл бетаїн", 
                            "coco betaine", "capb", "копамідопропил бетаин",
                            "cocamidopropylbetaine", "cocoamidopropyl betaine"],
@@ -173,6 +178,7 @@ class IngredientChecker:
             {
                 "id": 1006, "name": "Decyl Glucoside", "risk_level": "low", "category": "surfactant",
                 "description": "Натуральний м'який ПАР з кокосової олії та кукурудзи",
+                "description_en": "Natural mild surfactant from coconut oil and corn",
                 "aliases": ["decyl glucoside", "децил глюкозид", "alkyl polyglucoside",
                            "децил глюкозід", "plant-based surfactant"],
                 "source": "local"
@@ -180,6 +186,7 @@ class IngredientChecker:
             {
                 "id": 1007, "name": "Sodium Cocoyl Isethionate", "risk_level": "low", "category": "surfactant",
                 "description": "Дуже м'який ПАР для делікатних засобів",
+                "description_en": "Very mild surfactant for gentle products",
                 "aliases": ["sodium cocoyl isethionate", "натрію кокоїл ізетіонат",
                            "sci", "soft surfactant", "кокоїл ізетіонат натрію"],
                 "source": "local"
@@ -187,6 +194,7 @@ class IngredientChecker:
             {
                 "id": 1008, "name": "Coco Glucoside", "risk_level": "low", "category": "surfactant",
                 "description": "Глюкозид з кокосової олії, біорозкладний",
+                "description_en": "Coconut oil glucoside, biodegradable",
                 "aliases": ["coco glucoside", "коко глюкозид", "coconut glucoside",
                            "кокосовий глюкозид", "alkyl polyglucoside"],
                 "source": "local"
@@ -197,6 +205,7 @@ class IngredientChecker:
             {
                 "id": 1009, "name": "Formaldehyde", "risk_level": "high", "category": "preservative",
                 "description": "Канцероген, заборонений у багатьох країнах",
+                "description_en": "Carcinogen, banned in many countries",
                 "aliases": ["formaldehyde", "формальдегід", "formalin", "methanal",
                            "формалін", "methyl aldehyde", "oxomethane"],
                 "source": "local"
@@ -204,6 +213,7 @@ class IngredientChecker:
             {
                 "id": 1010, "name": "Methylisothiazolinone", "risk_level": "high", "category": "preservative",
                 "description": "Сильніший алерген, обмежений в ЄС з 2017 року",
+                "description_en": "Strong allergen, restricted in EU since 2017",
                 "aliases": ["methylisothiazolinone", "мітілізотіазолінон", "mit", "mi", 
                            "kathon cg", "methylisothiazolin", "2-methyl-4-isothiazolin-3-one"],
                 "source": "local"
@@ -211,6 +221,7 @@ class IngredientChecker:
             {
                 "id": 1011, "name": "Methylchloroisothiazolinone", "risk_level": "high", "category": "preservative",
                 "description": "Сильний алерген, часто в комбінації з MIT",
+                "description_en": "Strong allergen, often combined with MIT",
                 "aliases": ["methylchloroisothiazolinone", "мітілхлороізотіазолінон", 
                            "mci", "cmit", "5-chloro-2-methyl-4-isothiazolin-3-one",
                            "chloromethylisothiazolinone"],
@@ -219,6 +230,7 @@ class IngredientChecker:
             {
                 "id": 1012, "name": "DMDM Hydantoin", "risk_level": "high", "category": "preservative",
                 "description": "Виділяє формальдегід, алерген",
+                "description_en": "Releases formaldehyde, allergen",
                 "aliases": ["dmdm hydantoin", "дмдм гідантоїн", "dimethyl dimethyl hydantoin",
                            "формальдегід-виділяючий консервант"],
                 "source": "local"
@@ -228,6 +240,7 @@ class IngredientChecker:
             {
                 "id": 1013, "name": "Methylparaben", "risk_level": "medium", "category": "preservative",
                 "description": "Парабен, дозволений в ЄС до 0.4%, дослідження про гормональний вплив",
+                "description_en": "Paraben, allowed in EU up to 0.4%, studies on hormonal effects",
                 "aliases": ["methylparaben", "methyl paraben", "метилпарабен", "парабен", 
                            "e218", "n-methyl-4-hydroxybenzoate", "метил парабен"],
                 "source": "local"
@@ -235,6 +248,7 @@ class IngredientChecker:
             {
                 "id": 1014, "name": "Propylparaben", "risk_level": "medium", "category": "preservative",
                 "description": "Парабен, дозволений в ЄС до 0.14%",
+                "description_en": "Paraben, allowed in EU up to 0.14%",
                 "aliases": ["propylparaben", "propyl paraben", "пропилпарабен", "e216",
                            "n-propyl-4-hydroxybenzoate", "пропил парабен"],
                 "source": "local"
@@ -242,6 +256,7 @@ class IngredientChecker:
             {
                 "id": 1015, "name": "Butylparaben", "risk_level": "medium", "category": "preservative",
                 "description": "Парабен, обмежений в ЄС",
+                "description_en": "Paraben, restricted in EU",
                 "aliases": ["butylparaben", "butyl paraben", "бутилпарабен", 
                            "n-butyl-4-hydroxybenzoate", "бутил парабен"],
                 "source": "local"
@@ -249,6 +264,7 @@ class IngredientChecker:
             {
                 "id": 1016, "name": "Phenoxyethanol", "risk_level": "medium", "category": "preservative",
                 "description": "Широко використовуваний консервант, обмежений до 1% в ЄС",
+                "description_en": "Widely used preservative, restricted to 1% in EU",
                 "aliases": ["phenoxyethanol", "феноксиетанол", "2-phenoxyethanol",
                            "ethylene glycol monophenyl ether", "rose ether"],
                 "source": "local"
@@ -258,6 +274,7 @@ class IngredientChecker:
             {
                 "id": 1017, "name": "Potassium Sorbate", "risk_level": "low", "category": "preservative",
                 "description": "Сіль сорбінової кислоти, харчовий консервант",
+                "description_en": "Sorbic acid salt, food-grade preservative",
                 "aliases": ["potassium sorbate", "сорбат калію", "e202", 
                            "potassium (e,e)-hexa-2,4-dienoate"],
                 "source": "local"
@@ -265,6 +282,7 @@ class IngredientChecker:
             {
                 "id": 1018, "name": "Sodium Benzoate", "risk_level": "low", "category": "preservative",
                 "description": "Консервант, дозволений у косметиці до 0.5%",
+                "description_en": "Preservative, allowed in cosmetics up to 0.5%",
                 "aliases": ["sodium benzoate", "бензоат натрію", "e211",
                            "sodium salt of benzoic acid", "бензоат натрия"],
                 "source": "local"
@@ -274,6 +292,7 @@ class IngredientChecker:
             {
                 "id": 1019, "name": "Parfum", "risk_level": "medium", "category": "fragrance",
                 "description": "Ароматизатор. Може викликати алергію у чутливих людей.",
+                "description_en": "Fragrance. May cause allergic reactions in sensitive individuals.",
                 "aliases": ["parfum", "fragrance", "aroma", "perfume", "парфум", 
                            "ароматизатор", "отдушка", "парфюмерна композиція", 
                            "fragrance mix", "духи", "аромат"],
@@ -282,6 +301,7 @@ class IngredientChecker:
             {
                 "id": 1020, "name": "Fragrance", "risk_level": "medium", "category": "fragrance",
                 "description": "Ароматична композиція. Основний алерген у косметиці.",
+                "description_en": "Fragrance composition. Major allergen in cosmetics.",
                 "aliases": ["fragrance", "parfum", "aroma", "аромат", "запах",
                            "відтінок", "ессенція", "ефір", "парфюм"],
                 "source": "local"
@@ -289,6 +309,7 @@ class IngredientChecker:
             {
                 "id": 1021, "name": "Limonene", "risk_level": "medium", "category": "fragrance",
                 "description": "Ароматичне з'єднання, алерген, окислюється на повітрі",
+                "description_en": "Aromatic compound, allergen, oxidizes in air",
                 "aliases": ["limonene", "лімонен", "d-limonene", "цитрусовий терпен",
                            "1-methyl-4-(1-methylethenyl)cyclohexene"],
                 "source": "local"
@@ -296,6 +317,7 @@ class IngredientChecker:
             {
                 "id": 1022, "name": "Linalool", "risk_level": "medium", "category": "fragrance",
                 "description": "Ароматичне з'єднання, алерген при окисленні",
+                "description_en": "Aromatic compound, allergen when oxidized",
                 "aliases": ["linalool", "ліналоол", "3,7-dimethyl-1,6-octadien-3-ol",
                            "лавандова олія компонент", "кораліналоол"],
                 "source": "local"
@@ -305,6 +327,7 @@ class IngredientChecker:
             {
                 "id": 1023, "name": "Alcohol Denat", "risk_level": "medium", "category": "solvent",
                 "description": "Денатурований спирт. Висушує шкіру, може порушувати бар'єр.",
+                "description_en": "Denatured alcohol. Dries skin, may impair barrier function.",
                 "aliases": ["alcohol denat", "alcohol", "спирт", "денатурований спирт", 
                            "ethanol denatured", "ethyl alcohol denatured", 
                            "денатурат", "технічний спирт"],
@@ -313,6 +336,7 @@ class IngredientChecker:
             {
                 "id": 1024, "name": "Alcohol", "risk_level": "medium", "category": "solvent",
                 "description": "Спирт, висушує шкіру, використовуйте помірно",
+                "description_en": "Alcohol, dries skin, use moderately",
                 "aliases": ["alcohol", "спирт", "ethanol", "ethyl alcohol", 
                            "етанол", "зерновий спирт", "винний спирт"],
                 "source": "local"
@@ -320,6 +344,7 @@ class IngredientChecker:
             {
                 "id": 1025, "name": "Propylene Glycol", "risk_level": "medium", "category": "solvent",
                 "description": "Розчинник та зволожувач. Може подразнювати чутливу шкіру.",
+                "description_en": "Solvent and humectant. May irritate sensitive skin.",
                 "aliases": ["propylene glycol", "пропіленгліколь", "пропілен гліколь", 
                            "pg", "1,2-propanediol", "пропандіол", "агент проникнення"],
                 "source": "local"
@@ -327,6 +352,7 @@ class IngredientChecker:
             {
                 "id": 1026, "name": "Glycerin", "risk_level": "low", "category": "humectant",
                 "description": "Гліцерин, натуральний зволожувач",
+                "description_en": "Glycerin, natural humectant",
                 "aliases": ["glycerin", "гліцерин", "glycerol", "glycerine", "e422",
                            "1,2,3-propanetriol", "гліцерол", "растительный глицерин"],
                 "source": "local"
@@ -334,6 +360,7 @@ class IngredientChecker:
             {
                 "id": 1027, "name": "Butylene Glycol", "risk_level": "low", "category": "solvent",
                 "description": "Розчинник, м'якіший ніж пропіленгліколь",
+                "description_en": "Solvent, milder than propylene glycol",
                 "aliases": ["butylene glycol", "бутиленгліколь", "1,3-butanediol",
                            "бутандіол", "bg", "butanediol"],
                 "source": "local"
@@ -343,6 +370,7 @@ class IngredientChecker:
             {
                 "id": 1028, "name": "Cetearyl Alcohol", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор та загущувач, не висушує шкіру",
+                "description_en": "Emulsifier and thickener, does not dry skin",
                 "aliases": ["cetearyl alcohol", "цетеариловий спирт", "cetylstearyl alcohol",
                            "цетеарил алкохол", "емолент-емульгатор"],
                 "source": "local"
@@ -350,6 +378,7 @@ class IngredientChecker:
             {
                 "id": 1029, "name": "Glyceryl Stearate", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор з гліцерину та стеаринової кислоти",
+                "description_en": "Emulsifier from glycerin and stearic acid",
                 "aliases": ["glyceryl stearate", "гліцерил стеарат", "glycerol monostearate",
                            "гліцерин моностеарат", "gms", "emulsifier gms"],
                 "source": "local"
@@ -359,6 +388,7 @@ class IngredientChecker:
             {
                 "id": 1030, "name": "PEG-4", "risk_level": "low", "category": "emulsifier",
                 "description": "Поліетиленгліколь, емульгатор",
+                "description_en": "Polyethylene glycol, emulsifier",
                 "aliases": ["peg-4", "peg", "поліетиленгліколь", "поліетилен гліколь", 
                            "polyethylene glycol", "macrogol", "пэг-4", "пег-4"],
                 "source": "local"
@@ -366,6 +396,7 @@ class IngredientChecker:
             {
                 "id": 1031, "name": "PEG-4 Cocoate", "risk_level": "low", "category": "emulsifier",
                 "description": "Ефір кокосової олії та ПЕГ-4",
+                "description_en": "Coconut oil and PEG-4 ether",
                 "aliases": ["peg-4 cocoate", "пег-4 кокоат", "polyethylene glycol-4 coconut ester",
                            "кокосовий ефір пег-4", "peg-4 coconut ester"],
                 "source": "local"
@@ -375,6 +406,7 @@ class IngredientChecker:
             {
                 "id": 1032, "name": "Mineral Oil", "risk_level": "low", "category": "emollient",
                 "description": "Мінеральна олія, окклюзійний агент. Безпечно, але може бути комедогенним для жирної шкіри.",
+                "description_en": "Mineral oil, occlusive agent. Safe, but may be comedogenic for oily skin.",
                 "aliases": ["mineral oil", "парафінове масло", "paraffinum liquidum", 
                            "вазелін", "petroleum oil", "вазелинове масло", 
                            "біле мінеральне масло", "liquid petroleum", "oil mineral"],
@@ -383,6 +415,7 @@ class IngredientChecker:
             {
                 "id": 1033, "name": "Petrolatum", "risk_level": "low", "category": "emollient",
                 "description": "Вазелін, окклюзійний агент, захищає шкіру",
+                "description_en": "Petroleum jelly, occlusive agent, protects skin",
                 "aliases": ["petrolatum", "вазелін", "petroleum jelly", "soft paraffin",
                            "вазелин", "технічний вазелін", "медичний вазелін"],
                 "source": "local"
@@ -390,6 +423,7 @@ class IngredientChecker:
             {
                 "id": 1034, "name": "Dimethicone", "risk_level": "low", "category": "emollient",
                 "description": "Силікон, створює захисну плівку, некомедогенний",
+                "description_en": "Silicone, creates protective film, non-comedogenic",
                 "aliases": ["dimethicone", "диметикон", "силікон", "silicone", 
                            "polydimethylsiloxane", "pdmso", "діметикон", 
                            "силикон", "диметиконол"],
@@ -398,6 +432,7 @@ class IngredientChecker:
             {
                 "id": 1035, "name": "Cyclopentasiloxane", "risk_level": "low", "category": "emollient",
                 "description": "Летючий силікон, не залишає жирного блиску",
+                "description_en": "Volatile silicone, leaves no greasy residue",
                 "aliases": ["cyclopentasiloxane", "циклопентасилоксан", "decamethylcyclopentasiloxane",
                            "d5", "cyclomethicone", "cyclic silicone"],
                 "source": "local"
@@ -405,6 +440,7 @@ class IngredientChecker:
             {
                 "id": 1036, "name": "Squalane", "risk_level": "safe", "category": "emollient",
                 "description": "Скваланан, легка олія, ідентична шкірному себуму",
+                "description_en": "Squalane, lightweight oil, identical to skin sebum",
                 "aliases": ["squalane", "скваланан", "perhydrosqualene", 
                            "гідрогенізований сквален", "олія сквалану"],
                 "source": "local"
@@ -412,6 +448,7 @@ class IngredientChecker:
             {
                 "id": 1037, "name": "Jojoba Oil", "risk_level": "safe", "category": "emollient",
                 "description": "Олія жожоба, близька до шкірного себуму",
+                "description_en": "Jojoba oil, similar to skin sebum",
                 "aliases": ["jojoba oil", "олія жожоба", "simmondsia chinensis oil",
                            "wax ester oil", "желтое масло жожоба", "холодного пресування жожоба"],
                 "source": "local"
@@ -419,6 +456,7 @@ class IngredientChecker:
             {
                 "id": 1038, "name": "Argan Oil", "risk_level": "safe", "category": "emollient",
                 "description": "Арганове масло, багате на вітамін Е",
+                "description_en": "Argan oil, rich in vitamin E",
                 "aliases": ["argan oil", "арганове масло", "argania spinosa oil",
                            "марокканське масло", "олія аргана", "аргановое масло"],
                 "source": "local"
@@ -426,6 +464,7 @@ class IngredientChecker:
             {
                 "id": 1039, "name": "Caprylic/Capric Triglyceride", "risk_level": "low", "category": "emollient",
                 "description": "Тригліцериди кокосової олії, легкий емолент",
+                "description_en": "Coconut oil triglycerides, lightweight emollient",
                 "aliases": ["caprylic/capric triglyceride", "каприлік/каприк тригліцерид",
                            "mct oil", "medium chain triglycerides", "кокосові тригліцериди"],
                 "source": "local"
@@ -436,6 +475,7 @@ class IngredientChecker:
             {
                 "id": 1040, "name": "Oxybenzone", "risk_level": "high", "category": "UV filter",
                 "description": "Бензофенон-3, ендокринний дизраптор, заборонений на Гаваях",
+                "description_en": "Benzophenone-3, endocrine disruptor, banned in Hawaii",
                 "aliases": ["oxybenzone", "оксибензон", "benzophenone-3", "бензофенон-3", 
                            "bp-3", "2-hydroxy-4-methoxybenzophenone", "оксибензон-3"],
                 "source": "local"
@@ -443,6 +483,7 @@ class IngredientChecker:
             {
                 "id": 1041, "name": "Benzophenone-3", "risk_level": "high", "category": "UV filter",
                 "description": "Оксибензон, ендокринний дизраптор",
+                "description_en": "Oxybenzone, endocrine disruptor",
                 "aliases": ["benzophenone-3", "бензофенон-3", "oxybenzone", "оксибензон",
                            "ср-3", "uv-absorber benzophenone"],
                 "source": "local"
@@ -452,6 +493,7 @@ class IngredientChecker:
             {
                 "id": 1042, "name": "Avobenzone", "risk_level": "medium", "category": "UV filter",
                 "description": "УФ-фільтр широкого спектра, може розкладатися на сонці",
+                "description_en": "Broad-spectrum UV filter, may degrade in sunlight",
                 "aliases": ["avobenzone", "авобензон", "butyl methoxydibenzoylmethane",
                            "parsol 1789", "uvinul a plus", "дибензоїлметан"],
                 "source": "local"
@@ -459,6 +501,7 @@ class IngredientChecker:
             {
                 "id": 1043, "name": "Octinoxate", "risk_level": "medium", "category": "UV filter",
                 "description": "УФ-фільтр, ендокринний дизраптор у високих концентраціях",
+                "description_en": "UV filter, endocrine disruptor at high concentrations",
                 "aliases": ["octinoxate", "октиноксат", "ethylhexyl methoxycinnamate",
                            "omc", "парасол mcx", "uv-absorber octinoxate"],
                 "source": "local"
@@ -468,6 +511,7 @@ class IngredientChecker:
             {
                 "id": 1044, "name": "Titanium Dioxide", "risk_level": "low", "category": "UV filter",
                 "description": "Мінеральний УФ-фільтр, безпечний, може залишати білий слід",
+                "description_en": "Mineral UV filter, safe, may leave white cast",
                 "aliases": ["titanium dioxide", "діоксид титану", "ci 77891", "tio2",
                            "титановые белила", "титаній діоксид", "пигмент білий 6"],
                 "source": "local"
@@ -475,6 +519,7 @@ class IngredientChecker:
             {
                 "id": 1045, "name": "Zinc Oxide", "risk_level": "low", "category": "UV filter",
                 "description": "Мінеральний УФ-фільтр, найбезпечніший, протизапальний",
+                "description_en": "Mineral UV filter, safest, anti-inflammatory",
                 "aliases": ["zinc oxide", "оксид цинку", "ci 77947", "zno",
                            "цинкова паста", "цинковый крем", "цинк оксид"],
                 "source": "local"
@@ -484,6 +529,7 @@ class IngredientChecker:
             {
                 "id": 1046, "name": "Triclosan", "risk_level": "high", "category": "antibacterial",
                 "description": "Антибактеріальний агент, сприяє резистентності, заборонений в ЄС",
+                "description_en": "Antibacterial agent, promotes resistance, banned in EU",
                 "aliases": ["triclosan", "триклозан", "2,4,4'-trichloro-2'-hydroxydiphenyl ether",
                            "антибактеріальний триклозан", "інгібітор бактерій"],
                 "source": "local"
@@ -491,6 +537,7 @@ class IngredientChecker:
             {
                 "id": 1047, "name": "Triclocarban", "risk_level": "high", "category": "antibacterial",
                 "description": "Антибактеріальний агент, аналогічно триклозану",
+                "description_en": "Antibacterial agent, similar to triclosan",
                 "aliases": ["triclocarban", "триклокарбан", "3,4,4'-trichlorocarbanilide",
                            "tcc", "антибактеріальний карбанілід"],
                 "source": "local"
@@ -500,6 +547,7 @@ class IngredientChecker:
             {
                 "id": 1048, "name": "Tetrasodium EDTA", "risk_level": "medium", "category": "chelating agent",
                 "description": "Хелатуючий агент, покращує піну, може подразнювати шкіру",
+                "description_en": "Chelating agent, improves foam, may irritate skin",
                 "aliases": ["tetrasodium edta", "тетранатрій едта", "едта-4на",
                            "ethylenediaminetetraacetic acid tetrasodium salt",
                            "хелатор", "хелатирующий агент"],
@@ -508,6 +556,7 @@ class IngredientChecker:
             {
                 "id": 1049, "name": "Disodium EDTA", "risk_level": "medium", "category": "chelating agent",
                 "description": "Хелатуючий агент",
+                "description_en": "Chelating agent",
                 "aliases": ["disodium edta", "динатрій едта", "едта-2на",
                            "ethylenediaminetetraacetic acid disodium salt"],
                 "source": "local"
@@ -517,6 +566,7 @@ class IngredientChecker:
             {
                 "id": 1050, "name": "Citric Acid", "risk_level": "low", "category": "pH adjuster",
                 "description": "Лимонна кислота, регулятор pH, AHA у високих концентраціях",
+                "description_en": "Citric acid, pH adjuster, AHA at high concentrations",
                 "aliases": ["citric acid", "лимонна кислота", "сітілова кислота", 
                            "acidum citricum", "e330", "2-hydroxypropane-1,2,3-tricarboxylic acid",
                            "цитрикова кислота"],
@@ -525,6 +575,7 @@ class IngredientChecker:
             {
                 "id": 1051, "name": "Sodium Hydroxide", "risk_level": "high", "category": "pH adjuster",
                 "description": "Луг, корозійний у чистому вигляді, безпечний у готових продуктах",
+                "description_en": "Alkali, corrosive in pure form, safe in finished products",
                 "aliases": ["sodium hydroxide", "гідроксид натрію", "каустична сода",
                            "луг", "едка", "naoh", "каустик", "технічна сода"],
                 "source": "local"
@@ -532,6 +583,7 @@ class IngredientChecker:
             {
                 "id": 1052, "name": "Triethanolamine", "risk_level": "medium", "category": "pH adjuster",
                 "description": "Регулятор pH, може утворювати нітрозаміни",
+                "description_en": "pH adjuster, may form nitrosamines",
                 "aliases": ["triethanolamine", "тріетаноламін", "tea",
                            "2,2',2''-nitrilotriethanol", "емульгатор tea", "tea база"],
                 "source": "local"
@@ -541,6 +593,7 @@ class IngredientChecker:
             {
                 "id": 1053, "name": "Aloe Barbadensis Leaf Juice", "risk_level": "safe", "category": "plant extract",
                 "description": "Сік алое вера, заспокійливий, заживлюючий",
+                "description_en": "Aloe vera juice, soothing, healing",
                 "aliases": ["aloe barbadensis leaf juice", "сік алое вера", "aloe vera gel",
                            "алое барбаденсіс", "алое сік", "aloe extract", "гель алое"],
                 "source": "local"
@@ -548,6 +601,7 @@ class IngredientChecker:
             {
                 "id": 1054, "name": "Camellia Sinensis Leaf Extract", "risk_level": "safe", "category": "plant extract",
                 "description": "Екстракт зеленого чаю, антиоксидант",
+                "description_en": "Green tea extract, antioxidant",
                 "aliases": ["camellia sinensis leaf extract", "екстракт зеленого чаю",
                            "green tea extract", "чайний екстракт", "антиоксидант чаю"],
                 "source": "local"
@@ -555,6 +609,7 @@ class IngredientChecker:
             {
                 "id": 1055, "name": "Chamomilla Recutita Flower Extract", "risk_level": "safe", "category": "plant extract",
                 "description": "Екстракт ромашки, заспокійливий",
+                "description_en": "Chamomile extract, soothing",
                 "aliases": ["chamomilla recutita flower extract", "екстракт ромашки",
                            "chamomile extract", "ромашковий екстракт", "матрикарія екстракт"],
                 "source": "local"
@@ -562,6 +617,7 @@ class IngredientChecker:
             {
                 "id": 1056, "name": "Centella Asiatica Extract", "risk_level": "safe", "category": "plant extract",
                 "description": "Екстракт центелли азіатської, заживлює, заспокоює",
+                "description_en": "Centella asiatica extract, healing, soothing",
                 "aliases": ["centella asiatica extract", "екстракт центелли", "gotu kola extract",
                            "тігрова трава", "азіатська центелла", "madecassoside source"],
                 "source": "local"
@@ -571,6 +627,7 @@ class IngredientChecker:
             {
                 "id": 1057, "name": "Tocopherol", "risk_level": "safe", "category": "antioxidant",
                 "description": "Вітамін Е, антиоксидант, стабілізатор",
+                "description_en": "Vitamin E, antioxidant, stabilizer",
                 "aliases": ["tocopherol", "токоферол", "vitamin e", "вітамін е",
                            "alpha-tocopherol", "d-alpha-tocopherol", "антиоксидант е"],
                 "source": "local"
@@ -578,6 +635,7 @@ class IngredientChecker:
             {
                 "id": 1058, "name": "Ascorbic Acid", "risk_level": "safe", "category": "antioxidant",
                 "description": "Вітамін С, антиоксидант, освітлює",
+                "description_en": "Vitamin C, antioxidant, brightening",
                 "aliases": ["ascorbic acid", "аскорбінова кислота", "vitamin c", "вітамін с",
                            "l-ascorbic acid", "антиоксидант с", "освітлювач с"],
                 "source": "local"
@@ -585,6 +643,7 @@ class IngredientChecker:
             {
                 "id": 1059, "name": "Retinol", "risk_level": "medium", "category": "active",
                 "description": "Вітамін А, антивіковий, може подразнювати, уникайте при вагітності",
+                "description_en": "Vitamin A, anti-aging, may irritate, avoid during pregnancy",
                 "aliases": ["retinol", "ретинол", "vitamin a", "вітамін а",
                            "all-trans-retinol", "антивіковий ретинол", "retin-a"],
                 "source": "local"
@@ -592,6 +651,7 @@ class IngredientChecker:
             {
                 "id": 1060, "name": "Niacinamide", "risk_level": "safe", "category": "active",
                 "description": "Ніацинамід, вітамін B3, покращує бар'єр, протизапальний",
+                "description_en": "Niacinamide, vitamin B3, improves barrier, anti-inflammatory",
                 "aliases": ["niacinamide", "ніацинамід", "nicotinamide", "вітамін b3", 
                            "вітамін b3", "nicotinic acid amide", "ніацинамід b3"],
                 "source": "local"
@@ -599,6 +659,7 @@ class IngredientChecker:
             {
                 "id": 1061, "name": "Salicylic Acid", "risk_level": "medium", "category": "active",
                 "description": "Саліцилова кислота, BHA, відлущувальний, для жирної шкіри",
+                "description_en": "Salicylic acid, BHA, exfoliant, for oily skin",
                 "aliases": ["salicylic acid", "саліцилова кислота", "beta hydroxy acid", 
                            "bha", "2-hydroxybenzoic acid", "відлущуючий bha"],
                 "source": "local"
@@ -606,6 +667,7 @@ class IngredientChecker:
             {
                 "id": 1062, "name": "Glycolic Acid", "risk_level": "medium", "category": "active",
                 "description": "Гліколева кислота, AHA, відлущувальний, підвищує чутливість до сонця",
+                "description_en": "Glycolic acid, AHA, exfoliant, increases sun sensitivity",
                 "aliases": ["glycolic acid", "гліколева кислота", "alpha hydroxy acid", 
                            "aha", "hydroxyacetic acid", "відлущуючий aha"],
                 "source": "local"
@@ -613,6 +675,7 @@ class IngredientChecker:
             {
                 "id": 1063, "name": "Hyaluronic Acid", "risk_level": "safe", "category": "humectant",
                 "description": "Гіалуронова кислота, зволожувач",
+                "description_en": "Hyaluronic acid, moisturizer",
                 "aliases": ["hyaluronic acid", "гіалуронова кислота", "sodium hyaluronate", 
                            "ha", "hyaluronan", "гіалуронат", "зволожувач ha"],
                 "source": "local"
@@ -620,6 +683,7 @@ class IngredientChecker:
             {
                 "id": 1064, "name": "Ceramide NP", "risk_level": "safe", "category": "skin-identical",
                 "description": "Церамід, відновлює шкірний бар'єр",
+                "description_en": "Ceramide, restores skin barrier",
                 "aliases": ["ceramide np", "церамід np", "ceramide 3", "бар'єрний церамід",
                            "шкірний ліпід", "natural moisturizing factor"],
                 "source": "local"
@@ -627,6 +691,7 @@ class IngredientChecker:
             {
                 "id": 1065, "name": "Allantoin", "risk_level": "safe", "category": "soothing",
                 "description": "Алантоїн, заспокійливий, заживлюючий",
+                "description_en": "Allantoin, soothing, healing",
                 "aliases": ["allantoin", "алантоїн", "5-ureidohydantoin", 
                            "заспокійливий агент", "регенеруючий алантоїн"],
                 "source": "local"
@@ -634,6 +699,7 @@ class IngredientChecker:
             {
                 "id": 1066, "name": "Panthenol", "risk_level": "safe", "category": "soothing",
                 "description": "Пантенол, провітамін B5, зволожує, заспокоює",
+                "description_en": "Panthenol, provitamin B5, moisturizes, soothes",
                 "aliases": ["panthenol", "пантенол", "provitamin b5", "d-panthenol",
                            "дексопантенол", "вітамін b5", "зволожувач b5"],
                 "source": "local"
@@ -641,6 +707,7 @@ class IngredientChecker:
             {
                 "id": 1067, "name": "Bakuchiol", "risk_level": "safe", "category": "active",
                 "description": "Натуральна альтернатива ретинолу, менш подразнювальна",
+                "description_en": "Natural retinol alternative, less irritating",
                 "aliases": ["bakuchiol", "бакучіол", "psoralea corylifolia extract",
                            "натуральний ретинол", "рослинний ретинол"],
                 "source": "local"
@@ -648,6 +715,7 @@ class IngredientChecker:
             {
                 "id": 1068, "name": "Azelaic Acid", "risk_level": "medium", "category": "active",
                 "description": "Азелаїнова кислота, для акне та розацеа",
+                "description_en": "Azelaic acid, for acne and rosacea",
                 "aliases": ["azelaic acid", "азелаїнова кислота", "nonanedioic acid",
                            "для акне", "для розацеа", "антивосполительная кислота"],
                 "source": "local"
@@ -657,6 +725,7 @@ class IngredientChecker:
             {
                 "id": 1069, "name": "VP/VA Copolymer", "risk_level": "low", "category": "film former",
                 "description": "Плівкоутворюючий полімер, фіксатор",
+                "description_en": "Film-forming polymer, fixative",
                 "aliases": ["vp/va copolymer", "vp va сополімер", "vinylpyrrolidone/vinyl acetate copolymer",
                            "полімер фіксатор", "стайлінг полімер"],
                 "source": "local"
@@ -664,6 +733,7 @@ class IngredientChecker:
             {
                 "id": 1070, "name": "Acrylates Copolymer", "risk_level": "low", "category": "film former",
                 "description": "Полімер, плівкоутворювач",
+                "description_en": "Polymer, film-former",
                 "aliases": ["acrylates copolymer", "акрилатний сополімер", "акриловий полімер",
                            "плівкоутворювач", "фіксуючий полімер"],
                 "source": "local"
@@ -673,6 +743,7 @@ class IngredientChecker:
             {
                 "id": 1071, "name": "Carbomer", "risk_level": "low", "category": "thickener",
                 "description": "Загущувач, створює гелеву текстуру",
+                "description_en": "Thickener, creates gel texture",
                 "aliases": ["carbomer", "карбомер", "carbopol", "акриловий полімер",
                            "загущувач карбомер", "гельуючий агент"],
                 "source": "local"
@@ -680,6 +751,7 @@ class IngredientChecker:
             {
                 "id": 1072, "name": "Xanthan Gum", "risk_level": "low", "category": "thickener",
                 "description": "Натуральний загущувач з бактерій",
+                "description_en": "Natural thickener from bacteria",
                 "aliases": ["xanthan gum", "ксантанова камедь", "e415", "бактеріальна камедь",
                            "натуральний загущувач", "ксантан"],
                 "source": "local"
@@ -689,6 +761,7 @@ class IngredientChecker:
             {
                 "id": 1073, "name": "CI 77891", "risk_level": "low", "category": "pigment",
                 "description": "Діоксид титану, білий пігмент, УФ-фільтр",
+                "description_en": "Titanium dioxide, white pigment, UV filter",
                 "aliases": ["ci 77891", "сі ай 77891", "titanium dioxide", "діоксид титану",
                            "білий пігмент", "титановий діоксид", "пигмент білий 6"],
                 "source": "local"
@@ -696,6 +769,7 @@ class IngredientChecker:
             {
                 "id": 1074, "name": "Mica", "risk_level": "low", "category": "pigment",
                 "description": "Слюда, перламутровий пігмент",
+                "description_en": "Mica, pearlescent pigment",
                 "aliases": ["mica", "слюда", "ci 77019", "muscovite",
                            "перламутровий пігмент", "сіяючий пігмент", "мінеральна слюда"],
                 "source": "local"
@@ -705,6 +779,7 @@ class IngredientChecker:
             {
                 "id": 1075, "name": "Hydrolyzed Silk Protein", "risk_level": "low", "category": "conditioning agent",
                 "description": "Гідролізований шовковий протеїн, кондиціонер для волосся",
+                "description_en": "Hydrolyzed silk protein, hair conditioner",
                 "aliases": ["hydrolyzed silk protein", "гідролізований шовковий протеїн", 
                            "silk amino acids", "шовкові амінокислоти", "кондиціонер шовк"],
                 "source": "local"
@@ -712,6 +787,7 @@ class IngredientChecker:
             {
                 "id": 1076, "name": "Hydrolyzed Collagen", "risk_level": "low", "category": "conditioning agent",
                 "description": "Гідролізований колаген, зволожує",
+                "description_en": "Hydrolyzed collagen, moisturizing",
                 "aliases": ["hydrolyzed collagen", "гідролізований колаген", "collagen peptides",
                            "колагенові пептиди", "зволожуючий колаген"],
                 "source": "local"
@@ -721,6 +797,7 @@ class IngredientChecker:
             {
                 "id": 1077, "name": "Sodium Chloride", "risk_level": "safe", "category": "viscosity controlling",
                 "description": "Кухонна сіль, загущувач у шампунях",
+                "description_en": "Table salt, thickener in shampoos",
                 "aliases": ["sodium chloride", "хлорид натрію", "кухонна сіль", "сіль",
                            "nacl", "загущувач сіль", "поваренна сіль"],
                 "source": "local"
@@ -730,6 +807,7 @@ class IngredientChecker:
             {
                 "id": 1078, "name": "Kojic Acid", "risk_level": "medium", "category": "active",
                 "description": "Кодзієва кислота, освітлює, може подразнювати",
+                "description_en": "Kojic acid, brightening, may irritate",
                 "aliases": ["kojic acid", "кодзієва кислота", "5-hydroxy-2-hydroxymethyl-4-pyrone",
                            "освітлювач", "для гіперпігментації", "відбілювач"],
                 "source": "local"
@@ -737,6 +815,7 @@ class IngredientChecker:
             {
                 "id": 1079, "name": "Arbutin", "risk_level": "low", "category": "active",
                 "description": "Арбутин, освітлює гіперпігментацію",
+                "description_en": "Arbutin, brightens hyperpigmentation",
                 "aliases": ["arbutin", "арбутин", "hydroquinone-beta-d-glucopyranoside",
                            "натуральний освітлювач", "рослинний арбутин"],
                 "source": "local"
@@ -746,6 +825,7 @@ class IngredientChecker:
             {
                 "id": 1080, "name": "Lecithin", "risk_level": "safe", "category": "emulsifier",
                 "description": "Лецитин, натуральний емульгатор",
+                "description_en": "Lecithin, natural emulsifier",
                 "aliases": ["lecithin", "лецитин", "soy lecithin", "соєвий лецитин",
                            "натуральний емульгатор", "фосфоліпід"],
                 "source": "local"
@@ -755,6 +835,7 @@ class IngredientChecker:
             {
                 "id": 1081, "name": "Ethylhexylglycerin", "risk_level": "low", "category": "preservative",
                 "description": "Консервант нового покоління",
+                "description_en": "New-generation preservative",
                 "aliases": ["ethylhexylglycerin", "етилгексилгліцерин", "octoxyglycerin",
                            "мягкий консервант", "консервант-емульгатор"],
                 "source": "local"
@@ -764,6 +845,7 @@ class IngredientChecker:
             {
                 "id": 1082, "name": "Aluminum Chlorohydrate", "risk_level": "medium", "category": "antiperspirant",
                 "description": "Алюмінію хлоргідроксид, антиперспірант",
+                "description_en": "Aluminum chlorohydrate, antiperspirant",
                 "aliases": ["aluminum chlorohydrate", "алюмінію хлоргідроксид", "aluminum chlorhydroxide",
                            "антиперспірант", "зменшує потовиділення", "ach"],
                 "source": "local"
@@ -773,6 +855,7 @@ class IngredientChecker:
             {
                 "id": 1083, "name": "Bambusa Vulgaris Extract", "risk_level": "safe", "category": "plant extract",
                 "description": "Екстракт бамбука, зволожує",
+                "description_en": "Bamboo extract, moisturizing",
                 "aliases": ["bambusa vulgaris extract", "екстракт бамбука", "bamboo extract",
                            "бамбуковий екстракт", "силіцій з бамбука"],
                 "source": "local"
@@ -782,6 +865,7 @@ class IngredientChecker:
             {
                 "id": 1084, "name": "Papain", "risk_level": "low", "category": "enzyme",
                 "description": "Папаїн, протеолітичний фермент, відлущує",
+                "description_en": "Papain, proteolytic enzyme, exfoliating",
                 "aliases": ["papain", "папаїн", "papaya enzyme", "фермент папаї",
                            "відлущуючий фермент", "ензимне пілінг"],
                 "source": "local"
@@ -791,6 +875,7 @@ class IngredientChecker:
             {
                 "id": 1085, "name": "Biotin", "risk_level": "safe", "category": "vitamin",
                 "description": "Біотин, вітамін B7, для волосся та нігтів",
+                "description_en": "Biotin, vitamin B7, for hair and nails",
                 "aliases": ["biotin", "біотин", "vitamin b7", "вітамін b7", "vitamin h",
                            "кофермент r", "для росту волосся"],
                 "source": "local"
@@ -800,6 +885,7 @@ class IngredientChecker:
             {
                 "id": 1086, "name": "Inulin", "risk_level": "safe", "category": "prebiotic",
                 "description": "Інулін, пребіотик",
+                "description_en": "Inulin, prebiotic",
                 "aliases": ["inulin", "інулін", "chicory root fiber", "цикорієвий інулін",
                            "пребіотик", "харчовий волокно"],
                 "source": "local"
@@ -809,6 +895,7 @@ class IngredientChecker:
             {
                 "id": 1087, "name": "Helianthus Annuus Seed Oil", "risk_level": "safe", "category": "emollient",
                 "description": "Соняшникова олія, багата на вітамін Е",
+                "description_en": "Sunflower oil, rich in vitamin E",
                 "aliases": ["helianthus annuus seed oil", "соняшникова олія", "sunflower oil",
                            "масло соняшника", "олія соняшника", "багата вітаміном е"],
                 "source": "local"
@@ -818,6 +905,7 @@ class IngredientChecker:
             {
                 "id": 1088, "name": "Ubiquinone", "risk_level": "safe", "category": "antioxidant",
                 "description": "Коензим Q10, антиоксидант, енергія клітин",
+                "description_en": "Coenzyme Q10, antioxidant, cellular energy",
                 "aliases": ["ubiquinone", "убіхінон", "coenzyme q10", "коензим q10",
                            "coq10", "енергія клітин", "антиоксидант q10"],
                 "source": "local"
@@ -825,6 +913,7 @@ class IngredientChecker:
             {
                 "id": 1089, "name": "Caffeine", "risk_level": "safe", "category": "active",
                 "description": "Кофеїн, зменшує набряки, тонізує",
+                "description_en": "Caffeine, reduces puffiness, toning",
                 "aliases": ["caffeine", "кофеїн", "1,3,7-trimethylxanthine", "для набряків",
                            "тонізатор", "звужує судини"],
                 "source": "local"
@@ -834,6 +923,7 @@ class IngredientChecker:
             {
                 "id": 1090, "name": "Cetyl Palmitate", "risk_level": "low", "category": "emollient",
                 "description": "Цетил пальмітат, емульгатор",
+                "description_en": "Cetyl palmitate, emulsifier",
                 "aliases": ["cetyl palmitate", "цетил пальмітат", "hexadecyl hexadecanoate",
                            "емульгатор", "восковий естер"],
                 "source": "local"
@@ -843,6 +933,7 @@ class IngredientChecker:
             {
                 "id": 1091, "name": "Bentonite", "risk_level": "low", "category": "thickener",
                 "description": "Бентоніт, глина, загущувач",
+                "description_en": "Bentonite, clay, thickener",
                 "aliases": ["bentonite", "бентоніт", "montmorillonite clay", "глина",
                            "очищаюча глина", "маскувальна глина"],
                 "source": "local"
@@ -850,6 +941,7 @@ class IngredientChecker:
             {
                 "id": 1092, "name": "Kaolin", "risk_level": "low", "category": "absorbent",
                 "description": "Каолін, глина, абсорбент",
+                "description_en": "Kaolin, clay, absorbent",
                 "aliases": ["kaolin", "каолін", "china clay", "біла глина",
                            "абсорбуюча глина", "маскувальна глина"],
                 "source": "local"
@@ -857,6 +949,7 @@ class IngredientChecker:
             {
                 "id": 1093, "name": "Silica", "risk_level": "low", "category": "absorbent",
                 "description": "Кремнезем, матує, абсорбує",
+                "description_en": "Silica, mattifies, absorbs",
                 "aliases": ["silica", "кремнезем", "silicon dioxide", "діоксид кремнію",
                            "матирующий агент", "абсорбент", "сіліка"],
                 "source": "local"
@@ -866,42 +959,49 @@ class IngredientChecker:
             {
                 "id": 1094, "name": "Polysorbate 20", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор та солюбілізатор",
+                "description_en": "Emulsifier and solubilizer",
                 "aliases": ["polysorbate 20", "полісорбат 20", "tween 20", "емульгатор 20"],
                 "source": "local"
             },
             {
                 "id": 1095, "name": "Polysorbate 80", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор та солюбілізатор",
+                "description_en": "Emulsifier and solubilizer",
                 "aliases": ["polysorbate 80", "полісорбат 80", "tween 80", "емульгатор 80"],
                 "source": "local"
             },
             {
                 "id": 1096, "name": "Sorbitan Oleate", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор",
+                "description_en": "Emulsifier",
                 "aliases": ["sorbitan oleate", "сорбітан олеат", "span 80", "емульгатор олеат"],
                 "source": "local"
             },
             {
                 "id": 1097, "name": "Ceteareth-20", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор",
+                "description_en": "Emulsifier",
                 "aliases": ["ceteareth-20", "цетеарет-20", "емульгатор цетеарет"],
                 "source": "local"
             },
             {
                 "id": 1098, "name": "Steareth-20", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор",
+                "description_en": "Emulsifier",
                 "aliases": ["steareth-20", "стеарет-20", "емульгатор стеарет"],
                 "source": "local"
             },
             {
                 "id": 1099, "name": "PEG-100 Stearate", "risk_level": "low", "category": "emulsifier",
                 "description": "Емульгатор",
+                "description_en": "Emulsifier",
                 "aliases": ["peg-100 stearate", "пег-100 стеарат", "емульгатор пег-100"],
                 "source": "local"
             },
             {
                 "id": 1100, "name": "Lactic Acid", "risk_level": "low", "category": "pH adjuster",
                 "description": "Молочна кислота, AHA, більш м'який ніж гліколевий",
+                "description_en": "Lactic acid, AHA, milder than glycolic",
                 "aliases": ["lactic acid", "молочна кислота", "aha", "alpha hydroxy acid",
                            "відлущуючий aha", "зволожувальний aha"],
                 "source": "local"
@@ -1137,42 +1237,12 @@ class IngredientChecker:
             "name": ingredient_name,
             "risk_level": risk_level,
             "category": category,
-            "description": self._generate_description(ingredient_name, risk_level, category),
-            "source": "auto_classification",
+            "description": f"Інгредієнт не знайдено в локальній базі. Оцінка на основі ключових слів.",
+            "description_en": "Ingredient not found in local database. Estimated based on keywords.",
+            "source": "not_found",
             "aliases": [],
-            "context": ""
+            "context": "Автоматична оцінка на основі назви"
         }
-    
-    def _generate_description(self, name, risk_level, category):
-        """Генерація зрозумілого опису інгредієнта за його категорією та ризиком."""
-        category_descriptions = {
-            'surfactant': 'Поверхнево-активна речовина (ПАР), використовується як очищувальний компонент',
-            'preservative': 'Консервант, запобігає розвитку мікроорганізмів у продукті',
-            'fragrance': 'Ароматична речовина, надає продукту запах',
-            'solvent': 'Розчинник, забезпечує розчинення інших компонентів',
-            'emollient': 'Пом\'якшувальний компонент, зволожує та захищає шкіру',
-            'UV filter': 'УФ-фільтр, захищає шкіру від ультрафіолетового випромінювання',
-            'active': 'Активний інгредієнт з цілеспрямованою дією на шкіру',
-            'plant extract': 'Рослинний екстракт з природними властивостями',
-            'film former': 'Плівкоутворювач, створює захисну плівку на шкірі',
-            'thickener': 'Загусник, надає продукту необхідну консистенцію',
-            'humectant': 'Зволожувач, притягує та утримує вологу',
-            'emulsifier': 'Емульгатор, з\'єднує водну та олійну фази',
-            'chelating agent': 'Хелатний агент, зв\'язує іони металів',
-            'pH adjuster': 'Регулятор pH, підтримує кислотно-лужний баланс',
-            'colorant': 'Барвник, надає продукту колір',
-        }
-        
-        desc = category_descriptions.get(category, 'Косметичний інгредієнт')
-        
-        risk_notes = {
-            'high': '. Потребує уваги — може викликати подразнення або алергічну реакцію',
-            'medium': '. Помірний ризик — безпечний у допустимих концентраціях',
-            'low': '. Низький ризик — загалом безпечний для більшості типів шкіри',
-            'safe': '. Безпечний — добре переноситься шкірою',
-        }
-        
-        return desc + risk_notes.get(risk_level, '')
     
     def is_potential_ingredient(self, text):
         """Перевірка, чи може текст бути інгредієнтом (ПОКРАЩЕНА версія)"""
@@ -1385,18 +1455,19 @@ class IngredientChecker:
             }
             return local_result
         
-        # 3. Пошук у зовнішніх джерелах (Open Beauty Facts, PubChem)
-        try:
-            external_result = self.external_sources.search(ingredient_name)
-            if external_result and external_result.get('source') != 'not_found':
-                self.search_cache[cache_key] = {
-                    'data': external_result,
-                    'timestamp': datetime.now(),
-                    'source': 'external'
-                }
-                return external_result
-        except Exception as e:
-            print(f"[ExternalData] Помилка: {e}")
+        # 3. Пошук у зовнішніх джерелах
+        if self.use_cache:
+            try:
+                external_result = self.external_sources.search(ingredient_name)
+                if external_result and external_result.get('source') != 'not_found':
+                    self.search_cache[cache_key] = {
+                        'data': external_result,
+                        'timestamp': datetime.now(),
+                        'source': 'external'
+                    }
+                    return external_result
+            except Exception:
+                pass
         
         # 4. Якщо нічого не знайдено
         not_found_result = self._create_not_found_response(ingredient_name)
@@ -1691,6 +1762,7 @@ class ExternalDataFetcher:
                 "risk_level": risk_level,
                 "category": category,
                 "description": f"Косметичний інгредієнт, знайдений у {len(products)} продуктах",
+                "description_en": f"Cosmetic ingredient found in {len(products)} products",
                 "source": "openbeautyfacts",
                 "aliases": [],
                 "context": f"Дані з Open Beauty Facts ({len(products)} продуктів)"
@@ -1729,6 +1801,7 @@ class ExternalDataFetcher:
                 "risk_level": self._assess_risk_by_name(ingredient_lower),
                 "category": self._classify_by_name(ingredient_lower),
                 "description": f"Інгредієнт знайдено у {count} косметичних продуктах",
+                "description_en": f"Ingredient found in {count} cosmetic products",
                 "source": "openbeautyfacts",
                 "aliases": [],
                 "context": f"Open Beauty Facts: {count} продуктів"
@@ -1782,16 +1855,20 @@ class ExternalDataFetcher:
             category = self._classify_by_name(ingredient_lower)
             
             description = f"Хімічна сполука (PubChem CID: {cid})"
+            description_en = f"Chemical compound (PubChem CID: {cid})"
             if mol_formula:
                 description += f", формула: {mol_formula}"
+                description_en += f", formula: {mol_formula}"
             if iupac_name and iupac_name != ingredient_name:
                 description += f", IUPAC: {iupac_name[:80]}"
+                description_en += f", IUPAC: {iupac_name[:80]}"
             
             return {
                 "name": ingredient_name,
                 "risk_level": risk_level,
                 "category": category,
                 "description": description,
+                "description_en": description_en,
                 "source": "pubchem",
                 "aliases": [],
                 "context": f"PubChem CID: {cid}"

@@ -11,6 +11,16 @@ class ScansManager {
         this.currentDetailScan = null;
     }
 
+    normalizeRiskLevel(level) {
+        if (!level) return 'safe';
+        var l = level.toLowerCase().trim();
+        if (l === 'danger') return 'high';
+        if (l === 'warning') return 'medium';
+        if (l === 'low_warning') return 'low';
+        if (['safe', 'low', 'medium', 'high', 'unknown'].indexOf(l) !== -1) return l;
+        return 'safe';
+    }
+
     init() {
         this.bindEvents();
         this.bindFilterEvents();
@@ -37,10 +47,34 @@ class ScansManager {
         var deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
         if (deleteSelectedBtn) deleteSelectedBtn.addEventListener('click', function() { self.deleteSelectedScans(); });
 
-        var exportBtn = document.getElementById('exportScanBtn');
-        if (exportBtn) exportBtn.addEventListener('click', function() {
-            if (self.currentDetailScan) self.exportSingleScanToPdf(self.currentDetailScan.id);
-        });
+        var exportSelectedBtn = document.getElementById('exportSelectedBtn');
+        if (exportSelectedBtn) exportSelectedBtn.addEventListener('click', function() { self.exportSelectedScans(); });
+
+        // Обработчик закрытия модального окна деталей
+        var scanDetailsModal = document.getElementById('scanDetailsModal');
+        if (scanDetailsModal) {
+            scanDetailsModal.addEventListener('click', function(e) {
+                if (e.target === scanDetailsModal) self.closeScanDetails();
+            });
+        }
+
+        // Safety legend modal
+        var safetyInfoBtn = document.getElementById('safetyInfoBtn');
+        var safetyLegendModal = document.getElementById('safetyLegendModal');
+        var closeSafetyLegend = document.getElementById('closeSafetyLegend');
+        if (safetyInfoBtn && safetyLegendModal) {
+            safetyInfoBtn.addEventListener('click', function() {
+                safetyLegendModal.classList.remove('hidden');
+            });
+            if (closeSafetyLegend) {
+                closeSafetyLegend.addEventListener('click', function() {
+                    safetyLegendModal.classList.add('hidden');
+                });
+            }
+            safetyLegendModal.addEventListener('click', function(e) {
+                if (e.target === safetyLegendModal) safetyLegendModal.classList.add('hidden');
+            });
+        }
     }
 
     bindFilterEvents() {
@@ -108,7 +142,7 @@ class ScansManager {
                 if (this.filters.risk) {
                     var riskFilter = this.filters.risk;
                     filteredScans = filteredScans.filter(function(scan) {
-                        var rl = scan.safety_status || scansManager.calculateRiskLevel(scan.ingredients || []);
+                        var rl = scansManager.normalizeRiskLevel(scan.safety_status || scansManager.calculateRiskLevel(scan.ingredients || []));
                         return rl === riskFilter;
                     });
                 }
@@ -157,15 +191,12 @@ class ScansManager {
 
     createScanCard(scan) {
         var date = new Date(scan.created_at).toLocaleString(window.getCurrentLang() === 'en' ? 'en-US' : 'uk-UA');
-        var riskLevel = scan.safety_status || this.calculateRiskLevel(scan.ingredients || []);
+        var riskLevel = this.normalizeRiskLevel(scan.safety_status || this.calculateRiskLevel(scan.ingredients || []));
         var methodIconSvg = this.getMethodSvg(scan.input_method);
         var methodText = this.getMethodText(scan.input_method);
         var preview = scan.original_text ? this.truncateText(scan.original_text, 100) : '';
 
         return '<div class="scan-card" data-scan-id="' + scan.id + '">' +
-            '<button class="scan-card-delete" data-scan-id="' + scan.id + '" title="' + window.i18n('deleteBtn') + '" onclick="event.stopPropagation(); scansManager.deleteScan(' + scan.id + ')">' +
-                '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
-            '</button>' +
             '<div class="scan-card-method">' +
                 '<div class="scan-method-icon">' + methodIconSvg + '</div>' +
                 '<div>' +
@@ -174,13 +205,21 @@ class ScansManager {
                 '</div>' +
             '</div>' +
             '<p class="scan-preview-text">' + preview + '</p>' +
-            '<div class="scan-stats">' +
-                '<span class="risk-badge risk-sm risk-' + riskLevel + '"><span class="dot"></span>' + this.getRiskText(riskLevel) + '</span>' +
-                '<span class="scan-ingredients-count">' + window.i18n('ingredientsFound', (scan.ingredients_count || 0)) + '</span>' +
-            '</div>' +
-            '<div class="scan-card-footer" style="display:flex;align-items:center;gap:8px">' +
-                '<input type="checkbox" class="scan-checkbox" data-scan-id="' + scan.id + '" onclick="event.stopPropagation(); scansManager.handleCheckboxClick(' + scan.id + ')">' +
-                '<span class="scan-product">' + (this.getTypeText(scan.input_type) || '') + '</span>' +
+            // Совмещённая строка: статистика слева, кнопки справа
+            '<div class="scan-stats" style="display:flex; align-items:center; justify-content:space-between;">' +
+                '<div style="display:flex; align-items:center; gap:8px;">' +
+                    '<span class="risk-badge risk-sm risk-' + riskLevel + '"><span class="dot"></span>' + this.getRiskText(riskLevel) + '</span>' +
+                    '<span class="scan-ingredients-count">' + window.i18n('ingredientsFound', (scan.ingredients_count || 0)) + '</span>' +
+                '</div>' +
+                '<div style="display:flex; align-items:center; gap:6px;">' +
+                    '<input type="checkbox" class="scan-checkbox" data-scan-id="' + scan.id + '" onclick="event.stopPropagation(); scansManager.handleCheckboxClick(' + scan.id + ')">' +
+                    '<button class="btn-icon" title="' + window.i18n('exportScan') + '" onclick="event.stopPropagation(); scansManager.exportSingleScanToPdf(' + scan.id + ')" style="padding:4px;">' +
+                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+                    '</button>' +
+                    '<button class="btn-icon" title="' + window.i18n('deleteBtn') + '" onclick="event.stopPropagation(); scansManager.deleteScan(' + scan.id + ')" style="padding:4px;">' +
+                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
+                    '</button>' +
+                '</div>' +
             '</div>' +
         '</div>';
     }
@@ -189,6 +228,7 @@ class ScansManager {
         var icons = {
             'text': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
             'device': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+            'gallery': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
             'camera': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2m10 0h2a2 2 0 0 1 2 2v2m0 10v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>'
         };
         return icons[method] || icons['text'];
@@ -198,10 +238,10 @@ class ScansManager {
         var self = this;
         document.querySelectorAll('.scan-card').forEach(function(card) {
             card.addEventListener('click', function(e) {
-                if (!e.target.closest('.scan-checkbox') && !e.target.closest('.scan-card-delete')) {
-                    var scanId = parseInt(card.dataset.scanId);
-                    self.viewScanDetails(scanId);
-                }
+                // Не открываем детали, если кликнули по кнопкам или чекбоксу
+                if (e.target.closest('.scan-checkbox') || e.target.closest('button')) return;
+                var scanId = parseInt(card.dataset.scanId);
+                self.viewScanDetails(scanId);
             });
         });
     }
@@ -233,10 +273,11 @@ class ScansManager {
         if (meta) meta.textContent = this.getMethodText(scan.input_method) + ' · ' + date;
 
         var ingredients = scan.ingredients_detailed || scan.ingredients || [];
+        var self = this;
 
         var counts = {};
         ingredients.forEach(function(ing) {
-            var lvl = ing.risk_level || 'safe';
+            var lvl = self.normalizeRiskLevel(ing.risk_level);
             counts[lvl] = (counts[lvl] || 0) + 1;
         });
 
@@ -249,15 +290,19 @@ class ScansManager {
         }
         html += '</div>';
 
+        var isEn = window.getCurrentLang() === 'en';
+
         html += '<p class="detail-section-label">' + window.i18n('ingredients') + '</p>';
         html += '<div class="detail-ingredients">';
         if (ingredients.length > 0) {
             ingredients.forEach(function(ing) {
-                var riskClass = 'risk-' + (ing.risk_level || 'safe');
-                var riskLabel = window.i18n('risk_' + (ing.risk_level || 'safe')) || (ing.risk_level || 'safe');
+                var normalizedRisk = self.normalizeRiskLevel(ing.risk_level);
+                var riskClass = 'risk-' + normalizedRisk;
+                var riskLabel = window.i18n('risk_' + normalizedRisk) || normalizedRisk;
+                var desc = isEn ? (ing.description_en || ing.description) : ing.description;
                 html += '<div class="detail-ingredient">';
                 html += '<div style="flex:1"><div class="name">' + (ing.name || window.i18n('unknown')) + '</div>';
-                if (ing.description) html += '<div class="desc">' + ing.description + '</div>';
+                if (desc) html += '<div class="desc">' + desc + '</div>';
                 html += '</div>';
                 html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + riskLabel + '</span>';
                 html += '</div>';
@@ -277,12 +322,19 @@ class ScansManager {
     }
 
     exportSingleScanToPdf(scanId) {
-        try {
-            this.showMessage(window.i18n('creatingPdf'), 'success');
-            window.open('/api/scans/' + scanId + '/export/pdf', '_blank');
-        } catch (error) {
-            this.showMessage(window.i18n('errorOccurred').replace('{{message}}', error.message), 'error');
+        window.open('/api/scans/' + scanId + '/export/pdf?lang=' + window.getCurrentLang(), '_blank');
+        this.clearSelection();
+    }
+
+    exportSelectedScans() {
+        var selectedIds = Array.from(this.selectedScans);
+        if (selectedIds.length === 0) {
+            alert(window.i18n('pleaseSelectForExport') || 'Оберіть сканування для експорту');
+            return;
         }
+        var url = '/api/scans/export-multiple/zip?ids=' + selectedIds.join(',') + '&lang=' + window.getCurrentLang();
+        window.open(url, '_blank');
+        this.clearSelection();
     }
 
     async deleteScan(scanId) {
@@ -355,14 +407,33 @@ class ScansManager {
         this.updateBulkActions();
     }
 
+    clearSelection() {
+        // Снимаем все галочки
+        document.querySelectorAll('.scan-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        this.selectedScans.clear();
+        this.allScansSelected = false;
+        this.updateBulkActions();
+    }
+
     updateBulkActions() {
         var deleteBtn = document.getElementById('deleteSelectedBtn');
+        var exportBtn = document.getElementById('exportSelectedBtn');
         var selectAllBtn = document.getElementById('selectAllBtn');
+        var count = this.selectedScans.size;
+
         if (deleteBtn) {
-            deleteBtn.disabled = this.selectedScans.size === 0;
-            deleteBtn.textContent = this.selectedScans.size > 0
-                ? window.i18n('deleteSelectedBtn', this.selectedScans.size)
+            deleteBtn.disabled = count === 0;
+            deleteBtn.textContent = count > 0
+                ? window.i18n('deleteSelectedBtn', count)
                 : window.i18n('deleteSelected');
+        }
+        if (exportBtn) {
+            exportBtn.disabled = count === 0;
+            exportBtn.textContent = count > 0
+                ? window.i18n('exportSelectedBtn', count)
+                : window.i18n('exportSelected');
         }
         if (selectAllBtn) {
             selectAllBtn.textContent = this.allScansSelected
@@ -381,11 +452,12 @@ class ScansManager {
 
     calculateRiskLevel(ingredients) {
         if (!ingredients || ingredients.length === 0) return 'safe';
+        var self = this;
         var levels = ingredients.map(function(ing) {
-            return (typeof ing === 'object') ? (ing.risk_level || 'safe') : 'safe';
+            return (typeof ing === 'object') ? self.normalizeRiskLevel(ing.risk_level) : 'safe';
         });
-        if (levels.indexOf('high') !== -1 || levels.indexOf('danger') !== -1) return 'high';
-        if (levels.indexOf('medium') !== -1 || levels.indexOf('warning') !== -1) return 'medium';
+        if (levels.indexOf('high') !== -1) return 'high';
+        if (levels.indexOf('medium') !== -1) return 'medium';
         if (levels.indexOf('low') !== -1) return 'low';
         return 'safe';
     }
@@ -418,22 +490,79 @@ class ScansManager {
     }
 
     updatePagination(totalItems) {
-        var pagination = document.getElementById('pagination');
-        var totalPages = Math.ceil(totalItems / this.perPage);
+    var pagination = document.getElementById('pagination');
+    var totalPages = Math.ceil(totalItems / this.perPage);
 
-        if (totalPages <= 1) { pagination.classList.add('hidden'); return; }
-        pagination.classList.remove('hidden');
-
-        var html = '';
-        for (var i = 1; i <= totalPages; i++) {
-            if (i === this.currentPage) {
-                html += '<span class="page-current">' + i + '</span>';
-            } else {
-                html += '<button onclick="scansManager.loadScans(' + i + ')">' + i + '</button>';
-            }
-        }
-        pagination.innerHTML = html;
+    if (totalPages <= 1) {
+        pagination.classList.add('hidden');
+        return;
     }
+    pagination.classList.remove('hidden');
+
+    var current = this.currentPage;
+    var pages = [];
+
+    // Первая страница всегда есть
+    pages.push(1);
+
+    // Вычисляем диапазон вокруг текущей страницы (кроме первой и последней)
+    var rangeStart = Math.max(2, current - 1);
+    var rangeEnd = Math.min(totalPages - 1, current + 1);
+
+    // Если перед диапазоном есть пропуск — ставим многоточие, иначе добавляем 2
+    if (rangeStart > 2) {
+        pages.push('...');
+    } else if (rangeStart === 2) {
+        pages.push(2);
+    }
+
+    // Заполняем середину (избегаем повторного добавления 2)
+    for (var i = rangeStart; i <= rangeEnd; i++) {
+        if (i === 2 && rangeStart === 2) continue;   // уже добавлена
+        if (i > 1 && i < totalPages) {
+            pages.push(i);
+        }
+    }
+
+    // Если после диапазона есть пропуск — многоточие
+    if (rangeEnd < totalPages - 1) {
+        pages.push('...');
+    }
+
+    // Последняя страница
+    if (totalPages > 1) {
+        pages.push(totalPages);
+    }
+
+    // Строим HTML
+    var html = '';
+    // Кнопка «Предыдущая»
+    if (current > 1) {
+        html += '<button onclick="scansManager.loadScans(' + (current - 1) + ')" title="' + window.i18n('prevPage') + '">‹</button>';
+    } else {
+        html += '<button disabled>‹</button>';
+    }
+
+    for (var idx = 0; idx < pages.length; idx++) {
+        var page = pages[idx];
+        if (page === '...') {
+            html += '<span class="page-ellipsis">…</span>';
+        } else if (page === current) {
+            html += '<span class="page-current">' + page + '</span>';
+        } else {
+            html += '<button onclick="scansManager.loadScans(' + page + ')">' + page + '</button>';
+        }
+    }
+
+    // Кнопка «Следующая»
+    if (current < totalPages) {
+        html += '<button onclick="scansManager.loadScans(' + (current + 1) + ')" title="' + window.i18n('nextPage') + '">›</button>';
+    } else {
+        html += '<button disabled>›</button>';
+    }
+
+    pagination.innerHTML = html;
+}
 
     showLoadingState() {
         document.getElementById('scansList').innerHTML = '';
@@ -448,11 +577,7 @@ class ScansManager {
     }
 
     showMessage(message, type) {
-        var messageDiv = document.createElement('div');
-        messageDiv.className = 'message ' + type;
-        messageDiv.textContent = message;
-        document.body.appendChild(messageDiv);
-        setTimeout(function() { if (messageDiv.parentNode) messageDiv.remove(); }, 5000);
+        // Отключены глобально через CSS
     }
 
     closeScanDetails() {

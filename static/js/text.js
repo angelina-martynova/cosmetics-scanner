@@ -1,4 +1,4 @@
-// text.js — Skipley Text Input Module
+// text.js — модуль текстового ввода
 
 function openTextInput() {
     var modal = document.getElementById('textInputModal');
@@ -40,7 +40,7 @@ async function processManualText() {
         var response = await fetch('/api/analyze_text', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: textValue })
+            body: JSON.stringify({ text: textValue, lang: window.getCurrentLang() })
         });
 
         if (!response.ok) throw new Error(window.i18n('serverError') + ': ' + response.status);
@@ -48,7 +48,8 @@ async function processManualText() {
         var data = await response.json();
         if (data.status === 'success') {
             window.__lastTextResultData = data;
-            displayResults(data);
+            openScanResult(data);
+            resultDiv.innerHTML = '';  // убираем "Аналізується..."
         } else {
             resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
         }
@@ -83,7 +84,8 @@ async function processFileUpload() {
         var data = await response.json();
         if (data.status === 'success') {
             window.__lastTextResultData = data;
-            displayResults(data);
+            openScanResult(data);
+            resultDiv.innerHTML = '';  // убираем "Обробляється файл..."
             fileInput.value = '';
         } else {
             resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
@@ -93,75 +95,6 @@ async function processFileUpload() {
         resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', error.message)}</div>`;
     }
 }
-
-// Display results
-function displayResults(data) {
-    var resultDiv = document.getElementById('result');
-    if (!resultDiv) return;
-
-    var html = '';
-
-    if (data.ingredients && data.ingredients.length > 0) {
-        var counts = {};
-        data.ingredients.forEach(function(ing) {
-            var lvl = ing.risk_level || 'safe';
-            counts[lvl] = (counts[lvl] || 0) + 1;
-        });
-
-        html += '<div class="results-summary"><div class="results-summary-header">';
-        html += '<h2>' + window.i18n('analysisComplete') + '</h2>';
-        html += '<span class="results-count">' + window.i18n('ingredientsFound', data.ingredients.length) + '</span>';
-        html += '</div><div class="risk-counts">';
-        for (var lvl in counts) {
-            var riskLabel = window.i18n('risk_' + lvl) || lvl;
-            html += '<span class="risk-badge risk-' + lvl + '"><span class="dot"></span>' + counts[lvl] + ' ' + riskLabel + '</span>';
-        }
-        html += '</div></div>';
-
-        html += '<div class="ingredients-list">';
-        data.ingredients.forEach(function(ingredient) {
-            var riskClass = 'risk-' + (ingredient.risk_level || 'safe');
-            var riskLabel = window.i18n('risk_' + (ingredient.risk_level || 'safe')) || (ingredient.risk_level || 'safe');
-            html += '<div class="ingredient-item">';
-            html += '<div class="ingredient-info">';
-            html += '<div class="ingredient-name">' + ingredient.name + '</div>';
-            html += '<div class="ingredient-desc">' + (ingredient.description || ingredient.category || '') + '</div>';
-            html += '</div>';
-            html += '<span class="risk-badge risk-sm ' + riskClass + '"><span class="dot"></span>' + riskLabel + '</span>';
-            html += '</div>';
-        });
-        html += '</div>';
-    }
-
-    if (data.text) {
-        html += '<div style="margin-top:16px"><p class="detail-section-label">' + window.i18n('analyzedText') + '</p>';
-        html += '<div class="original-text">' + data.text + '</div></div>';
-    }
-
-    if (!data.ingredients || data.ingredients.length === 0) {
-        html += '<div class="success-msg">' + window.i18n('noHarmfulIngredients') + '</div>';
-    }
-
-    resultDiv.innerHTML = html;
-}
-
-window.addEventListener('languageChanged', function() {
-    if (window.__lastTextResultData) {
-        displayResults(window.__lastTextResultData);
-    }
-});
-
-// Ініціалізація
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== TEXT.JS ЗАВАНТАЖЕНО ===');
-
-    var fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) processFileUpload();
-        });
-    }
-});
 
 window.processFileUpload = processFileUpload;
 window.processManualText = processManualText;
