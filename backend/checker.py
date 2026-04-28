@@ -1,16 +1,25 @@
-# checker.py (v3.1 — улучшенное выделение ингредиентов без разделителей)
+# checker.py (v3.2 — исправление шаблонных описаний)
 """
 Модуль аналізу складу косметичних продуктів.
 
-Покращення v3.1:
-  - Умное разделение ингредиентов, когда в тексте нет запятых/точек с запятой
-    (например, "Aqua Glycerin Sodium Laureth Sulfate"). Использует жадный поиск
-    по локальной базе для группировки слов в полные названия.
+Покращення v3.2:
+  - Заменены шаблонные описания на человекочитаемые фразы по категориям.
+  - Удалены повторяющиеся данные (название, риск) из описаний.
+  - Автосохранение теперь формирует осмысленное описание.
+  - Внешние источники (OpenBeautyFacts, PubChem, ChEBI) также отдают чистые описания.
 """
 
 import re
 import json
 import requests
+# Импорт ML-фильтра
+try:
+    from ingredient_classifier import is_ingredient as ml_is_ingredient
+    ML_CLASSIFIER_AVAILABLE = True
+except ImportError:
+    ML_CLASSIFIER_AVAILABLE = False
+    def ml_is_ingredient(text):
+        return True  # если модель не доступна, не отсекаем
 from datetime import datetime, timedelta, timezone
 import sqlite3
 import os
@@ -96,6 +105,60 @@ def assess_risk_by_name(name_lower):
 
 
 # ═══════════════════════════════════════════════════════════════════
+# НОВЫЕ: КРАТКИЕ ОПИСАНИЯ ПО КАТЕГОРИЯМ (УКР / АНГЛ)
+# ═══════════════════════════════════════════════════════════════════
+CATEGORY_PHRASES_UK = {
+    'surfactant': 'Поверхнево-активна речовина (ПАР)',
+    'preservative': 'Консервант',
+    'fragrance': 'Ароматизатор, ароматична добавка',
+    'solvent': 'Розчинник',
+    'emollient': "Пом'якшувальний компонент",
+    'UV filter': 'УФ-фільтр (сонцезахисний компонент)',
+    'active': 'Активний компонент для шкіри',
+    'plant extract': 'Рослинний екстракт',
+    'thickener': 'Загущувач',
+    'humectant': 'Зволожувач (утримує вологу)',
+    'emulsifier': 'Емульгатор (стабілізує суміш)',
+    'chelating agent': 'Хелатуючий агент (стабілізатор)',
+    'pH adjuster': 'Регулятор кислотності (pH)',
+    'colorant': 'Барвник',
+    'unknown': 'Невідомий компонент (дані відсутні)',
+}
+
+CATEGORY_PHRASES_EN = {
+    'surfactant': 'Surfactant (cleansing agent)',
+    'preservative': 'Preservative',
+    'fragrance': 'Fragrance / aromatic additive',
+    'solvent': 'Solvent',
+    'emollient': 'Emollient (softening agent)',
+    'UV filter': 'UV filter (sun protection)',
+    'active': 'Active ingredient for skin',
+    'plant extract': 'Plant extract',
+    'thickener': 'Thickener',
+    'humectant': 'Humectant (moisture‑binding)',
+    'emulsifier': 'Emulsifier (stabilizes mixtures)',
+    'chelating agent': 'Chelating agent (stabilizer)',
+    'pH adjuster': 'pH adjuster',
+    'colorant': 'Colorant / pigment',
+    'unknown': 'Unknown ingredient (no data available)',
+}
+
+
+def _make_description(category, risk, lang='uk'):
+    """Формирует краткое, человекочитаемое описание без повторения названия."""
+    phrases = CATEGORY_PHRASES_UK if lang == 'uk' else CATEGORY_PHRASES_EN
+    base = phrases.get(category, phrases['unknown'])
+    # Добавляем короткую пометку о риске, только если не safe/unknown
+    if risk in ('high', 'medium'):
+        if lang == 'uk':
+            risk_note = ' (високий ризик)' if risk == 'high' else ' (помірний ризик)'
+        else:
+            risk_note = ' (high risk)' if risk == 'high' else ' (moderate risk)'
+        return base + risk_note
+    return base
+
+
+# ═══════════════════════════════════════════════════════════════════
 # ОСНОВНИЙ КЛАС
 # ═══════════════════════════════════════════════════════════════════
 
@@ -113,7 +176,7 @@ class IngredientChecker:
         self.stop_words = self._load_stop_words()
 
         self._build_fuzzy_index()
-        print(f"IngredientChecker v3.1 ініціалізований: "
+        print(f"IngredientChecker v3.2 ініціалізований: "
               f"{len(self.local_ingredients)} інгредієнтів, "
               f"{len(self._alias_index)} аліасів, "
               f"{len(self.ocr_fixes)} OCR-виправлень")
@@ -193,6 +256,12 @@ class IngredientChecker:
         base_fixes = {
             "sodlum": "sodium", "glycerln": "glycerin", "parfume": "parfum",
             "hydrotyzed": "hydrolyzed", "аqua": "aqua",
+            # --- новые постоянные исправления ---
+            "2-hexanediol": "1,2-hexanediol",
+            "hexanediol-2": "1,2-hexanediol",
+            "dipotassium gly-cyrrhizate": "dipotassium glycyrrhizate",
+            "gly-cyrrhizate": "glycyrrhizate",
+            # можно добавить и другие подобные
         }
         for wrong, correct in base_fixes.items():
             if wrong not in fixes:
@@ -273,6 +342,19 @@ class IngredientChecker:
             if wrong in text:
                 text = text.replace(wrong, correct.lower())
         return text.strip()
+    
+    def _fix_line_breaks(self, text):
+        """
+        Склеивает слова, разделённые дефисом и пробелом/переносом строки.
+        Примеры:
+        'Gly- cyrrhizate'  -> 'Glycyrrhizate'
+        'Dipotas-\nsium'   -> 'Dipotasium' (но чаще дефис удаляется)
+        """
+        # Убираем переносы строк: "-\n" → "" (склеиваем без дефиса, если следующее слово без пробела)
+        text = re.sub(r'(\w)-\s*\n\s*(\w)', r'\1\2', text)
+        # Убираем дефис с пробелом: "Gly- cyrrhizate" → "Glycyrrhizate"
+        text = re.sub(r'(\w)-\s+(\w)', r'\1\2', text)
+        return text
 
     def is_potential_ingredient(self, text):
         if not text or len(text) < 3:
@@ -283,11 +365,79 @@ class IngredientChecker:
         if len(text) > 100:
             return False
 
-        # ----- новые фильтры -----
+        # ----- расширенные стоп-фразы (маркетинг, заголовки) -----
+        stop_phrases = [
+            'isntree', 'clinically proven', 'non-irritating',
+            'an emulsion', 'how to use', 'at the last stage',
+            'apply proper amount', 'until absorbed', 'cautions for use',
+            'if skin irritations', 'seek immediate medical',
+            'do not apply on wounded area', 'cautions for storage',
+            'keep out of reach', 'keep out of direct sunlight',
+            'the manufacturing number', 'expiration date',
+            'manufacturing distributor', 'manufacturer',
+            'republic of korea', 'made in', 'distributed by',
+        ]
+        if any(phrase in text_lower for phrase in stop_phrases):
+            return False
+
+        # строка, где каждое слово с заглавной → вероятно заголовок
+        words = text.split()
+        if len(words) >= 2 and all(w[0].isupper() for w in words if w):
+            inci_suffixes = ['ate', 'ide', 'one', 'ene', 'ol', 'ic', 'in', 'ium', 'ester', 'acid', 'gum']
+            if not any(text_lower.endswith(suf) for suf in inci_suffixes):
+                return False
+
+        # ----- ОТСЕЧЕНИЕ АДРЕСОВ И ПОЧТОВЫХ ИНДЕКСОВ -----
+        postal_regexes = [
+            r'\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b',
+            r'\b[A-Z]{2,3}\d?[A-Z]?\s?\d[A-Z]{2}\b',
+            r'\b[A-Z]\d[A-Z]\s?\d[A-Z]\d\b',
+            r'\b\d{5}(-\d{4})?\b',
+            r'\b\d{5,6}\b',
+        ]
+        if any(re.search(p, text) for p in postal_regexes):
+            return False
+
+        country_codes = {
+            'uk', 'gb', 'be', 'fr', 'de', 'us', 'ca', 'it', 'es', 'pt', 'nl',
+            'ru', 'ua', 'pl', 'cz', 'sk', 'hu', 'ro', 'bg', 'gr', 'se', 'no',
+            'dk', 'fi', 'ee', 'lv', 'lt', 'jp', 'kr', 'cn', 'in', 'br', 'au', 'nz',
+            'ch', 'at', 'ie', 'mx', 'ar', 'tr'
+        }
+        city_names = {
+            'london', 'paris', 'berlin', 'tokyo', 'seoul', 'toronto', 'sydney',
+            'kyiv', 'kiev', 'moscow', 'москва', 'київ', 'киев',
+            'new york', 'los angeles', 'chicago', 'washington', 'san francisco',
+            'warsaw', 'praha', 'vienna', 'budapest', 'bucuresti', 'sofia',
+            'рим', 'мадрид', 'берлин', 'варшава', 'париж'
+        }
+        if re.fullmatch(r'[A-Za-zА-Яа-я\s/,\-]+', text):
+            tokens = re.split(r'[\s/,]+', text.strip())
+            geo_keywords = {'область', 'област', 'республика', 'край', 'район',
+                            'місто', 'село', 'смт', 'region', 'district', 'city',
+                            'province', 'state', 'county'}
+            if tokens and all(
+                t.lower() in country_codes or
+                t.lower() in city_names or
+                t.lower() in geo_keywords or
+                (len(t) <= 2 and t.isupper())
+                for t in tokens if t
+            ):
+                return False
+
+        single_country = {
+            'україна', 'ukraine', 'россия', 'russia', 'беларусь', 'belarus',
+            'сша', 'usa', 'канада', 'canada', 'великобритания', 'uk',
+            'франция', 'france', 'германия', 'germany', 'италия', 'italy',
+            'испания', 'spain', 'польша', 'poland'
+        }
+        if text_lower.strip() in single_country:
+            return False
+
+        # ----- старые фильтры -----
         non_ingredient_markers = [
-            'building', 'kesson', 'eonju-ro', 'republic of korea',
-            'seoul', 'district', 'gangnam', 'inc.', 'ltd.', 'co.',
-            'gmbh', 'manufacturing', 'distributor', 'expiration',
+            'building', 'kesson', 'eonju-ro', 'inc.', 'ltd.', 'co.',
+            'gmbh', 'distributor', 'expiration',
             'cautions', 'keep out', 'sunlight', 'reach of',
             'manufactured', 'address', 'tel', 'fax', 'zip', 'city',
             'country', 'part no', 'lot no', 'batch', 'www.', '.com',
@@ -299,16 +449,13 @@ class IngredientChecker:
         if any(marker in text_lower for marker in non_ingredient_markers):
             return False
 
-        # чисто цифровая строка – не ингредиент
         if text.isdigit():
             return False
 
-        # если начинается с цифры и не является CI-кодом – сомнительно
         if re.match(r'^\d', text) and not re.match(r'^ci\s*\d+', text_lower):
-            if not re.search(r'[a-zA-Z]{3,}', text):  # нет букв
+            if not re.search(r'[a-zA-Z]{3,}', text):
                 return False
 
-        # если есть смесь кириллицы и латиницы и латиницы < 4 символов
         has_latin = bool(re.search(r'[a-zA-Z]', text))
         has_cyrillic = bool(re.search(r'[а-яА-ЯіІїЇєЄ]', text))
         if has_cyrillic and has_latin:
@@ -316,8 +463,6 @@ class IngredientChecker:
             if latin_count < 4:
                 return False
             
-        words = text.split()
-
         if len(words) == 1 or '-' in text:
             chemical_suffixes = [
                 'ate', 'ide', 'one', 'ene', 'ol', 'ic', 'in', 'ose',
@@ -338,42 +483,39 @@ class IngredientChecker:
             ]
             if not any(mw in text_lower for mw in marketing_words):
                 if re.search(r'[a-zA-Z]', text):
+                    # --- Дополнительная ML-проверка для неоднозначных строк ---
+                    if ML_CLASSIFIER_AVAILABLE:
+                        # Вызываем ML только если есть хотя бы одно слово с большой буквы или несколько слов
+                        if len(words) >= 2 or any(w[0].isupper() for w in words):
+                            if not ml_is_ingredient(text):
+                                return False
                     return True
-        return False
+        return False    
 
     # НОВЫЙ МЕТОД: жадное разделение на фразы-ингредиенты
     def _split_into_ingredient_phrases(self, text_without_delimiters):
-        """
-        Разбивает текст без запятых/точек с запятой на кандидаты,
-        объединяя слова в известные названия ингредиентов.
-        Работает жадно: ищет самую длинную цепочку слов, которая есть в индексе
-        (точное совпадение, alias или fuzzy). Если не найдено — берёт одно слово.
-        """
         tokens = text_without_delimiters.split()
         if not tokens:
             return []
 
         phrases = []
         idx = 0
-        max_phrase_len = 6  # максимальное количество слов в одном названии
+        max_phrase_len = 6
 
         while idx < len(tokens):
             best_len = 0
             best_phrase = None
 
-            # Пробуем все возможные длины от max до 1
             for length in range(min(max_phrase_len, len(tokens) - idx), 0, -1):
                 candidate_words = tokens[idx:idx+length]
                 candidate_phrase = ' '.join(candidate_words)
                 candidate_lower = candidate_phrase.lower()
 
-                # Проверяем точное совпадение или alias
                 if candidate_lower in self._exact_index or candidate_lower in self._alias_index:
                     best_len = length
                     best_phrase = candidate_phrase
                     break
 
-                # Проверяем substring (частичное вхождение) – эвристика для известных длинных названий
                 if not best_phrase:
                     for name in self._exact_index:
                         if candidate_lower in name or name in candidate_lower:
@@ -381,7 +523,6 @@ class IngredientChecker:
                             best_phrase = candidate_phrase
                             break
 
-                # Если fuzzy доступен, пробуем fuzzy с высоким порогом
                 if not best_phrase and RAPIDFUZZ_AVAILABLE and len(candidate_lower) >= 4:
                     result = process.extractOne(
                         candidate_lower, self._all_names,
@@ -397,7 +538,6 @@ class IngredientChecker:
                 phrases.append(best_phrase)
                 idx += best_len
             else:
-                # Не нашли — берём одиночное слово
                 single_word = tokens[idx]
                 phrases.append(single_word)
                 idx += 1
@@ -409,7 +549,6 @@ class IngredientChecker:
             return []
         print(f"Виділення кандидатів з тексту ({len(text)} символів)")
 
-        # --- стандартная разметка (сохранена без изменений) ---
         composition_start = -1
         composition_patterns = [
             r'СКЛАД\s*[:\-]', r'INGREDIENTS\s*[:\-]', r'INCI\s*[:\-]',
@@ -450,7 +589,6 @@ class IngredientChecker:
         else:
             ingredients_text = text
 
-        # замена разделителей на ';'
         ingredients_text = re.sub(r'[^\w\s.,;:\-–/()\n]', ' ', ingredients_text)
         ingredients_text = re.sub(r'\s+', ' ', ingredients_text)
         ingredients_text = ingredients_text.replace(':', ';')
@@ -458,11 +596,9 @@ class IngredientChecker:
         ingredients_text = ingredients_text.replace('+', ';')
         ingredients_text = re.sub(r'\s+\.\s+', ' ; ', ingredients_text)
 
-        # проверяем, есть ли в полученном тексте хоть один привычный разделитель
         has_delimiters = bool(re.search(r'[;,\.\+*]', ingredients_text))
 
         candidates = []
-        # сначала пробуем стандартное разбиение
         items = re.split(r'[,;]', ingredients_text)
 
         marketing_keywords = [
@@ -498,28 +634,21 @@ class IngredientChecker:
             if self.is_potential_ingredient(item):
                 candidates.append(item)
 
-        # если стандартное разбиение дало мало кандидатов и нет явных разделителей,
-        # применяем жадный алгоритм по известным фразам
         if (len(candidates) < 3 and not has_delimiters) or (len(candidates) == 1 and ' ' in candidates[0]):
             print("  Мало кандидатів і немає роздільників — пробуємо фразовий пошук")
             phrase_candidates = self._split_into_ingredient_phrases(ingredients_text)
-            # оставляем только те, что проходят фильтр is_potential_ingredient
             filtered_phrases = [p for p in phrase_candidates if self.is_potential_ingredient(p)]
             if len(filtered_phrases) > len(candidates):
                 candidates = filtered_phrases
                 print(f"  Фразовий пошук дав {len(candidates)} кандидатів")
             else:
-                # если фразовый поиск не улучшил, оставляем как есть,
-                # но всё же можем добавить отдельные слова, если их много
                 if len(candidates) == 1 and ' ' in candidates[0]:
-                    # разбиваем единственный длинный кандидат на слова, чтобы хоть что-то показать
                     words = candidates[0].split()
                     potential_words = [w for w in words if self.is_potential_ingredient(w)]
                     if len(potential_words) > 1:
                         candidates = potential_words
                         print(f"  Розбито на {len(candidates)} окремих слів")
 
-        # если есть переносы строк, иногда в них ингредиенты
         if len(candidates) < 3:
             lines = ingredients_text.split('\n')
             for line in lines:
@@ -528,7 +657,6 @@ class IngredientChecker:
                     if line not in candidates:
                         candidates.append(line)
 
-        # удаляем дубликаты
         unique = []
         seen = set()
         for c in candidates:
@@ -629,16 +757,15 @@ class IngredientChecker:
             try:
                 external_result = self.external_sources.search(ingredient_name)
                 if external_result and external_result.get('source') != 'not_found':
-                    # Очистка мусорного описания от внешнего источника
+                    # Внешние источники теперь возвращают чистые описания, но на всякий случай
+                    # оставим проверку на мусор (старые кэши)
                     desc = external_result.get('description', '')
                     if any(p in desc.lower() for p in ['знайдений у', 'found in', 'хімічна сполука']):
                         ingredient_lower = ingredient_name.lower()
                         risk = external_result.get('risk_level', assess_risk_by_name(ingredient_lower))
                         category = external_result.get('category', classify_by_name(ingredient_lower))
-                        external_result['description'] = (
-                            f"Інгредієнт '{ingredient_name}' (категорія: {category}, "
-                            f"ризик: {risk})."
-                        )
+                        external_result['description'] = _make_description(category, risk, lang='uk')
+                        external_result['description_en'] = _make_description(category, risk, lang='en')
                 if external_result and external_result.get('source') != 'not_found':
                     external_result['match_type'] = 'external'
                     external_result['match_score'] = None
@@ -663,36 +790,18 @@ class IngredientChecker:
         }
 
     def _create_not_found_response(self, ingredient_name):
-        """Створює відповідь на основі евристик для невідомого інгредієнта."""
+        """Створює відповідь на основі евристик для невідомого інгредієнта.
+        Теперь использует _make_description."""
         ingredient_lower = ingredient_name.lower() if ingredient_name else ""
         risk = assess_risk_by_name(ingredient_lower)
         category = classify_by_name(ingredient_lower)
-    
-        # Короткие описания для разных категорий
-        category_descriptions = {
-            'surfactant': 'Очищувальний компонент (ПАР).',
-            'preservative': 'Консервант для збереження свіжості.',
-            'fragrance': 'Ароматична добавка.',
-            'solvent': 'Розчинник для інших інгредієнтів.',
-            'emollient': "Пом'якшувальний компонент.",
-            'UV filter': 'Сонцезахисний фільтр.',
-            'active': 'Активний компонент для шкіри.',
-            'plant extract': 'Рослинний екстракт.',
-            'thickener': 'Загущувач.',
-            'humectant': 'Зволожувач (утримує вологу).',
-            'emulsifier': 'Емульгатор (допомагає змішувати інгредієнти).',
-            'chelating agent': 'Стабілізатор (хелатуючий агент).',
-            'pH adjuster': 'Регулятор кислотності (pH).',
-            'colorant': 'Барвник.',
-        }
-        desc = category_descriptions.get(category, "Інгредієнт із невизначеним призначенням.")
 
         return {
             "name": ingredient_name,
             "risk_level": risk,
             "category": category,
-            "description": desc,
-            "description_en": desc,  # упрощённо, можно потом заменить на английский аналог
+            "description": _make_description(category, risk, lang='uk'),
+            "description_en": _make_description(category, risk, lang='en'),
             "source": "heuristic",
             "match_type": "heuristic",
             "match_score": None,
@@ -701,7 +810,8 @@ class IngredientChecker:
         }
 
     def _auto_save_to_db(self, ingredient_dict):
-        """Зберігає новий інгредієнт у БД зі статусом verified=False."""
+        """Зберігає новий інгредієнт у БД зі статусом verified=False.
+        Исправлено: генерирует осмысленное описание вместо шаблона."""
         try:
             from app import app
             from models import db, Ingredient
@@ -714,31 +824,21 @@ class IngredientChecker:
                 if exists:
                     return
 
-                # --- Готовим опис, очищаємо від мусору ---
-                description = ingredient_dict.get('description', '')
-                messy_patterns = [
-                    'знайдений у', 'знайдено у', 'found in',
-                    'не знайдено в локальній базі', 'not found in local database',
-                ]
-                if any(p in description.lower() for p in messy_patterns) or len(description.strip()) < 20:
-                    risk = ingredient_dict.get('risk_level', 'unknown')
-                    category = ingredient_dict.get('category', 'unknown')
-                    description = f"Інгредієнт '{name}' (категорія: {category}, ризик: {risk})."
+                category = ingredient_dict.get('category', 'unknown')
+                risk = ingredient_dict.get('risk_level', 'unknown')
 
-                # Для description_en візьмемо або готовий, або згенеруємо простий
-                description_en = ingredient_dict.get('description_en', '')
-                if not description_en or any(p in description_en.lower() for p in ['found in', 'chemical compound']):
-                    description_en = f"Ingredient '{name}' (risk: {ingredient_dict.get('risk_level', 'unknown')})."
+                desc_uk = _make_description(category, risk, lang='uk')
+                desc_en = _make_description(category, risk, lang='en')
 
                 new_ing = Ingredient(
                     name=name,
-                    risk_level=ingredient_dict.get('risk_level', 'unknown'),
-                    category=ingredient_dict.get('category', 'unknown'),
-                    description=description,
-                    description_en=description_en,
+                    risk_level=risk,
+                    category=category,
+                    description=desc_uk,
+                    description_en=desc_en,
                     source_of_risk_assessment=ingredient_dict.get('source', 'external'),
                     verified=False,
-                    created_at=datetime.now(timezone.utc)  # правильный UTC
+                    created_at=datetime.now(timezone.utc)
                 )
                 db.session.add(new_ing)
                 db.session.commit()
@@ -760,6 +860,9 @@ class IngredientChecker:
             return []
 
         print(f"Пошук інгредієнтів у тексті ({len(text)} символів)")
+        
+        # Склеиваем переносы перед извлечением
+        text = self._fix_line_breaks(text)
         candidates = self.extract_ingredient_candidates(text)
 
         found_ingredients = []
@@ -791,7 +894,7 @@ class IngredientChecker:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# КЛАС ExternalDataFetcher (V3 — осмысленные описания)
+# КЛАС ExternalDataFetcher (V3.2 — осмысленные описания)
 # ═══════════════════════════════════════════════════════════════════
 
 class ExternalDataFetcher:
@@ -861,7 +964,7 @@ class ExternalDataFetcher:
                    f"page_size=5&json=1")
             print(f"  [OBF] Запит: {ingredient_name}")
             response = requests.get(url, timeout=self.timeout, headers={
-                'User-Agent': 'CosmeticsScanner/3.0 (ingredient checker)'
+                'User-Agent': 'CosmeticsScanner/3.2 (ingredient checker)'
             })
             if response.status_code != 200:
                 return self._search_obf_text(ingredient_name)
@@ -879,17 +982,11 @@ class ExternalDataFetcher:
                 "name": ingredient_name,
                 "risk_level": risk,
                 "category": category,
-                "description": (
-                    f"Інгредієнт '{ingredient_name}' (категорія: {category}, "
-                    f"ризик: {risk}). Джерело: Open Beauty Facts."
-                ),
-                "description_en": (
-                    f"Ingredient '{ingredient_name}' (category: {category}, "
-                    f"risk: {risk}). Source: Open Beauty Facts."
-                ),
+                "description": _make_description(category, risk, lang='uk') + " (Open Beauty Facts)",
+                "description_en": _make_description(category, risk, lang='en') + " (Open Beauty Facts)",
                 "source": "openbeautyfacts",
                 "aliases": [],
-                "context": f"Open Beauty Facts",
+                "context": "Open Beauty Facts",
             }
         except requests.Timeout:
             print(f"  [OBF] Таймаут: {ingredient_name}")
@@ -904,7 +1001,7 @@ class ExternalDataFetcher:
                    f"search_terms={ingredient_name}&"
                    f"search_simple=1&action=process&json=1&page_size=3")
             response = requests.get(url, timeout=self.timeout, headers={
-                'User-Agent': 'CosmeticsScanner/3.0'
+                'User-Agent': 'CosmeticsScanner/3.2'
             })
             if response.status_code != 200:
                 return None
@@ -921,17 +1018,11 @@ class ExternalDataFetcher:
                 "name": ingredient_name,
                 "risk_level": risk,
                 "category": category,
-                "description": (
-                    f"Інгредієнт '{ingredient_name}' (категорія: {category}, "
-                    f"ризик: {risk}). Джерело: Open Beauty Facts (пошук по тексту)."
-                ),
-                "description_en": (
-                    f"Ingredient '{ingredient_name}' (category: {category}, "
-                    f"risk: {risk}). Source: Open Beauty Facts (text search)."
-                ),
+                "description": _make_description(category, risk, lang='uk') + " (Open Beauty Facts)",
+                "description_en": _make_description(category, risk, lang='en') + " (Open Beauty Facts)",
                 "source": "openbeautyfacts",
                 "aliases": [],
-                "context": f"Open Beauty Facts",
+                "context": "Open Beauty Facts (текстовий пошук)",
             }
         except Exception as e:
             print(f"  [OBF text] Помилка: {e}")
@@ -967,31 +1058,34 @@ class ExternalDataFetcher:
             risk = assess_risk_by_name(ingredient_lower)
             category = classify_by_name(ingredient_lower)
 
-            desc_parts = [f"Хімічна сполука (PubChem CID: {cid})"]
+            # Строим описание: базовая фраза + химическая информация, если есть
+            extra = []
+            if cid:
+                extra.append(f"PubChem CID: {cid}")
             if mol_formula:
-                desc_parts.append(f"формула: {mol_formula}")
+                extra.append(f"формула: {mol_formula}")
             if iupac_name and iupac_name != ingredient_name:
-                desc_parts.append(f"IUPAC: {iupac_name[:80]}")
-            chemical_info = ', '.join(desc_parts)
+                extra.append(f"IUPAC: {iupac_name[:80]}")
+            chem_info = ', '.join(extra) if extra else ''
 
-            description = (
-                f"Інгредієнт '{ingredient_name}' (категорія: {category}, "
-                f"ризик: {risk}). {chemical_info}."
-            )
-            description_en = (
-                f"Ingredient '{ingredient_name}' (category: {category}, "
-                f"risk: {risk}). {chemical_info}."
-            )
+            desc_uk = _make_description(category, risk, lang='uk')
+            desc_en = _make_description(category, risk, lang='en')
+            if chem_info:
+                desc_uk += ' (' + chem_info + ')'
+                desc_en += ' (' + chem_info + ')'
+            else:
+                desc_uk += ' (PubChem)'
+                desc_en += ' (PubChem)'
 
             return {
                 "name": ingredient_name,
                 "risk_level": risk,
                 "category": category,
-                "description": description,
-                "description_en": description_en,
+                "description": desc_uk,
+                "description_en": desc_en,
                 "source": "pubchem",
                 "aliases": [],
-                "context": f"PubChem CID: {cid}",
+                "context": f"PubChem CID: {cid}" if cid else "PubChem",
             }
         except requests.Timeout:
             print(f"  [PubChem] Таймаут: {ingredient_name}")
@@ -1022,24 +1116,24 @@ class ExternalDataFetcher:
             risk = assess_risk_by_name(ingredient_lower)
             category = classify_by_name(ingredient_lower)
 
-            description = (
-                f"Інгредієнт '{compound_name}' (категорія: {category}, "
-                f"ризик: {risk}). Хімічна сутність з бази ChEBI (ID: {chebi_id})."
-            )
-            description_en = (
-                f"Ingredient '{compound_name}' (category: {category}, "
-                f"risk: {risk}). Chemical entity from ChEBI (ID: {chebi_id})."
-            )
+            desc_uk = _make_description(category, risk, lang='uk')
+            desc_en = _make_description(category, risk, lang='en')
+            if chebi_id:
+                desc_uk += f' (ChEBI ID: {chebi_id})'
+                desc_en += f' (ChEBI ID: {chebi_id})'
+            else:
+                desc_uk += ' (ChEBI)'
+                desc_en += ' (ChEBI)'
 
             return {
                 "name": compound_name,
                 "risk_level": risk,
                 "category": category,
-                "description": description,
-                "description_en": description_en,
+                "description": desc_uk,
+                "description_en": desc_en,
                 "source": "chebi",
                 "aliases": [],
-                "context": f"ChEBI ID: {chebi_id}",
+                "context": f"ChEBI ID: {chebi_id}" if chebi_id else "ChEBI",
             }
         except requests.Timeout:
             print(f"  [ChEBI] Таймаут: {ingredient_name}")

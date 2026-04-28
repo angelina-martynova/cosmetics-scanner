@@ -795,7 +795,7 @@ def delete_alias(alias_id):
 def health_check():
     return jsonify({
         "status": "healthy", "service": "Cosmetics Scanner API v2",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     })
 
 @app.route('/api/simple-check')
@@ -875,7 +875,7 @@ def db_check():
                 "aliases": total_aliases,
                 "scans": total_scans,
             },
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
