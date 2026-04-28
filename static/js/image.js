@@ -68,7 +68,6 @@ class CameraManager {
         this.canvas.style.display = 'none';
         this.video.style.display = 'block';
         this.resetCameraUI();
-        // Просто возвращаем к видоискателю, поток уже остановлен, нужно перезапустить камеру
         this.initCamera();
     }
 
@@ -107,24 +106,10 @@ function closeCamera() {
 }
 
 function openGallery() {
-    // Полностью закрываем модальное окно камеры перед вызовом галереи
     cameraManager.closeCamera();
-    // Небольшая задержка, чтобы окно успело скрыться и не перехватило фокус
     setTimeout(() => {
         document.getElementById('galleryInput').click();
     }, 100);
-}
-
-// Галерея (без дополнительного closeCamera, окно уже закрыто)
-var galleryInput = document.getElementById('galleryInput');
-if (galleryInput) {
-    galleryInput.addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (file) {
-            processImageFile(file, 'gallery');
-            e.target.value = '';  // сброс
-        }
-    });
 }
 
 // Отправка изображения (камера или галерея) и открытие результата
@@ -133,12 +118,13 @@ async function processImageFile(file, source) {
     if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
     try {
-        resultDiv.innerHTML = `<div class="loading"><p>${window.i18n('processingImage')}</p></div>`;
+        showProcessingMessage('processingImage');
+        startFakeProgress();
 
         var formData = new FormData();
         formData.append('image', file);
         formData.append('input_method', source);
-        formData.append('lang', window.getCurrentLang());   // для языка описаний
+        formData.append('lang', window.getCurrentLang());
 
         var response = await fetch('/api/analyze', { method: 'POST', body: formData });
         if (!response.ok) throw new Error(window.i18n('serverError') + ': ' + response.status);
@@ -146,14 +132,16 @@ async function processImageFile(file, source) {
         var data = await response.json();
         if (data.status === 'success') {
             window.__lastImageResultData = data;
-            openScanResult(data);   // глобальная функция из base.html
-            resultDiv.innerHTML = '';  // убираем текст "Processing image..."
+            openScanResult(data);
+            resultDiv.innerHTML = '';
         } else {
             resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
         }
     } catch (error) {
         console.error('Error:', error);
         resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', error.message)}</div>`;
+    } finally {
+        completeProgress();
     }
 }
 
@@ -169,13 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (retakeBtn) retakeBtn.addEventListener('click', () => cameraManager.retakePhoto());
     if (usePhotoBtn) usePhotoBtn.addEventListener('click', () => cameraManager.usePhoto());
 
-    // Галерея
-        var galleryInput = document.getElementById('galleryInput');
+    var galleryInput = document.getElementById('galleryInput');
     if (galleryInput) {
         galleryInput.addEventListener('change', function(e) {
             var file = e.target.files[0];
             if (file) {
-                cameraManager.closeCamera();   // ← закрываем модальное окно камеры
+                cameraManager.closeCamera();
                 processImageFile(file, 'gallery');
                 e.target.value = '';
             }

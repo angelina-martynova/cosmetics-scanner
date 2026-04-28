@@ -34,7 +34,8 @@ async function processManualText() {
     }
 
     try {
-        resultDiv.innerHTML = `<div class="loading"><p>${window.i18n('analyzing')}</p></div>`;
+        showProcessingMessage('analyzing');
+        startFakeProgress();
         closeTextInput();
 
         var response = await fetch('/api/analyze_text', {
@@ -49,13 +50,15 @@ async function processManualText() {
         if (data.status === 'success') {
             window.__lastTextResultData = data;
             openScanResult(data);
-            resultDiv.innerHTML = '';  // убираем "Аналізується..."
+            resultDiv.innerHTML = '';
         } else {
             resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
         }
     } catch (error) {
         console.error('Error:', error);
         resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', error.message)}</div>`;
+    } finally {
+        completeProgress();
     }
 }
 
@@ -72,7 +75,8 @@ async function processFileUpload() {
     var file = fileInput.files[0];
 
     try {
-        resultDiv.innerHTML = `<div class="loading"><p>${window.i18n('processingFile')}</p></div>`;
+        showProcessingMessage('processingFile');
+        startFakeProgress();
         closeTextInput();
 
         var formData = new FormData();
@@ -85,7 +89,7 @@ async function processFileUpload() {
         if (data.status === 'success') {
             window.__lastTextResultData = data;
             openScanResult(data);
-            resultDiv.innerHTML = '';  // убираем "Обробляється файл..."
+            resultDiv.innerHTML = '';
             fileInput.value = '';
         } else {
             resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', data.message)}</div>`;
@@ -93,6 +97,8 @@ async function processFileUpload() {
     } catch (error) {
         console.error('Error:', error);
         resultDiv.innerHTML = `<div class="error-msg">${window.i18n('errorOccurred').replace('{{message}}', error.message)}</div>`;
+    } finally {
+        completeProgress();
     }
 }
 

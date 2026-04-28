@@ -14,6 +14,22 @@
       </p>
     </div>
 
+    <!-- Status message (будет показываться при обработке) -->
+    <div
+      id="processingStatus"
+      style="display: none; text-align: center; margin-bottom: 16px"
+    >
+      <p
+        id="processingMessage"
+        style="font-size: 15px; color: var(--accent)"
+      ></p>
+      <div class="scan-progress">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Method cards -->
     <div class="input-methods">
       <div class="method-card" role="button" onclick="openCamera()">
@@ -79,13 +95,6 @@
         ><span class="trust-dot"></span
         ><span data-i18n="trust3">Безкоштовно</span></span
       >
-    </div>
-  </div>
-
-  <!-- Progress bar -->
-  <div class="scan-progress hidden">
-    <div class="progress-bar">
-      <div class="progress-fill"></div>
     </div>
   </div>
 

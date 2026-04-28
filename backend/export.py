@@ -78,6 +78,8 @@ class ScanExporter:
         }
         for old, new in replacements.items():
             text = text.replace(old, new)
+        # Экранирование HTML, чтобы не ломать парсер ReportLab
+        text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         return text
 
     def create_pdf_bytes(self, scan_data, user_email, lang='uk'):
@@ -210,14 +212,25 @@ class ScanExporter:
                 list_style = ParagraphStyle(
                     'List', parent=normal_style,
                     fontSize=10, leftIndent=20,
-                    firstLineIndent=-20, spaceAfter=4
+                    firstLineIndent=-20, spaceAfter=6,
+                    format='html'   # чтобы работали теги <b> и <br/>
                 )
                 for i, ing in enumerate(ingredients[:30], 1):
                     if isinstance(ing, dict):
                         name = ing.get('name', '')
                         risk = ing.get('risk_level', 'unknown')
                         risk_text = self._get_risk_text(risk, lang)
-                        story.append(Paragraph(f"{i}. {name} ({risk_text})", list_style))
+                        # выбираем описание в зависимости от языка
+                        desc = ing.get('description', '') if lang == 'uk' else ing.get('description_en', '')
+                        if desc:
+                            short_desc = desc[:120] + '...' if len(desc) > 120 else desc
+                            text_line = (
+                                f"{i}. <b>{self.normalize_text(name)}</b> ({risk_text})<br/>"
+                                f"&nbsp;&nbsp;&nbsp;&nbsp;{self.normalize_text(short_desc)}"
+                            )
+                        else:
+                            text_line = f"{i}. <b>{self.normalize_text(name)}</b> ({risk_text})"
+                        story.append(Paragraph(text_line, list_style))
                 if len(ingredients) > 30:
                     more = f"... та ще {len(ingredients)-30} інгредієнтів" if lang == 'uk' else f"... and {len(ingredients)-30} more ingredients"
                     story.append(Paragraph(more, normal_style))

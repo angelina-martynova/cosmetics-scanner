@@ -245,8 +245,8 @@ def _ocr_easyocr(image):
         img_array = np.array(image)
         results = reader.readtext(
             img_array, detail=1, paragraph=False,
-            min_size=10, text_threshold=0.6,
-            low_text=0.3, width_ths=0.7
+            min_size=20, text_threshold=0.7,
+            low_text=0.4, width_ths=0.7
         )
         if not results:
             return None
@@ -544,6 +544,30 @@ def clean_text(text):
                if len(l.strip()) > 3 and re.search(r'[a-zA-Z\u0400-\u04FF]', l)]
 
     text = re.sub(r'\s+', ' ', '\n'.join(cleaned))
+    # Мягкая фильтрация: удаляем только целые строки, которые
+    # являются типичными адресными/контактными паттернами
+    address_patterns = [
+        r'^\s*COSRX\s*(INC\.|GLOBAL)?\s*$',
+        r'^\s*RP\s*Biorius\s*$',
+        r'^\s*Seoul\s*,\s*Korea\s*$',
+        r'^\s*Wavre\s*,\s*BE\s*$',
+        r'^\s*London\s+WC[EH]\d+\s+\d*[A-Z]{2}\s*,\s*GB\s*$',
+        r'^\s*\d{5,}\s*$',  # чистый индекс
+        r'^\s*www\..*\s*$',
+        r'^\s*FSC\s*Mix\s*$',
+    ]
+    lines = text.split('\n')
+    filtered = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Если строка полностью соответствует одному из адресных шаблонов – пропускаем
+        if any(re.match(p, stripped, re.IGNORECASE) for p in address_patterns):
+            continue
+        filtered.append(line)
+    text = '\n'.join(filtered)
+    
     return text.strip()
 
 
@@ -584,12 +608,12 @@ def extract_text(file):
         original_image = image.copy()
         processed_image = preprocess_image(image)
 
-        # Debug
-        debug_dir = 'ocr_debug'
-        os.makedirs(debug_dir, exist_ok=True)
-        processed_image.save(
-            os.path.join(debug_dir, f'processed_{int(time.time())}.jpg')
-        )
+        # # Debug
+        # debug_dir = 'ocr_debug'
+        # os.makedirs(debug_dir, exist_ok=True)
+        # processed_image.save(
+        #     os.path.join(debug_dir, f'processed_{int(time.time())}.jpg')
+        # )
 
         raw_text = _ensemble_ocr(original_image, processed_image)
 
