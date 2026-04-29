@@ -489,80 +489,77 @@ class ScansManager {
         if (el) el.textContent = window.i18n('scansResult', total);
     }
 
-    updatePagination(totalItems) {
-    var pagination = document.getElementById('pagination');
-    var totalPages = Math.ceil(totalItems / this.perPage);
+        updatePagination(totalItems) {
+        var pagination = document.getElementById('pagination');
+        var totalPages = Math.ceil(totalItems / this.perPage);
 
-    if (totalPages <= 1) {
-        pagination.classList.add('hidden');
-        return;
-    }
-    pagination.classList.remove('hidden');
-
-    var current = this.currentPage;
-    var pages = [];
-
-    // Первая страница всегда есть
-    pages.push(1);
-
-    // Вычисляем диапазон вокруг текущей страницы (кроме первой и последней)
-    var rangeStart = Math.max(2, current - 1);
-    var rangeEnd = Math.min(totalPages - 1, current + 1);
-
-    // Если перед диапазоном есть пропуск — ставим многоточие, иначе добавляем 2
-    if (rangeStart > 2) {
-        pages.push('...');
-    } else if (rangeStart === 2) {
-        pages.push(2);
-    }
-
-    // Заполняем середину (избегаем повторного добавления 2)
-    for (var i = rangeStart; i <= rangeEnd; i++) {
-        if (i === 2 && rangeStart === 2) continue;   // уже добавлена
-        if (i > 1 && i < totalPages) {
-            pages.push(i);
+        if (totalPages <= 1) {
+            pagination.classList.add('hidden');
+            return;
         }
-    }
+        pagination.classList.remove('hidden');
 
-    // Если после диапазона есть пропуск — многоточие
-    if (rangeEnd < totalPages - 1) {
-        pages.push('...');
-    }
+        var current = this.currentPage;
+        var pages = [];
 
-    // Последняя страница
-    if (totalPages > 1) {
-        pages.push(totalPages);
-    }
+        // Всегда добавляем первую страницу
+        pages.push(1);
 
-    // Строим HTML
-    var html = '';
-    // Кнопка «Предыдущая»
-    if (current > 1) {
-        html += '<button onclick="scansManager.loadScans(' + (current - 1) + ')" title="' + window.i18n('prevPage') + '">‹</button>';
-    } else {
-        html += '<button disabled>‹</button>';
-    }
+        // Определяем промежуточные страницы без дублирования
+        if (totalPages > 2) {
+            var rangeStart = Math.max(2, current - 1);
+            var rangeEnd = Math.min(totalPages - 1, current + 1);
 
-    for (var idx = 0; idx < pages.length; idx++) {
-        var page = pages[idx];
-        if (page === '...') {
-            html += '<span class="page-ellipsis">…</span>';
-        } else if (page === current) {
-            html += '<span class="page-current">' + page + '</span>';
+            if (rangeStart > 2) {
+                pages.push('...');
+            } else if (rangeStart === 2) {
+                pages.push(2);
+            }
+
+            // Добавляем страницы от rangeStart+1 до rangeEnd (избегаем повторов 2)
+            for (var i = Math.max(rangeStart + 1, 3); i <= rangeEnd; i++) {
+                pages.push(i);
+            }
+
+            if (rangeEnd < totalPages - 1) {
+                pages.push('...');
+            }
+        }
+
+        // Добавляем последнюю страницу, если она ещё не добавлена
+        if (totalPages > 1 && pages[pages.length - 1] !== totalPages) {
+            pages.push(totalPages);
+        }
+
+        // Строим HTML
+        var html = '';
+        // Кнопка «Предыдущая»
+        if (current > 1) {
+            html += '<button onclick="scansManager.loadScans(' + (current - 1) + ')" title="' + window.i18n('prevPage') + '">‹</button>';
         } else {
-            html += '<button onclick="scansManager.loadScans(' + page + ')">' + page + '</button>';
+            html += '<button disabled>‹</button>';
         }
-    }
 
-    // Кнопка «Следующая»
-    if (current < totalPages) {
-        html += '<button onclick="scansManager.loadScans(' + (current + 1) + ')" title="' + window.i18n('nextPage') + '">›</button>';
-    } else {
-        html += '<button disabled>›</button>';
-    }
+        for (var idx = 0; idx < pages.length; idx++) {
+            var page = pages[idx];
+            if (page === '...') {
+                html += '<span class="page-ellipsis">…</span>';
+            } else if (page === current) {
+                html += '<span class="page-current">' + page + '</span>';
+            } else {
+                html += '<button onclick="scansManager.loadScans(' + page + ')">' + page + '</button>';
+            }
+        }
 
-    pagination.innerHTML = html;
-}
+        // Кнопка «Следующая»
+        if (current < totalPages) {
+            html += '<button onclick="scansManager.loadScans(' + (current + 1) + ')" title="' + window.i18n('nextPage') + '">›</button>';
+        } else {
+            html += '<button disabled>›</button>';
+        }
+
+        pagination.innerHTML = html;
+    }
 
     showLoadingState() {
         document.getElementById('scansList').innerHTML = '';

@@ -107,7 +107,7 @@ function closeCamera() {
 
 function openGallery() {
     cameraManager.closeCamera();
-    setTimeout(() => {
+    setTimeout(function() {
         document.getElementById('galleryInput').click();
     }, 100);
 }
@@ -117,9 +117,15 @@ async function processImageFile(file, source) {
     var resultDiv = document.getElementById('result');
     if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
+    // Этапы: 5% (почти сразу), 33%, 66% от общего времени
+    var stages = [
+        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
+        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
+        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+    ];
+
     try {
-        showProcessingMessage('processingImage');
-        startFakeProgress();
+        startFakeProgress(15000, stages);
 
         var formData = new FormData();
         formData.append('image', file);
@@ -153,9 +159,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var retakeBtn = document.getElementById('retakeBtn');
     var usePhotoBtn = document.getElementById('usePhotoBtn');
 
-    if (captureBtn) captureBtn.addEventListener('click', () => cameraManager.capturePhoto());
-    if (retakeBtn) retakeBtn.addEventListener('click', () => cameraManager.retakePhoto());
-    if (usePhotoBtn) usePhotoBtn.addEventListener('click', () => cameraManager.usePhoto());
+    if (captureBtn) captureBtn.addEventListener('click', function() { cameraManager.capturePhoto(); });
+    if (retakeBtn) retakeBtn.addEventListener('click', function() { cameraManager.retakePhoto(); });
+    if (usePhotoBtn) usePhotoBtn.addEventListener('click', function() { cameraManager.usePhoto(); });
 
     var galleryInput = document.getElementById('galleryInput');
     if (galleryInput) {

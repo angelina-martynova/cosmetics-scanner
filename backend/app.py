@@ -530,8 +530,8 @@ def export_scan_to_pdf(scan_id):
         scan_data = scan.to_dict()
         export_data = {
             'id': scan_data['id'], 'created_at': scan_data['created_at'],
-            'input_type': scan_data['input_type'], 'input_method': scan_data['input_method'],
-            'safety_status': scan_data['safety_status'], 'safety_message': scan_data['safety_message'],
+            'input_type': scan_data.get('input_type') or '—', 'input_method': scan_data.get('input_method') or '—',
+            'safety_status': scan_data.get('safety_status') or 'safe', 'safety_message': scan_data['safety_message'],
             'contains_unknown': scan_data['contains_unknown'], 'unknown_count': scan_data['unknown_count'],
             'original_text': scan_data['original_text'], 'ingredients_count': scan_data['ingredients_count'],
             'ingredients_detailed': scan.get_ingredients_list(), 'risk_statistics': scan_data['risk_statistics'],
@@ -571,8 +571,8 @@ def export_multiple_scans_zip():
                 scan_data = scan.to_dict()
                 export_data = {
                     'id': scan_data['id'], 'created_at': scan_data['created_at'],
-                    'input_type': scan_data['input_type'], 'input_method': scan_data['input_method'],
-                    'safety_status': scan_data['safety_status'], 'safety_message': scan_data['safety_message'],
+                    'input_type': scan_data.get('input_type') or '—', 'input_method': scan_data.get('input_method') or '—',
+                    'safety_status': scan_data.get('safety_status') or 'safe', 'safety_message': scan_data['safety_message'],
                     'contains_unknown': scan_data['contains_unknown'], 'unknown_count': scan_data['unknown_count'],
                     'original_text': scan_data['original_text'],
                     'ingredients_count': scan_data['ingredients_count'],

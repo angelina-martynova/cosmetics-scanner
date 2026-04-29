@@ -33,9 +33,15 @@ async function processManualText() {
         return;
     }
 
+    // Этапы: 5%, 33%, 66% от времени (~5 сек)
+    var stages = [
+        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
+        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
+        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+    ];
+
     try {
-        showProcessingMessage('analyzing');
-        startFakeProgress();
+        startFakeProgress(5000, stages);
         closeTextInput();
 
         var response = await fetch('/api/analyze_text', {
@@ -74,9 +80,15 @@ async function processFileUpload() {
 
     var file = fileInput.files[0];
 
+    // Этапы: 5%, 33%, 66% от времени (~8 сек)
+    var stages = [
+        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
+        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
+        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+    ];
+
     try {
-        showProcessingMessage('processingFile');
-        startFakeProgress();
+        startFakeProgress(8000, stages);
         closeTextInput();
 
         var formData = new FormData();
