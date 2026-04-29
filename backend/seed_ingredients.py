@@ -1,8 +1,8 @@
-# seed_ingredients.py (v2 — розширений)
+# seed_ingredients.py (розширений)
 """
 Скрипт для наповнення бази даних інгредієнтів.
 
-Версія 2 — заповнює розширені поля моделі Ingredient:
+Заповнює розширені поля моделі Ingredient:
   inci_name, cas_number, ewg_score, eu_max_concentration,
   eu_regulation_annex, is_banned_eu, description_en,
   source_of_risk_assessment, verified.
@@ -734,7 +734,7 @@ def seed_database():
         db.create_all()
 
         print("=" * 60)
-        print("НАПОВНЕННЯ БАЗИ ДАНИХ (v2 — розширені поля)")
+        print("НАПОВНЕННЯ БАЗИ ДАНИХ (розширені поля)")
         print("=" * 60)
 
         added = 0
@@ -814,7 +814,7 @@ def seed_database():
         from sqlalchemy import func
 
         total = Ingredient.query.count()
-        verified = Ingredient.query.filter_by(verified=True).count()
+        verified_count = Ingredient.query.filter_by(verified=True).count()
         with_cas = Ingredient.query.filter(Ingredient.cas_number.isnot(None)).count()
         with_ewg = Ingredient.query.filter(Ingredient.ewg_score.isnot(None)).count()
         banned = Ingredient.query.filter_by(is_banned_eu=True).count()
@@ -822,7 +822,7 @@ def seed_database():
         print(f"\n{'=' * 60}")
         print(f"СТАТИСТИКА БАЗИ:")
         print(f"  Усього інгредієнтів:        {total}")
-        print(f"  Верифікованих:              {verified}")
+        print(f"  Верифікованих:              {verified_count}")
         print(f"  З CAS-номером:             {with_cas}")
         print(f"  З EWG-скором:              {with_ewg}")
         print(f"  Заборонених в ЄС:          {banned}")

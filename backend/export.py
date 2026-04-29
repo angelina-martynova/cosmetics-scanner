@@ -67,7 +67,7 @@ class ScanExporter:
             TEXT_COLOR = colors.HexColor('#1A1816')
             MUTED_COLOR = colors.HexColor('#4D4640')
 
-            # ─── ШАПКА ───
+            # ─── ЗАГОЛОВОК ───
             created_at = scan_data.get('created_at', '')
             formatted_date = "—"
             if created_at:
@@ -105,7 +105,7 @@ class ScanExporter:
             story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#E0DCD5')))
             story.append(Spacer(1, 8*mm))
 
-            # ─── ОРИГИНАЛЬНЫЙ ТЕКСТ ───
+            # ─── ОРИГІНАЛЬНИЙ ТЕКСТ ───
             heading_style = ParagraphStyle('H2', fontName=bold_font_name, fontSize=11, textColor=TEXT_COLOR, spaceAfter=3*mm)
             original_text = scan_data.get('original_text')
             if original_text:
@@ -118,7 +118,7 @@ class ScanExporter:
                         story.append(Spacer(1,2))
                 story.append(Spacer(1,8*mm))
 
-            # ─── ИНГРЕДИЕНТЫ (простая таблица) ───
+            # ─── ІНГРЕДІЄНТИ (проста таблиця) ───
             ingredients = scan_data.get('ingredients_detailed') or scan_data.get('ingredients', [])
             if ingredients:
                 story.append(Paragraph(f"Знайдені інгредієнти ({len(ingredients)})" if lang=='uk' else f"Found ingredients ({len(ingredients)})", heading_style))
@@ -169,7 +169,7 @@ class ScanExporter:
                 story.append(ing_table)
                 story.append(Spacer(1,10*mm))
 
-            # ─── РЕКОМЕНДАЦИИ ───
+            # ─── РЕКОМЕНДАЦІЇ ───
             rec_title = "Рекомендації" if lang=='uk' else "Recommendations"
             story.append(Paragraph(rec_title, heading_style))
             recommendations = self._get_recommendations(safety_status, lang)
@@ -178,7 +178,7 @@ class ScanExporter:
                 story.append(Paragraph(f"• {self.normalize_text(rec)}", rec_style))
             story.append(Spacer(1,12*mm))
 
-            # ─── ФУТЕР ───
+            # ─── НИЖНІЙ КОЛОНТИТУЛ ───
             footer_style = ParagraphStyle('Footer', fontName=font_name, fontSize=8, textColor=MUTED_COLOR, alignment=TA_CENTER)
             footer_text = f"Звіт створено: {datetime.now().strftime('%d.%m.%Y %H:%M:%S')} | Skipley — Cosmetics Ingredient Scanner"
             if lang!='uk': footer_text = f"Report generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Skipley — Cosmetics Ingredient Scanner"
@@ -207,7 +207,7 @@ class ScanExporter:
             return buffer.getvalue()
         except: return b''
 
-    # вспомогательные методы (остались прежние)
+    # Допоміжні методи
     def _get_method_text(self, method_code, lang):
         if lang=='uk':
             return {'text':'Ручний ввід','device':'З пристрою','camera':'Камера','gallery':'Галерея'}.get(method_code, method_code or '—')

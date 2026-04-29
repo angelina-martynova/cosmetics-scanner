@@ -1,12 +1,12 @@
-# checker.py (v3.3 — улучшенная интеграция с внешними БД)
+# checker.py — покращена інтеграція з зовнішніми БД
 """
 Модуль аналізу складу косметичних продуктів.
 
-Покращення v3.3:
-  - PubChem теперь возвращает реальный риск на основе GHS/токсичности.
-  - Внешние данные активно используются: риск, категория, CAS, описание.
-  - Автосохранение в базу сохраняет расширенные поля (cas_number, ewg_score).
-  - Больше никакого переопределения внешних описаний эвристиками.
+Покращення:
+  - PubChem тепер повертає реальний ризик на основі GHS/токсичності.
+  - Зовнішні дані активно використовуються: ризик, категорія, CAS, опис.
+  - Автозбереження в базу зберігає розширені поля (cas_number, ewg_score).
+  - Більше ніякого перевизначення зовнішніх описів евристиками.
 """
 
 import re
@@ -26,7 +26,7 @@ except ImportError:
     print("RapidFuzz не встановлено — використовується точний пошук. "
           "Встановіть: pip install rapidfuzz")
 
-# --- ML-фильтр ---
+# --- ML-фільтр ---
 try:
     from ingredient_classifier import is_ingredient as ml_is_ingredient
     ML_CLASSIFIER_AVAILABLE = True
@@ -106,7 +106,7 @@ def assess_risk_by_name(name_lower):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# КРАТКИЕ ОПИСАНИЯ ПО КАТЕГОРИЯМ
+# КОРОТКІ ОПИСИ ЗА КАТЕГОРІЯМИ
 # ═══════════════════════════════════════════════════════════════════
 CATEGORY_PHRASES_UK = {
     'surfactant': 'Поверхнево-активна речовина (ПАР)',
@@ -175,12 +175,12 @@ class IngredientChecker:
         self.stop_words = self._load_stop_words()
 
         self._build_fuzzy_index()
-        print(f"IngredientChecker v3.3 ініціалізований: "
+        print(f"IngredientChecker ініціалізований: "
               f"{len(self.local_ingredients)} інгредієнтів, "
               f"{len(self._alias_index)} аліасів, "
               f"{len(self.ocr_fixes)} OCR-виправлень")
 
-    # --- Загрузка данных ---
+    # --- Завантаження даних ---
     def _load_ingredients_from_db(self):
         try:
             from app import app
@@ -304,7 +304,7 @@ class IngredientChecker:
             'який', 'яка', 'яке', 'які', 'що', 'це', 'той', 'такий',
         }
 
-    # --- Индексы ---
+    # --- Індекси ---
     def _build_fuzzy_index(self):
         self._exact_index = {}
         self._alias_index = {}
@@ -330,7 +330,7 @@ class IngredientChecker:
         print(f"  Fuzzy-індекс: {len(self._exact_index)} назв + "
               f"{len(self._alias_index)} аліасів = {len(self._all_names)} записів")
 
-    # --- Очистка текста ---
+    # --- Очищення тексту ---
     def clean_text(self, text):
         if not text:
             return ""
@@ -348,7 +348,7 @@ class IngredientChecker:
         text = re.sub(r'(\w)-\s+(\w)', r'\1\2', text)
         return text
 
-    # --- Фильтр кандидатов ---
+    # --- Фільтр кандидатів ---
     def is_potential_ingredient(self, text):
         if not text or len(text) < 3:
             return False
@@ -478,7 +478,7 @@ class IngredientChecker:
                     return True
         return False
 
-    # --- Извлечение кандидатов ---
+    # --- Виділення кандидатів ---
     def _split_into_ingredient_phrases(self, text_without_delimiters):
         tokens = text_without_delimiters.split()
         if not tokens:
@@ -532,20 +532,19 @@ class IngredientChecker:
 
     def _find_known_phrases(self, text):
         """
-        Ищет в тексте все вхождения известных названий ингредиентов
-        (точные, алиасы, fuzzy) и возвращает список найденных фраз
-        в порядке их появления.
+        Шукає в тексті всі входження відомих назв інгредієнтів
+        (точні, аліаси, fuzzy) і повертає список знайдених фраз
+        у порядку їх появи.
         """
         found = []
         text_lower = text.lower()
-        # Сначала точные совпадения и алиасы
+        # Спочатку точні збіги та аліаси
         for name in sorted(self._exact_index, key=len, reverse=True):
             idx = 0
             while True:
                 pos = text_lower.find(name, idx)
                 if pos == -1:
                     break
-                # Добавляем исходный кусок текста (не lower), чтобы сохранить регистр
                 original = text[pos:pos+len(name)]
                 found.append((pos, len(name), original))
                 idx = pos + 1
@@ -560,7 +559,7 @@ class IngredientChecker:
                     found.append((pos, len(alias), original))
                 idx = pos + 1
 
-        # Fuzzy‑поиск только если rapidfuzz доступен и кандидатов мало
+        # Fuzzy‑пошук тільки якщо rapidfuzz доступний і кандидатів мало
         if RAPIDFUZZ_AVAILABLE and len(found) < 5:
             for word in text.split():
                 if len(word) < 4:
@@ -574,7 +573,7 @@ class IngredientChecker:
                         found.append((pos, len(name), original))
 
         found.sort(key=lambda x: x[0])
-        # Удаляем пересекающиеся (оставляем более длинное)
+        # Видаляємо перетинаючі (залишаємо довше)
         filtered = []
         for pos, length, phrase in found:
             if not filtered or pos >= filtered[-1][0] + filtered[-1][1]:
@@ -589,7 +588,7 @@ class IngredientChecker:
             return []
         print(f"Виділення кандидатів з тексту ({len(text)} символів)")
 
-        # Стандартный поиск раздела "Ingredients"
+        # Стандартний пошук розділу "Ingredients"
         composition_start = -1
         composition_patterns = [
             r'СКЛАД\s*[:\-]', r'INGREDIENTS\s*[:\-]', r'INCI\s*[:\-]',
@@ -630,7 +629,7 @@ class IngredientChecker:
         else:
             ingredients_text = text
 
-        # Базовая очистка
+        # Базова очистка
         ingredients_text = re.sub(r'[^\w\s.,;:\-–/()\n]', ' ', ingredients_text)
         ingredients_text = re.sub(r'\s+', ' ', ingredients_text)
         ingredients_text = ingredients_text.replace(':', ';')
@@ -640,7 +639,7 @@ class IngredientChecker:
 
         has_delimiters = bool(re.search(r'[;,\.\+*]', ingredients_text))
 
-        # Стандартное разбиение по разделителям
+        # Стандартне розбиття за роздільниками
         candidates = []
         items = re.split(r'[,;]', ingredients_text)
 
@@ -669,14 +668,14 @@ class IngredientChecker:
             if self.is_potential_ingredient(item):
                 candidates.append(item)
 
-        # ВСЕГДА запускаем поиск по известным названиям (из базы и алиасов)
+        # ЗАВЖДИ запускаємо пошук за відомими назвами (з бази та аліасів)
         print("  Додатковий пошук за базою інгредієнтів...")
         known_phrases = self._find_known_phrases(ingredients_text)
         for phrase in known_phrases:
             if phrase not in candidates and self.is_potential_ingredient(phrase):
                 candidates.append(phrase)
 
-        # Если всё ещё мало, добавляем отдельные слова (кроме стоп-слов)
+        # Якщо все ще мало, додаємо окремі слова (крім стоп-слів)
         if len(candidates) < 3:
             words = ingredients_text.split()
             for w in words:
@@ -685,7 +684,7 @@ class IngredientChecker:
                     if w not in candidates:
                         candidates.append(w)
 
-        # Удаление дубликатов
+        # Видалення дублікатів
         unique = []
         seen = set()
         for c in candidates:
@@ -697,7 +696,7 @@ class IngredientChecker:
         print(f"  Знайдено {len(unique)} унікальних кандидатів")
         return unique
 
-    # --- Локальный поиск ---
+    # --- Локальний пошук ---
     def _search_local(self, ingredient_name):
         ingredient_lower = ingredient_name.lower().strip()
         if not ingredient_lower or len(ingredient_lower) < 2:
@@ -758,7 +757,7 @@ class IngredientChecker:
 
         return None, None, None
 
-    # --- Основной поиск ---
+    # --- Основний пошук ---
     def search_ingredient(self, ingredient_name):
         if not ingredient_name or not isinstance(ingredient_name, str):
             return self._create_not_found_response(ingredient_name or "")
@@ -827,7 +826,7 @@ class IngredientChecker:
             "context": "Автоматична оцінка на основі назви",
         }
 
-    # --- Автосохранение ---
+    # --- Автозбереження ---
     def _auto_save_to_db(self, ingredient_dict):
         try:
             from app import app
@@ -871,7 +870,7 @@ class IngredientChecker:
         except Exception as e:
             print(f"    Помилка авто-збереження: {e}")
 
-    # --- Главная функция поиска ингредиентов в тексте ---
+    # --- Головна функція пошуку інгредієнтів у тексті ---
     def find_ingredients(self, text):
         if not text or not isinstance(text, str):
             print("Текст для аналізу порожній або не є рядком")
@@ -879,7 +878,7 @@ class IngredientChecker:
 
         print(f"Пошук інгредієнтів у тексті ({len(text)} символів)")
 
-        # Склеиваем переносы
+        # Склеюємо переноси
         text = self._fix_line_breaks(text)
         candidates = self.extract_ingredient_candidates(text)
 
@@ -912,7 +911,7 @@ class IngredientChecker:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# ExternalDataFetcher (v3.3 — используем данные API)
+# ExternalDataFetcher (використовуємо дані API)
 # ═══════════════════════════════════════════════════════════════════
 
 class ExternalDataFetcher:
@@ -1029,7 +1028,7 @@ class ExternalDataFetcher:
             print(f"  [OBF text] Помилка: {e}")
             return None
 
-    # --- PubChem (улучшенный) ---
+    # --- PubChem (покращений) ---
     def _parse_pubchem_safety(self, compound_data):
         name_lower = compound_data.get("name", "").lower()
         hazard_text = ""
@@ -1163,7 +1162,7 @@ class ExternalDataFetcher:
             print(f"  [ChEBI] Помилка: {e}")
             return None
 
-    # --- Кеширование ---
+    # --- Кешування ---
     def _get_from_cache(self, ingredient_name):
         try:
             conn = sqlite3.connect(self.cache_file)

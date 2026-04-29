@@ -1,4 +1,4 @@
-// app.js — Skipley (adaptive progress bar with random stage messages)
+// app.js — Skipley
 
 class CosmeticsScanner {
     constructor() {
@@ -40,7 +40,7 @@ class CosmeticsScanner {
 }
 
 /* ================================================================
-   Пулы случайных фраз для этапов (украинский и английский)
+   Пули випадкових фраз для етапів (українська та англійська)
    ================================================================ */
 const STAGE_PHRASES = {
     uk: {
@@ -122,7 +122,7 @@ const STAGE_PHRASES = {
 };
 
 /**
- * Возвращает случайную фразу для указанного этапа на текущем языке.
+ * Повертає випадкову фразу для вказаного етапу на поточній мові.
  */
 function getRandomStageMessage(stage) {
     const lang = window.getCurrentLang ? window.getCurrentLang() : 'uk';
@@ -132,15 +132,15 @@ function getRandomStageMessage(stage) {
 }
 
 /* ================================================================
-   Глобальные функции управления прогресс-баром + этапы
+   Глобальні функції керування прогрес-баром + етапи
    ================================================================ */
 
 let progressTimer = null;
 
 /**
- * Запускает плавное заполнение прогресс-бара и показывает этапы.
- * @param {number} duration — ожидаемая длительность операции (мс)
- * @param {Array} stages — [{at: %, msgs: array}, ...] (три этапа)
+ * Запускає плавне заповнення прогрес-бару та показує етапи.
+ * @param {number} duration — очікувана тривалість операції (мс)
+ * @param {Array} stages — [{at: %, msgs: array}, ...] (три етапи)
  */
 window.startFakeProgress = function(duration, stages) {
     const fill = document.querySelector('.progress-fill');
@@ -154,7 +154,7 @@ window.startFakeProgress = function(duration, stages) {
 
     if (container) container.style.display = 'block';
 
-    // Выбираем по одной случайной фразе для каждого этапа
+    // Вибираємо по одній випадковій фразі для кожного етапу
     const chosenMsgs = {};
     if (stages) {
         stages.forEach(s => {
@@ -164,7 +164,7 @@ window.startFakeProgress = function(duration, stages) {
         });
     }
 
-    // Первое сообщение (первый этап)
+    // Перше повідомлення (перший етап)
     if (stages && stages.length > 0 && msgEl) {
         msgEl.textContent = chosenMsgs[stages[0].at] || '';
     }
@@ -184,7 +184,7 @@ window.startFakeProgress = function(duration, stages) {
         }
         fill.style.width = current + '%';
 
-        // Смена этапа
+        // Зміна етапу
         if (stages && stages.length > 0 && msgEl) {
             for (let i = stages.length - 1; i >= 0; i--) {
                 if (current >= stages[i].at) {
@@ -200,9 +200,9 @@ window.startFakeProgress = function(duration, stages) {
 };
 
 /**
- * Завершает прогресс: доводит до 100%,
- * оставляет последнюю фразу на 2 секунды,
- * затем показывает финальное сообщение и скрывает.
+ * Завершує прогрес: доводить до 100%,
+ * залишає останню фразу на 2 секунди,
+ * потім показує фінальне повідомлення і приховує.
  */
 window.completeProgress = function() {
     clearInterval(progressTimer);
@@ -216,7 +216,7 @@ window.completeProgress = function() {
     fill.style.transition = 'width 0.3s ease';
     fill.style.width = '100%';
 
-    // Ждём 2 секунды с последней фразой этапа
+    // Чекаємо 2 секунди з останньою фразою етапу
     setTimeout(() => {
         if (msgEl) msgEl.textContent = window.i18n('analysisComplete');
         setTimeout(() => {
@@ -228,7 +228,7 @@ window.completeProgress = function() {
     }, 2000);
 };
 
-// Инициализация приложения
+// Ініціалізація застосунку
 document.addEventListener('DOMContentLoaded', function() {
     window.app = new CosmeticsScanner();
     window.app.init();

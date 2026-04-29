@@ -52,10 +52,10 @@ if os.name == 'nt':
 TESSERACT_CONFIG_MULTI = r'--oem 3 --psm 6 -l ukr+rus+eng'
 TESSERACT_CONFIG_ENG = r'--oem 3 --psm 6 -l eng'
 
-# Lazy-init EasyOCR reader
+# Ліниве завантаження EasyOCR reader
 _easyocr_reader = None
 
-# Lazy-init TrOCR (transformer model + processor)
+# Ліниве завантаження TrOCR (transformer model + processor)
 _trocr_processor = None
 _trocr_model = None
 
@@ -544,15 +544,15 @@ def clean_text(text):
                if len(l.strip()) > 3 and re.search(r'[a-zA-Z\u0400-\u04FF]', l)]
 
     text = re.sub(r'\s+', ' ', '\n'.join(cleaned))
-    # Мягкая фильтрация: удаляем только целые строки, которые
-    # являются типичными адресными/контактными паттернами
+    # М'яка фільтрація: видаляємо лише цілі рядки, які
+    # є типовими адресними/контактними патернами
     address_patterns = [
         r'^\s*COSRX\s*(INC\.|GLOBAL)?\s*$',
         r'^\s*RP\s*Biorius\s*$',
         r'^\s*Seoul\s*,\s*Korea\s*$',
         r'^\s*Wavre\s*,\s*BE\s*$',
         r'^\s*London\s+WC[EH]\d+\s+\d*[A-Z]{2}\s*,\s*GB\s*$',
-        r'^\s*\d{5,}\s*$',  # чистый индекс
+        r'^\s*\d{5,}\s*$',  # чистий індекс
         r'^\s*www\..*\s*$',
         r'^\s*FSC\s*Mix\s*$',
     ]
@@ -562,7 +562,7 @@ def clean_text(text):
         stripped = line.strip()
         if not stripped:
             continue
-        # Если строка полностью соответствует одному из адресных шаблонов – пропускаем
+        # Якщо рядок повністю відповідає одному з адресних шаблонів – пропускаємо
         if any(re.match(p, stripped, re.IGNORECASE) for p in address_patterns):
             continue
         filtered.append(line)
@@ -607,13 +607,6 @@ def extract_text(file):
 
         original_image = image.copy()
         processed_image = preprocess_image(image)
-
-        # # Debug
-        # debug_dir = 'ocr_debug'
-        # os.makedirs(debug_dir, exist_ok=True)
-        # processed_image.save(
-        #     os.path.join(debug_dir, f'processed_{int(time.time())}.jpg')
-        # )
 
         raw_text = _ensemble_ocr(original_image, processed_image)
 

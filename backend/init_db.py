@@ -1,6 +1,6 @@
-# init_db.py (v2 — повна ініціалізація)
+# init_db.py (повна ініціалізація)
 """
-Єдиний скрипт повної ініціалізації бази даних Cosmetics Scanner v2.
+Єдиний скрипт повної ініціалізації бази даних Cosmetics Scanner.
 
 Послідовність:
   1. Створення всіх таблиць (users, ingredients, ingredient_aliases,
@@ -25,13 +25,13 @@ import argparse
 from datetime import datetime
 
 print("=" * 60)
-print("ІНІЦІАЛІЗАЦІЯ БАЗИ ДАНИХ COSMETICS SCANNER v2")
+print("ІНІЦІАЛІЗАЦІЯ БАЗИ ДАНИХ COSMETICS SCANNER")
 print(f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 60)
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Ініціалізація БД Cosmetics Scanner v2')
+    parser = argparse.ArgumentParser(description='Ініціалізація БД Cosmetics Scanner')
     parser.add_argument('--seed-only', action='store_true', help='Тільки seed інгредієнтів')
     parser.add_argument('--migrate', action='store_true', help='Тільки міграція аліасів')
     parser.add_argument('--stats', action='store_true', help='Тільки статистика')
@@ -340,7 +340,7 @@ def main():
 
     # Фінальне повідомлення
     print("\n" + "=" * 60)
-    print("✓ БАЗА ДАНИХ COSMETICS SCANNER v2 ГОТОВА!")
+    print("✓ БАЗА ДАНИХ COSMETICS SCANNER ГОТОВА!")
     print("=" * 60)
     print(f"""
   ТЕСТОВІ ОБЛІКОВІ ЗАПИСИ:

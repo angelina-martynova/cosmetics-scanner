@@ -4,10 +4,10 @@
   <div class="content-wrap">
     <h2 data-i18n="scansTitle">Сканування</h2>
 
-    <!-- Sticky filters + mass actions -->
+    <!-- Закріплені фільтри + масові дії -->
     <div class="sticky-filters">
       <div class="filter-groups">
-        <!-- Первая строка: уровень безопасности -->
+        <!-- Перший рядок: рівень безпеки -->
         <div class="filter-row">
           <span class="filter-label" data-i18n="filterLevel"
             >Рівень безпеки</span
@@ -75,7 +75,7 @@
           </button>
         </div>
 
-        <!-- Вторая строка: тип ввода -->
+        <!-- Другий рядок: тип вводу -->
         <div class="filter-row">
           <span class="filter-label" data-i18n="filterType">Тип вводу</span>
           <button
@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <!-- Кнопки массового выделения (слева) -->
+      <!-- Кнопки масового виділення (зліва) -->
       <div class="bulk-actions-inline">
         <button
           id="selectAllBtn"
@@ -156,15 +156,15 @@
       </div>
     </div>
 
-    <!-- Scans count -->
+    <!-- Кількість сканувань -->
     <p class="scans-count" id="scansCount"></p>
 
-    <!-- Loading state -->
+    <!-- Стан завантаження -->
     <div id="loadingState" class="loading hidden">
       <p data-i18n="loadingText">Завантаження сканувань...</p>
     </div>
 
-    <!-- Empty state -->
+    <!-- Порожній стан -->
     <div id="emptyState" class="empty-state hidden">
       <svg
         width="52"
@@ -191,15 +191,15 @@
       >
     </div>
 
-    <!-- Scans list -->
+    <!-- Список сканувань -->
     <div id="scansList" class="scans-list"></div>
 
-    <!-- Pagination -->
+    <!-- Пагінація -->
     <div id="pagination" class="pagination hidden"></div>
   </div>
 </div>
 {% endblock %} {% block scripts %}
-<!-- Safety Legend Modal -->
+<!-- Модальне вікно легенди рівнів безпеки -->
 <div id="safetyLegendModal" class="modal hidden">
   <div class="modal-content" style="max-width: 440px">
     <div class="modal-header">
@@ -272,7 +272,7 @@
   </div>
 </div>
 
-<!-- Detail Modal (без кнопки експорту) -->
+<!-- Деталі сканування (без кнопки експорту) -->
 <div id="scanDetailsModal" class="modal hidden">
   <div class="modal-content wide">
     <div class="modal-header">

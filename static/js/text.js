@@ -1,4 +1,4 @@
-// text.js — модуль текстового ввода
+// text.js — модуль текстового введення
 
 function openTextInput() {
     var modal = document.getElementById('textInputModal');
@@ -33,7 +33,7 @@ async function processManualText() {
         return;
     }
 
-    // Этапы: 5%, 33%, 66% от времени (~5 сек)
+    // Етапи: 5%, 33%, 66% від часу (~5 сек)
     var stages = [
         { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
         { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
@@ -80,7 +80,7 @@ async function processFileUpload() {
 
     var file = fileInput.files[0];
 
-    // Этапы: 5%, 33%, 66% от времени (~8 сек)
+    // Етапи: 5%, 33%, 66% від часу (~8 сек)
     var stages = [
         { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
         { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },

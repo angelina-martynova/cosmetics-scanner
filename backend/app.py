@@ -1,8 +1,8 @@
-# app.py (v2 — підключення models.py)
+# app.py
 """
 Головний файл Flask-додатку Cosmetics Scanner.
 
-Покращення v2:
+Покращення:
   1. Моделі імпортуються з models.py (розширений Ingredient, IngredientAlias, ScanIngredient)
   2. calculate_safety_status_with_message імпортується з models.py (єдина точка)
   3. create_scan() створює нормалізовані ScanIngredient-записи
@@ -619,7 +619,7 @@ def get_external_sources():
 
 
 # ═══════════════════════════════════════════════════════════════════
-# АДМІН: ВЕРИФІКАЦІЯ ІНГРЕДІЄНТІВ (НОВИЙ)
+# АДМІН: ВЕРИФІКАЦІЯ ІНГРЕДІЄНТІВ
 # ═══════════════════════════════════════════════════════════════════
 
 @app.route('/api/admin/unverified', methods=['GET'])
@@ -701,7 +701,7 @@ def reject_ingredient(ingredient_id):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# АДМІН: АЛІАСИ (НОВИЙ)
+# АДМІН: АЛІАСИ
 # ═══════════════════════════════════════════════════════════════════
 
 @app.route('/api/admin/aliases', methods=['GET'])
@@ -794,14 +794,14 @@ def delete_alias(alias_id):
 @app.route('/api/health')
 def health_check():
     return jsonify({
-        "status": "healthy", "service": "Cosmetics Scanner API v2",
+        "status": "healthy", "service": "Cosmetics Scanner API",
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
 
 @app.route('/api/simple-check')
 def simple_check():
     return jsonify({
-        "service": "Cosmetics Scanner API v2", "status": "running",
+        "service": "Cosmetics Scanner API", "status": "running",
         "endpoints": {
             "health": "/api/health", "register": "/api/register",
             "login": "/api/login", "analyze": "/api/analyze",
@@ -881,7 +881,7 @@ def db_check():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# Адмін-ендпоінти для діагностики (збережені з v1)
+# Адмін-ендпоінти для діагностики
 @app.route('/api/debug-scans/<email>', methods=['GET'])
 @login_required
 def debug_scans(email):
@@ -969,7 +969,7 @@ def clear_cache():
 
 def init_db():
     with app.app_context():
-        print("Ініціалізація бази даних v2...")
+        print("Ініціалізація бази даних...")
         os.makedirs('uploads', exist_ok=True)
         os.makedirs('static', exist_ok=True)
         os.makedirs('data_cache', exist_ok=True)
@@ -996,6 +996,6 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    print("Запуск Cosmetics Scanner v2...")
+    print("Запуск Cosmetics Scanner...")
     print("http://localhost:5000")
     app.run(debug=True, port=5000, threaded=True)

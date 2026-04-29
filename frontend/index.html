@@ -2,7 +2,7 @@
 інгредієнтів{% endblock %} {% block content %}
 <div class="main-content enter">
   <div class="content-wrap">
-    <!-- Hero -->
+    <!-- Головна секція (Hero) -->
     <div class="hero">
       <span class="hero-badge" data-i18n="heroBadge"
         >Сканер безпеки інгредієнтів</span
@@ -14,7 +14,7 @@
       </p>
     </div>
 
-    <!-- Status message (будет показываться при обработке) -->
+    <!-- Повідомлення стану (буде показуватися під час обробки) -->
     <div
       id="processingStatus"
       style="display: none; text-align: center; margin-bottom: 16px"
@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <!-- Method cards -->
+    <!-- Картки методів -->
     <div class="input-methods">
       <div class="method-card" role="button" onclick="openCamera()">
         <div class="method-icon-wrap">
@@ -81,7 +81,7 @@
       </div>
     </div>
 
-    <!-- Trust badges -->
+    <!-- Значки довіри -->
     <div class="trust-row">
       <span class="trust-item"
         ><span class="trust-dot"></span
@@ -98,7 +98,7 @@
     </div>
   </div>
 
-  <!-- Hidden inputs -->
+  <!-- Приховані поля вводу -->
   <input
     type="file"
     id="cameraInput"
@@ -114,7 +114,7 @@
     accept=".txt,.doc,.docx,.pdf"
   />
 
-  <!-- Camera Modal (встроенная камера + галерея) -->
+  <!-- Модальне вікно камери (вбудована камера + галерея) -->
   <div id="cameraModal" class="modal hidden">
     <div class="modal-content no-blur" style="max-width: 500px">
       <div class="modal-header">
@@ -144,7 +144,7 @@
         </button>
       </div>
 
-      <!-- Viewfinder -->
+      <!-- Видошукач -->
       <div class="viewfinder">
         <video id="cameraVideo" autoplay playsinline></video>
         <canvas id="cameraCanvas" style="display: none"></canvas>
@@ -156,9 +156,9 @@
         </div>
       </div>
 
-      <!-- Control buttons -->
+      <!-- Кнопки керування -->
       <div class="camera-controls">
-        <!-- Галерея (всегда видна) -->
+        <!-- Галерея (завжди видима) -->
         <button
           class="btn btn-icon"
           onclick="openGallery()"
@@ -180,12 +180,12 @@
           </svg>
         </button>
 
-        <!-- Круглая кнопка спуска -->
+        <!-- Кругла кнопка спуску -->
         <button id="captureBtn" class="shutter-btn" title="Зробити знімок">
           <span class="shutter-inner"></span>
         </button>
 
-        <!-- Кнопка "Перезняти" (появляется после снимка) -->
+        <!-- Кнопка «Перезняти» (з'являється після знімка) -->
         <button id="retakeBtn" class="btn btn-ghost btn-md hidden">
           <svg
             width="15"
@@ -203,7 +203,7 @@
           <span data-i18n="retakeBtn">Перезняти</span>
         </button>
 
-        <!-- Кнопка "Аналізувати" (появляется после снимка) -->
+        <!-- Кнопка «Аналізувати» (з'являється після знімка) -->
         <button id="usePhotoBtn" class="btn btn-primary btn-md hidden">
           <svg
             width="16"
@@ -223,7 +223,7 @@
     </div>
   </div>
 
-  <!-- Result Modal (для любых результатов) -->
+  <!-- Модальне вікно результатів (для будь-яких результатів) -->
   <div id="scanResultModal" class="modal hidden">
     <div class="modal-content wide">
       <div class="modal-header">
@@ -253,11 +253,11 @@
 
   <div class="content-wrap">
     <div id="result"></div>
-    <!-- не используется, оставлен для совместимости -->
+    <!-- не використовується, залишено для сумісності -->
   </div>
 </div>
 {% endblock %} {% block scripts %}
-<!-- Text Input Modal -->
+<!-- Модальне вікно вводу тексту -->
 <div id="textInputModal" class="modal hidden">
   <div class="modal-content" style="max-width: 560px">
     <div class="modal-header">

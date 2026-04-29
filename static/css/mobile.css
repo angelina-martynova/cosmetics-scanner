@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   Skipley — Mobile Overrides
+   Skipley — Мобільні перевизначення
    ═══════════════════════════════════════════════ */
 
 @media (hover: none) and (pointer: coarse) {
@@ -85,12 +85,12 @@
         padding: 4px 0;
         margin-bottom: 2px;
     }
-    
+
     .filter-actions-row {
         flex-wrap: wrap;
         gap: 8px;
     }
-    
+
     .bulk-actions-inline {
         width: 100%;
         justify-content: flex-start;
@@ -103,7 +103,7 @@
         padding: 0;
         flex-wrap: wrap;
     }
-    
+
     .shutter-btn {
         position: static;
         transform: none;

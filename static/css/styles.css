@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   Skipley — Design System (Light / Dark)
+   Skipley — Система дизайну (світла / темна)
    ══════════════════════════════════════════════════════════════ */
 
 *,
@@ -10,7 +10,7 @@
     box-sizing: border-box;
 }
 
-/* ── Design Tokens ── */
+/* ── Дизайн-токени ── */
 :root {
     --pink-300: #ECA8C9;
     --pink-400: #E08AB5;
@@ -18,7 +18,8 @@
     --pink-600: #BA4A84;
     --pink-700: #963A6A;
 
-    --sl-50: #F7F5F2;      /* теплый почти белый */
+    --sl-50: #F7F5F2;
+    /* теплий майже білий */
     --sl-100: #F0EDE8;
     --sl-200: #E5E0D9;
     --sl-300: #D2CCC3;
@@ -30,7 +31,7 @@
     --sl-900: #1C1915;
     --sl-950: #100E0B;
 
-    /* Light semantic (тёплая гамма) */
+    /* Світла семантика (тепла гама) */
     --bg: #F7F5F2;
     --surface: #FFFDFB;
     --surface-2: #F5F2EE;
@@ -49,7 +50,7 @@
     --topbar-bdr: rgba(215, 205, 195, 0.90);
     --modal-bg: rgba(255, 253, 251, 0.96);
     --modal-bdr: rgba(205, 195, 185, 0.70);
-    --overlay: rgba(30, 25, 20, 0.45);   /* тёплый оверлей */
+    --overlay: rgba(30, 25, 20, 0.45);
     --shadow-sm: 0 1px 4px rgba(50, 40, 35, 0.07);
     --shadow-md: 0 4px 16px rgba(50, 40, 35, 0.10);
     --shadow-lg: 0 12px 40px rgba(50, 40, 35, 0.14);
@@ -61,47 +62,44 @@
     --r-xl: 18px;
     --r-pill: 999px;
 
-    /* ── Risk-бейджи (дуже м'які, ненав'язливі) ── */
-        --rs-bg: #DAEDDA;
-        /* очень нежный фисташковый */
-        --rs-fg: #1F5A23;
-        /* тёмный лесной зелёный */
-        --rs-dot: #1F5A23;
-    
-        --rl-bg: #FFF3CD;
-        /* світло-пісочний */
-        --rl-fg: #a68200;
-        /* чистий жовто-золотавий (не коричневий) */
-        --rl-dot: #a68200;
-    
-        --rm-bg: #FFF8E1;
-        /* Medium – нежный кремово-жёлтый фон */
-        --rm-fg: #e47413;
-        /* насыщенный янтарный текст */
-        --rm-dot: #e47413;
-    
-        --rh-bg: #FFEBEE;
-        /* High – ледь рожевий */
-        --rh-fg: #B71C1C;
-        --rh-dot: #B71C1C;
-    
-        --ru-bg: #EDE7F6;
-        /* Unknown – світлий бузковий */
-        --ru-fg: #311B92;
-        --ru-dot: #311B92;
+    /* ── Бейджі ризику (дуже м’які, ненав’язливі) ── */
+    --rs-bg: #DAEDDA;
+    /* дуже ніжний фісташковий */
+    --rs-fg: #1F5A23;
+    /* темний лісовий зелений */
+    --rs-dot: #1F5A23;
+
+    --rl-bg: #FFF3CD;
+    /* світло-пісочний */
+    --rl-fg: #a68200;
+    /* чистий жовто-золотавий (не коричневий) */
+    --rl-dot: #a68200;
+
+    --rm-bg: #FFF8E1;
+    /* Medium – ніжний кремово-жовтий фон */
+    --rm-fg: #e47413;
+    /* насичений янтарний текст */
+    --rm-dot: #e47413;
+
+    --rh-bg: #FFEBEE;
+    /* High – ледь рожевий */
+    --rh-fg: #B71C1C;
+    --rh-dot: #B71C1C;
+
+    --ru-bg: #EDE7F6;
+    /* Unknown – світлий бузковий */
+    --ru-fg: #311B92;
+    --ru-dot: #311B92;
 
     --sidebar-w: 220px;
     --topbar-h: 52px;
 }
 
-/* ── Dark Theme (тёплая, мягкий кофе с розовым) ── */
+/* ── Темна тема (тепла, м’яка кава з рожевим) ── */
 [data-theme="dark"] {
     --bg: #181513;
-    /* глубокий, но менее коричневый */
     --surface: #201d1a;
-    /* нейтрально-тёплый */
     --surface-2: #282522;
-    /* чуть светлее */
     --elevated: #322f2b;
 
     --border: #33302c;
@@ -129,23 +127,17 @@
     --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
     --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.6);
 
-/* ── Risk-бейджи (м'яка палітра для обох тем) ── */
+    /* ── Бейджі ризику (м’яка палітра для обох тем) ── */
     --rs-bg: #DAEDDA;
-    /* очень нежный фисташковый */
     --rs-fg: #1F5A23;
-    /* тёмный лесной зелёный */
     --rs-dot: #1F5A23;
 
     --rl-bg: #FFF3CD;
-    /* світло-пісочний */
     --rl-fg: #a68200;
-    /* чистий жовто-золотавий (не коричневий) */
     --rl-dot: #a68200;
-    
+
     --rm-bg: #FFF8E1;
-    /* Medium – нежный кремово-жёлтый фон */
     --rm-fg: #e47413;
-    /* насыщенный янтарный текст */
     --rm-dot: #e47413;
 
     --rh-bg: #FFCDD2;
@@ -159,7 +151,7 @@
     --ru-dot: #4527A0;
 }
 
-/* ── Animations ── */
+/* ── Анімації ── */
 @keyframes fadeIn {
     from {
         opacity: 0
@@ -198,7 +190,7 @@
     animation: slideUp 0.22s ease both;
 }
 
-/* ── Scrollbar ── */
+/* ── Смуга прокрутки ── */
 ::-webkit-scrollbar {
     width: 4px;
 }
@@ -212,7 +204,7 @@
     background: transparent;
 }
 
-/* ── Base ── */
+/* ── Базові стилі ── */
 body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -228,7 +220,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TOP BAR
+   ВЕРХНЯ ПАНЕЛЬ
    ══════════════════════════════════════════════════════════════ */
 .topbar {
     background: var(--topbar-bg);
@@ -282,7 +274,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   SIDEBAR
+   БІЧНА ПАНЕЛЬ
    ══════════════════════════════════════════════════════════════ */
 .sidebar {
     position: fixed;
@@ -432,7 +424,7 @@ body {
     color: var(--txt-3);
 }
 
-/* Sidebar backdrop */
+/* Підкладка бічної панелі */
 .sidebar-backdrop {
     position: fixed;
     inset: 0;
@@ -443,7 +435,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MAIN CONTENT
+   ОСНОВНИЙ ВМІСТ
    ══════════════════════════════════════════════════════════════ */
 .main-content {
     background: var(--bg);
@@ -457,7 +449,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   HERO
+   ГЕРОЙ
    ══════════════════════════════════════════════════════════════ */
 .hero {
     text-align: center;
@@ -494,7 +486,7 @@ body {
     margin: 0 auto;
 }
 
-/* ── Trust badges ── */
+/* ── Значки довіри ── */
 .trust-row {
     display: flex;
     gap: 20px;
@@ -521,7 +513,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   METHOD CARDS
+   КАРТКИ МЕТОДІВ
    ══════════════════════════════════════════════════════════════ */
 .input-methods {
     display: grid;
@@ -541,7 +533,7 @@ body {
     transition: all 0.18s ease;
     position: relative;
     overflow: hidden;
-    /* ▲ new: превращаем карточку в flex-колонку */
+    /* Перетворюємо картку на flex-колонку */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -587,13 +579,13 @@ body {
     line-height: 1.5;
 }
 
-/* ▲ new: прижимаем кнопку к нижнему краю карточки */
+/* Притискаємо кнопку до нижнього краю картки */
 .method-card .btn {
     margin-top: auto;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   BUTTONS
+   КНОПКИ
    ══════════════════════════════════════════════════════════════ */
 .btn {
     font-family: 'Inter', sans-serif;
@@ -719,7 +711,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RISK BADGES
+   БЕЙДЖІ РИЗИКУ
    ══════════════════════════════════════════════════════════════ */
 .risk-badge {
     display: inline-flex;
@@ -814,7 +806,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MODAL
+   МОДАЛЬНЕ ВІКНО
    ══════════════════════════════════════════════════════════════ */
 .modal {
     position: fixed;
@@ -861,7 +853,7 @@ body {
     margin-bottom: 4px;
 }
 
-/* Отключаем backdrop-filter для модальных окон, где он вызывает артефакты */
+/* Вимикаємо backdrop-filter для модальних вікон, де він викликає артефакти */
 .modal-content.no-blur {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -911,7 +903,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   AUTH FORMS
+   ФОРМИ АВТОРИЗАЦІЇ
    ══════════════════════════════════════════════════════════════ */
 .auth-page {
     background: var(--bg);
@@ -1050,7 +1042,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   CAMERA SCREEN
+   ЕКРАН КАМЕРИ
    ══════════════════════════════════════════════════════════════ */
 .camera-page {
     padding: 32px 24px 48px;
@@ -1101,7 +1093,7 @@ body {
     justify-content: center;
 }
 
-/* Corner guides */
+/* Кутові напрямні */
 .viewfinder-guides {
     position: absolute;
     inset: 0;
@@ -1170,30 +1162,24 @@ body {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    /* важно! */
     padding: 0 24px;
-    /* добавит воздух слева/справа, увеличивая расстояние от краёв */
     gap: 0;
     flex-wrap: nowrap;
 }
 
-/* Кнопка галереи в камере – розовая и с пунктирной обводкой при наведении */
+/* Кнопка галереї в камері – рожева і з пунктирною обводкою при наведенні */
 .camera-controls .btn-icon {
     color: var(--accent);
-    /* розовый цвет иконки */
     background: transparent;
-    /* прозрачный фон */
 }
 
 .camera-controls .btn-icon:hover {
     outline: 2px dashed var(--accent);
-    /* пунктирная обводка */
     outline-offset: 2px;
     background: transparent;
-    /* без фона, чтобы не перекрывал обводку */
 }
 
-/* Кнопка съёмки – всегда точно по центру */
+/* Кнопка зйомки – завжди точно по центру */
 .shutter-btn {
     position: absolute;
     left: 50%;
@@ -1231,7 +1217,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TEXT INPUT SCREEN
+   ЕКРАН ВВЕДЕННЯ ТЕКСТУ
    ══════════════════════════════════════════════════════════════ */
 .text-input-page {
     padding: 32px 24px 80px;
@@ -1292,7 +1278,7 @@ body {
     pointer-events: none;
 }
 
-/* Upload zone */
+/* Зона завантаження */
 .upload-zone {
     background: var(--surface);
     border: 1.5px dashed var(--border);
@@ -1318,7 +1304,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RESULTS
+   РЕЗУЛЬТАТИ
    ══════════════════════════════════════════════════════════════ */
 .results-page {
     padding: 28px 24px 80px;
@@ -1412,7 +1398,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   SCANS HISTORY
+   ІСТОРІЯ СКАНУВАНЬ
    ══════════════════════════════════════════════════════════════ */
 .scans-page {
     padding: 28px 24px 80px;
@@ -1430,7 +1416,7 @@ body {
     margin-bottom: 20px;
 }
 
-/* ── Sticky container (фильтры сверху, кнопки снизу слева) ── */
+/* ── Закріплений контейнер (фільтри зверху, кнопки внизу зліва) ── */
 .sticky-filters {
     position: sticky;
     top: var(--topbar-h);
@@ -1451,7 +1437,7 @@ body {
     flex-shrink: 0;
 }
 
-/* Filter bar */
+/* Панель фільтрів */
 .filter-bar {
     background: none;
     border: none;
@@ -1494,7 +1480,7 @@ body {
     margin-right: 4px;
 }
 
-/* Кнопки массовых действий */
+/* Кнопки масових дій */
 .bulk-actions-inline {
     display: flex;
     align-items: center;
@@ -1555,7 +1541,7 @@ body {
     transform: none;
 }
 
-/* Safety info button */
+/* Кнопка інформації про безпеку */
 .safety-info-btn {
     background: none;
     border: none;
@@ -1581,7 +1567,7 @@ body {
     transform: none;
 }
 
-/* Safety legend modal */
+/* Модальне вікно легенди безпеки */
 .safety-legend-list {
     display: flex;
     flex-direction: column;
@@ -1613,7 +1599,7 @@ body {
     margin-bottom: 14px;
 }
 
-/* Scan cards */
+/* Картки сканувань */
 .scans-list {
     display: flex;
     flex-direction: column;
@@ -1692,7 +1678,7 @@ body {
     color: var(--txt-3);
 }
 
-/* Pagination */
+/* Пагінація */
 .pagination {
     display: flex;
     gap: 6px;
@@ -1738,7 +1724,7 @@ body {
     color: #fff;
 }
 
-/* Элемент многоточия в пагинации */
+/* Елемент трикрапки у пагінації */
 .page-ellipsis {
     width: 32px;
     height: 32px;
@@ -1750,7 +1736,7 @@ body {
     user-select: none;
 }
 
-/* Empty state */
+/* Порожній стан */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -1776,7 +1762,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DETAIL MODAL
+   МОДАЛЬНЕ ВІКНО ДЕТАЛЕЙ
    ══════════════════════════════════════════════════════════════ */
 .detail-meta {
     font-size: 12px;
@@ -1837,7 +1823,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   PROGRESS BAR
+   ПРОГРЕС-БАР
    ══════════════════════════════════════════════════════════════ */
 .scan-progress {
     margin: 1.5rem 0;
@@ -1860,7 +1846,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   LOADING & MESSAGES
+   ЗАВАНТАЖЕННЯ ТА ПОВІДОМЛЕННЯ
    ══════════════════════════════════════════════════════════════ */
 .loading {
     text-align: center;
@@ -1914,7 +1900,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   SCAN CHECKBOX
+   ЧЕКБОКС СКАНУВАННЯ
    ══════════════════════════════════════════════════════════════ */
 .scan-checkbox {
     width: 18px;
@@ -1925,7 +1911,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   SVG ICONS (inline)
+   SVG-ІКОНКИ (вбудовані)
    ══════════════════════════════════════════════════════════════ */
 .icon {
     display: block;
@@ -1933,7 +1919,7 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   RESPONSIVE
+   АДАПТИВНІСТЬ
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
     .main-content {
@@ -1969,18 +1955,16 @@ body {
         flex-wrap: nowrap;
     }
 
-    /* Чтобы круглая кнопка была точно по центру, 
-    даём левому краю такой же отступ, как правому */
+    /* Щоб кругла кнопка була точно по центру, даємо лівому краю такий самий відступ, як правому */
     .camera-controls>.btn-icon:first-child {
         margin-right: 0;
     }
-    
-    /* Компенсируем разницу в ширине между иконкой и текстовыми кнопками */
+
+    /* Компенсуємо різницю в ширині між піктограмою та текстовими кнопками */
     .camera-controls>.shutter-btn {
         flex-shrink: 0;
-        /* не даём кнопке сжиматься */
     }
-    
+
     .camera-controls .btn {
         width: 100%;
         max-width: 300px;
@@ -2010,7 +1994,7 @@ body {
     }
 }
 
-/* Autofill fix */
+/* Виправлення автозаповнення */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -2020,7 +2004,7 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Export button */
+/* Кнопка експорту */
 .export-pdf-btn {
     background: none;
     border: none;
@@ -2048,10 +2032,10 @@ input:-webkit-autofill:active {
 
 .bulk-actions {
     display: none;
-    /* старый класс скрыт, используется .bulk-actions-inline */
+    /* старий клас приховано, використовується .bulk-actions-inline */
 }
 
-/* Контейнер прогресс-бара */
+/* Контейнер прогрес-бару */
 .scan-progress {
     width: 100%;
     height: 8px;
@@ -2067,14 +2051,13 @@ input:-webkit-autofill:active {
     background: transparent;
 }
 
-/* Заполняющая полоса – ширина будет управляться через JS */
+/* Заповнювальна смуга – ширина керуватиметься через JS */
 .progress-fill {
     width: 0%;
     height: 100%;
     background: linear-gradient(90deg, #6C63FF, var(--accent, #ff7eb3));
     border-radius: 4px;
     transition: width 0.4s ease;
-    /* плавное изменение ширины */
 }
 
 @keyframes progressSlide {

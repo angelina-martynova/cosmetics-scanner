@@ -1,4 +1,4 @@
-# models.py (timezone‑aware fix)
+# models.pyЫ
 """
 Розширені моделі бази даних для Cosmetics Scanner.
 

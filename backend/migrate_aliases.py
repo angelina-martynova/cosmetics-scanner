@@ -275,8 +275,8 @@ EWG_SCORES = {
 # ГОЛОВНА ФУНКЦІЯ МІГРАЦІЇ
 # ═══════════════════════════════════════════════════════════════════
 def migrate():
-    # Імпортуємо з нового models.py (має лежати поруч)
-    # Якщо models.py ще не підключений до app.py — тимчасово імпортуємо старий app
+    # Імпортуємо з models.py (має лежати поруч)
+    # Якщо models.py ще не підключено до app.py — тимчасово імпортуємо старий app
     try:
         from models import db, Ingredient, IngredientAlias
     except ImportError:

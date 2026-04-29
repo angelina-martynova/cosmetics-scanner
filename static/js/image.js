@@ -1,4 +1,4 @@
-// image.js — встроенная камера + галерея, результат через openScanResult
+// image.js — вбудована камера + галерея, результат через openScanResult
 
 class CameraManager {
     constructor() {
@@ -96,7 +96,7 @@ class CameraManager {
 
 var cameraManager = new CameraManager();
 
-// Глобальные функции
+// Глобальні функції
 function openCamera() {
     cameraManager.initCamera();
 }
@@ -112,12 +112,12 @@ function openGallery() {
     }, 100);
 }
 
-// Отправка изображения (камера или галерея) и открытие результата
+// Відправлення зображення (камера або галерея) і відкриття результату
 async function processImageFile(file, source) {
     var resultDiv = document.getElementById('result');
     if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
-    // Этапы: 5% (почти сразу), 33%, 66% от общего времени
+    // Етапи: 5% (майже відразу), 33%, 66% від загального часу
     var stages = [
         { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
         { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
@@ -151,7 +151,7 @@ async function processImageFile(file, source) {
     }
 }
 
-// Инициализация кнопок
+// Ініціалізація кнопок
 document.addEventListener('DOMContentLoaded', function() {
     console.log('IMAGE.JS ЗАВАНТАЖЕНО');
 
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Экспорт в глобальную область
+// Експорт у глобальну область
 window.openCamera = openCamera;
 window.closeCamera = closeCamera;
 window.openGallery = openGallery;

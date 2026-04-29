@@ -107,7 +107,7 @@ function togglePasswordVisibility(inputId) {
 }
 
 function showMessage(message, type) {
-    // Уведомления отключены глобально через CSS
+    // Сповіщення вимкнено глобально через CSS
 }
 
 function preventAutofill(formId) {

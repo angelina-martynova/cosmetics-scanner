@@ -1,4 +1,4 @@
-// scans.js — Skipley Scan History
+// scans.js — Історія сканувань Skipley
 
 class ScansManager {
     constructor() {
@@ -50,7 +50,7 @@ class ScansManager {
         var exportSelectedBtn = document.getElementById('exportSelectedBtn');
         if (exportSelectedBtn) exportSelectedBtn.addEventListener('click', function() { self.exportSelectedScans(); });
 
-        // Обработчик закрытия модального окна деталей
+        // Обробник закриття модального вікна деталей
         var scanDetailsModal = document.getElementById('scanDetailsModal');
         if (scanDetailsModal) {
             scanDetailsModal.addEventListener('click', function(e) {
@@ -58,7 +58,7 @@ class ScansManager {
             });
         }
 
-        // Safety legend modal
+        // Модальне вікно легенди безпеки
         var safetyInfoBtn = document.getElementById('safetyInfoBtn');
         var safetyLegendModal = document.getElementById('safetyLegendModal');
         var closeSafetyLegend = document.getElementById('closeSafetyLegend');
@@ -205,7 +205,7 @@ class ScansManager {
                 '</div>' +
             '</div>' +
             '<p class="scan-preview-text">' + preview + '</p>' +
-            // Совмещённая строка: статистика слева, кнопки справа
+            // Суміщений рядок: статистика ліворуч, кнопки праворуч
             '<div class="scan-stats" style="display:flex; align-items:center; justify-content:space-between;">' +
                 '<div style="display:flex; align-items:center; gap:8px;">' +
                     '<span class="risk-badge risk-sm risk-' + riskLevel + '"><span class="dot"></span>' + this.getRiskText(riskLevel) + '</span>' +
@@ -238,7 +238,7 @@ class ScansManager {
         var self = this;
         document.querySelectorAll('.scan-card').forEach(function(card) {
             card.addEventListener('click', function(e) {
-                // Не открываем детали, если кликнули по кнопкам или чекбоксу
+                // Не відкриваємо деталі, якщо клікнули по кнопках або чекбоксу
                 if (e.target.closest('.scan-checkbox') || e.target.closest('button')) return;
                 var scanId = parseInt(card.dataset.scanId);
                 self.viewScanDetails(scanId);
@@ -408,7 +408,7 @@ class ScansManager {
     }
 
     clearSelection() {
-        // Снимаем все галочки
+        // Знімаємо всі прапорці
         document.querySelectorAll('.scan-checkbox').forEach(cb => {
             cb.checked = false;
         });
@@ -502,10 +502,10 @@ class ScansManager {
         var current = this.currentPage;
         var pages = [];
 
-        // Всегда добавляем первую страницу
+        // Завжди додаємо першу сторінку
         pages.push(1);
 
-        // Определяем промежуточные страницы без дублирования
+        // Визначаємо проміжні сторінки без дублювання
         if (totalPages > 2) {
             var rangeStart = Math.max(2, current - 1);
             var rangeEnd = Math.min(totalPages - 1, current + 1);
@@ -516,7 +516,7 @@ class ScansManager {
                 pages.push(2);
             }
 
-            // Добавляем страницы от rangeStart+1 до rangeEnd (избегаем повторов 2)
+            // Додаємо сторінки від rangeStart+1 до rangeEnd (уникаємо повторів 2)
             for (var i = Math.max(rangeStart + 1, 3); i <= rangeEnd; i++) {
                 pages.push(i);
             }
@@ -526,14 +526,14 @@ class ScansManager {
             }
         }
 
-        // Добавляем последнюю страницу, если она ещё не добавлена
+        // Додаємо останню сторінку, якщо вона ще не додана
         if (totalPages > 1 && pages[pages.length - 1] !== totalPages) {
             pages.push(totalPages);
         }
 
-        // Строим HTML
+        // Будуємо HTML
         var html = '';
-        // Кнопка «Предыдущая»
+        // Кнопка «Попередня»
         if (current > 1) {
             html += '<button onclick="scansManager.loadScans(' + (current - 1) + ')" title="' + window.i18n('prevPage') + '">‹</button>';
         } else {
@@ -551,7 +551,7 @@ class ScansManager {
             }
         }
 
-        // Кнопка «Следующая»
+        // Кнопка «Наступна»
         if (current < totalPages) {
             html += '<button onclick="scansManager.loadScans(' + (current + 1) + ')" title="' + window.i18n('nextPage') + '">›</button>';
         } else {
@@ -574,7 +574,7 @@ class ScansManager {
     }
 
     showMessage(message, type) {
-        // Отключены глобально через CSS
+        // Сповіщення вимкнено глобально через CSS
     }
 
     closeScanDetails() {

@@ -24,7 +24,7 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body>
-    <!-- ═══ TOP BAR ═══ -->
+    <!-- ═══ ВЕРХНЯ ПАНЕЛЬ ═══ -->
     <header class="topbar">
       <button class="topbar-brand" onclick="window.location.href = '/'">
         <span data-i18n="brand">Skipley</span>
@@ -117,7 +117,7 @@
       </div>
     </header>
 
-    <!-- ═══ SIDEBAR ═══ -->
+    <!-- ═══ БІЧНА ПАНЕЛЬ (САЙДБАР) ═══ -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <span class="sidebar-brand" data-i18n="menu">Меню</span>
@@ -266,12 +266,12 @@
     </aside>
     <div class="sidebar-backdrop hidden" id="sidebarBackdrop"></div>
 
-    <!-- ═══ MAIN ═══ -->
+    <!-- ═══ ОСНОВНИЙ ВМІСТ ═══ -->
     {% block content %}{% endblock %}
 
-    <!-- ═══ SCRIPTS ═══ -->
+    <!-- ═══ СКРИПТИ ═══ -->
     <script>
-      // ── ГЛОБАЛЬНЫЙ СЛОВАРЬ ПЕРЕВОДОВ ──
+      // ── ГЛОБАЛЬНИЙ СЛОВНИК ПЕРЕКЛАДІВ ──
       const I18N = {
         uk: {
           brand: "Skipley",
@@ -550,7 +550,7 @@
         },
       };
 
-      // ── ГЛОБАЛЬНЫЕ ФУНКЦИИ ПЕРЕВОДА ──
+      // ── ГЛОБАЛЬНІ ФУНКЦІЇ ПЕРЕКЛАДУ ──
       window.i18n = function (key, ...args) {
         const lang = getCurrentLang();
         const val = (I18N[lang] && I18N[lang][key]) || key;
@@ -640,7 +640,7 @@
           : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
       }
 
-      // ── Авторизация ──
+      // ── Авторизація ──
       function updateSidebarAuth() {
         fetch("/api/status")
           .then((r) => (r.ok ? r.json() : Promise.reject()))
@@ -686,7 +686,7 @@
       }
       updateTopbarAuth();
 
-      // ── Дублируем тему для верхнего бара ──
+      // ── Дублюємо тему для верхньої панелі ──
       document
         .getElementById("themeToggleTop")
         .addEventListener("click", function () {
@@ -712,7 +712,7 @@
       }
       updateThemeTopUI();
 
-      // ── Обработчики языка ──
+      // ── Обробники зміни мови ──
       document
         .getElementById("langToggleTop")
         .addEventListener("click", toggleLanguage);
@@ -720,7 +720,7 @@
         .getElementById("langToggle")
         .addEventListener("click", toggleLanguage);
 
-      // ── ГЛОБАЛЬНОЕ МОДАЛЬНОЕ ОКНО РЕЗУЛЬТАТОВ ──
+      // ── ГЛОБАЛЬНЕ МОДАЛЬНЕ ВІКНО РЕЗУЛЬТАТІВ ──
       window.lastScanResult = null;
 
       window.normalizeRiskLevel = function (level) {
@@ -824,7 +824,8 @@
         document.getElementById("scanResultModal").classList.add("hidden");
       };
 
-      // Закрытие модальных окон при клике на затемнённый фон
+      // Закриття модальних вікон при кліку на затемнений фон
+      // тут можна додати інші модальні вікна за потреби
       document.addEventListener("click", function (e) {
         if (
           !e.target.classList.contains("modal") ||
@@ -842,7 +843,6 @@
           case "scanResultModal":
             if (typeof closeScanResult === "function") closeScanResult();
             break;
-          // здесь можно добавить другие модальные окна по мере необходимости
         }
       });
 
@@ -857,7 +857,7 @@
         }
       });
 
-      // ── Применяем язык после загрузки DOM ──
+      // ── Застосовуємо мову після завантаження DOM ──
       document.addEventListener("DOMContentLoaded", function () {
         applyLanguage(getCurrentLang());
       });

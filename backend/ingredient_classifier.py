@@ -1,5 +1,5 @@
-# ingredient_classifier.py (локальная загрузка, без интернета)
-"""Семантический фильтр ингредиентов на основе дообученной ModernBERT-base (локально)."""
+# ingredient_classifier.py (локальне завантаження, без інтернету)
+"""Семантичний фільтр інгредієнтів на основі донавченої ModernBERT-base (локально)."""
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
