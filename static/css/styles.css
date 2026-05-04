@@ -825,6 +825,11 @@ body {
     display: none;
 }
 
+#textInputModal {
+    top: var(--topbar-h);
+    z-index: 90;
+}
+
 .modal-content {
     background: var(--modal-bg);
     backdrop-filter: blur(24px) saturate(160%);
