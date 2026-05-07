@@ -117,11 +117,11 @@ async function processImageFile(file, source) {
     var resultDiv = document.getElementById('result');
     if (!resultDiv) { alert('Помилка: елемент для результатів не знайдено'); return; }
 
-    // Етапи: 5% (майже відразу), 33%, 66% від загального часу
+    // Етапи: ключі замість готових фраз
     var stages = [
-        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
-        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
-        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+        { at: 5,  poolKey: 'stage1' },
+        { at: 33, poolKey: 'stage2' },
+        { at: 66, poolKey: 'stage3' }
     ];
 
     try {

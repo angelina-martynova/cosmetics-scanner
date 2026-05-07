@@ -33,11 +33,11 @@ async function processManualText() {
         return;
     }
 
-    // Етапи: 5%, 33%, 66% від часу (~5 сек)
+    // Етапи передаються ключами, фрази візьмуться згідно з поточною мовою
     var stages = [
-        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
-        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
-        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+        { at: 5,  poolKey: 'stage1' },
+        { at: 33, poolKey: 'stage2' },
+        { at: 66, poolKey: 'stage3' }
     ];
 
     try {
@@ -72,7 +72,10 @@ async function processFileUpload() {
     var fileInput = document.getElementById('fileInput');
     var resultDiv = document.getElementById('result');
 
-    if (!fileInput || !resultDiv) { alert('Помилка: елементи не знайдено'); return; }
+    if (!fileInput || !resultDiv) { 
+        alert('Помилка: елементи не знайдено'); 
+        return; 
+    }
     if (!fileInput.files || !fileInput.files[0]) {
         alert(window.i18n('selectFile'));
         return;
@@ -80,11 +83,10 @@ async function processFileUpload() {
 
     var file = fileInput.files[0];
 
-    // Етапи: 5%, 33%, 66% від часу (~8 сек)
     var stages = [
-        { at: 5,  msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage1 },
-        { at: 33, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage2 },
-        { at: 66, msgs: STAGE_PHRASES[window.getCurrentLang() || 'uk'].stage3 }
+        { at: 5,  poolKey: 'stage1' },
+        { at: 33, poolKey: 'stage2' },
+        { at: 66, poolKey: 'stage3' }
     ];
 
     try {
@@ -94,7 +96,10 @@ async function processFileUpload() {
         var formData = new FormData();
         formData.append('file', file);
 
-        var response = await fetch('/api/upload_text_file', { method: 'POST', body: formData });
+        var response = await fetch('/api/upload_text_file', { 
+            method: 'POST', 
+            body: formData 
+        });
         if (!response.ok) throw new Error(window.i18n('serverError') + ': ' + response.status);
 
         var data = await response.json();
@@ -114,6 +119,15 @@ async function processFileUpload() {
     }
 }
 
+// Прив'язка подій для fileInput
+document.addEventListener('DOMContentLoaded', function() {
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', processFileUpload);
+    }
+});
+
+// Експорт у глобальну область видимості
 window.processFileUpload = processFileUpload;
 window.processManualText = processManualText;
 window.triggerFileInput = triggerFileInput;

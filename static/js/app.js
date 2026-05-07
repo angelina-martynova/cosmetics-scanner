@@ -123,6 +123,7 @@ const STAGE_PHRASES = {
 
 /**
  * Повертає випадкову фразу для вказаного етапу на поточній мові.
+ * (залишається для зворотної сумісності, але в новому коді не використовується)
  */
 function getRandomStageMessage(stage) {
     const lang = window.getCurrentLang ? window.getCurrentLang() : 'uk';
@@ -130,6 +131,15 @@ function getRandomStageMessage(stage) {
     if (!pool || pool.length === 0) return '';
     return pool[Math.floor(Math.random() * pool.length)];
 }
+
+/* ================================================================
+   Глобальний стан прогресу (для підтримки зміни мови)
+   ================================================================ */
+let progressState = {
+    active: false,
+    stages: [],          // [{ at, poolKey }]
+    currentStageIdx: 0,
+};
 
 /* ================================================================
    Глобальні функції керування прогрес-баром + етапи
@@ -140,7 +150,7 @@ let progressTimer = null;
 /**
  * Запускає плавне заповнення прогрес-бару та показує етапи.
  * @param {number} duration — очікувана тривалість операції (мс)
- * @param {Array} stages — [{at: %, msgs: array}, ...] (три етапи)
+ * @param {Array} stages — [{ at: число, poolKey: 'stage1'|'stage2'|'stage3' }, ...]
  */
 window.startFakeProgress = function(duration, stages) {
     const fill = document.querySelector('.progress-fill');
@@ -154,20 +164,29 @@ window.startFakeProgress = function(duration, stages) {
 
     if (container) container.style.display = 'block';
 
-    // Вибираємо по одній випадковій фразі для кожного етапу
-    const chosenMsgs = {};
-    if (stages) {
-        stages.forEach(s => {
-            if (s.msgs && s.msgs.length) {
-                chosenMsgs[s.at] = s.msgs[Math.floor(Math.random() * s.msgs.length)];
-            }
-        });
+    // Зберігаємо стан
+    progressState.active = true;
+    progressState.stages = stages || [];
+    progressState.currentStageIdx = 0;
+
+    // Функція для отримання повідомлення за поточним етапом та мовою
+    function getMessageForStage(stageIdx) {
+        const lang = window.getCurrentLang ? window.getCurrentLang() : 'uk';
+        const poolKey = progressState.stages[stageIdx]?.poolKey;
+        if (!poolKey) return '';
+        const pool = (STAGE_PHRASES[lang] || STAGE_PHRASES['uk'])[poolKey];
+        if (!pool || pool.length === 0) return '';
+        return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    // Перше повідомлення (перший етап)
-    if (stages && stages.length > 0 && msgEl) {
-        msgEl.textContent = chosenMsgs[stages[0].at] || '';
+    // Оновлює текст повідомлення
+    function updateMessage() {
+        if (msgEl && progressState.stages.length > 0) {
+            msgEl.textContent = getMessageForStage(progressState.currentStageIdx);
+        }
     }
+
+    updateMessage(); // перше повідомлення
 
     const TARGET = 90;
     const intervalTime = 100;
@@ -184,16 +203,18 @@ window.startFakeProgress = function(duration, stages) {
         }
         fill.style.width = current + '%';
 
-        // Зміна етапу
-        if (stages && stages.length > 0 && msgEl) {
-            for (let i = stages.length - 1; i >= 0; i--) {
-                if (current >= stages[i].at) {
-                    const msg = chosenMsgs[stages[i].at];
-                    if (msg && msg !== msgEl.textContent) {
-                        msgEl.textContent = msg;
-                    }
+        // Перевіряємо зміну етапу
+        if (progressState.stages.length > 0 && msgEl) {
+            let newIdx = 0;
+            for (let i = progressState.stages.length - 1; i >= 0; i--) {
+                if (current >= progressState.stages[i].at) {
+                    newIdx = i;
                     break;
                 }
+            }
+            if (newIdx !== progressState.currentStageIdx) {
+                progressState.currentStageIdx = newIdx;
+                updateMessage();
             }
         }
     }, intervalTime);
@@ -224,9 +245,27 @@ window.completeProgress = function() {
             fill.style.transition = 'none';
             fill.style.width = '0%';
             if (msgEl) msgEl.textContent = '';
+            progressState.active = false; // Скидаємо стан прогресу
         }, 1000);
     }, 2000);
 };
+
+// Слухач зміни мови — оновлює поточне повідомлення, якщо прогрес активний
+window.addEventListener('languageChanged', () => {
+    if (progressState.active) {
+        const msgEl = document.getElementById('processingMessage');
+        if (msgEl && progressState.stages.length > 0) {
+            const lang = window.getCurrentLang ? window.getCurrentLang() : 'uk';
+            const poolKey = progressState.stages[progressState.currentStageIdx]?.poolKey;
+            if (poolKey) {
+                const pool = (STAGE_PHRASES[lang] || STAGE_PHRASES['uk'])[poolKey];
+                if (pool && pool.length > 0) {
+                    msgEl.textContent = pool[Math.floor(Math.random() * pool.length)];
+                }
+            }
+        }
+    }
+});
 
 // Ініціалізація застосунку
 document.addEventListener('DOMContentLoaded', function() {
