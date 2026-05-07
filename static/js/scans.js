@@ -126,6 +126,8 @@ class ScansManager {
     async loadScans(page) {
         if (page === undefined) page = 1;
         this.currentPage = page;
+        // 👇 СБРАСЫВАЕМ ВЫДЕЛЕНИЕ ПРИ КАЖДОЙ ЗАГРУЗКЕ (новая страница или фильтр)
+        this.clearSelection();
         this.showLoadingState();
 
         try {
@@ -205,7 +207,6 @@ class ScansManager {
                 '</div>' +
             '</div>' +
             '<p class="scan-preview-text">' + preview + '</p>' +
-            // Суміщений рядок: статистика ліворуч, кнопки праворуч
             '<div class="scan-stats" style="display:flex; align-items:center; justify-content:space-between;">' +
                 '<div style="display:flex; align-items:center; gap:8px;">' +
                     '<span class="risk-badge risk-sm risk-' + riskLevel + '"><span class="dot"></span>' + this.getRiskText(riskLevel) + '</span>' +
@@ -489,7 +490,7 @@ class ScansManager {
         if (el) el.textContent = window.i18n('scansResult', total);
     }
 
-        updatePagination(totalItems) {
+    updatePagination(totalItems) {
         var pagination = document.getElementById('pagination');
         var totalPages = Math.ceil(totalItems / this.perPage);
 
