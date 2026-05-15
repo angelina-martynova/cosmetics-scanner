@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: cosmetics-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: cosmetics_db
+    ports:
+      - "5433:5432" # Мапуємо 5433 на хості -> 5432 в контейнері
+    volumes:
+      - cosmetics_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  cosmetics_data:

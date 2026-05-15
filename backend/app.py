@@ -998,4 +998,4 @@ if __name__ == '__main__':
     init_db()
     print("Запуск Cosmetics Scanner...")
     print("http://localhost:5000")
-    app.run(debug=True, port=5000, threaded=True)
+    app.run(debug=True, port=5001, threaded=True)

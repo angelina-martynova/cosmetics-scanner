@@ -12,7 +12,7 @@ class Config:
     # База даних
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL', 
-        'postgresql://postgres:AdminPostgres123!@localhost:5432/cosmetics_db'
+        'postgresql://postgres:postgres123@localhost:5433/cosmetics_db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
