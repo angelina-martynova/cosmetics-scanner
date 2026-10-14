@@ -19,6 +19,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from datetime import datetime
 
+# --- Безпечний вивід у консоль Windows (cp1251): не падати на emoji/✓/✚ ---
+import sys
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 
 # ═══════════════════════════════════════════════════════════════════
 # 1. COMMON_ALIASES — побутові синоніми, переклади, скорочення

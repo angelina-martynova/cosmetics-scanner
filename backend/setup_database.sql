@@ -27,8 +27,12 @@ COMMENT ON DATABASE cosmetics_db IS 'База даних для дипломно
 -- ============================================
 -- КРОК 2: Створення користувача додатка
 -- ============================================
+-- ⚠ ЗАМІНІТЬ '__CHANGE_ME__' на реальний пароль ПЕРЕД виконанням цього скрипта.
+--   Той самий пароль має використовуватись у змінній оточення DATABASE_URL
+--   (postgresql://cosmetics_app:<пароль>@host:5432/cosmetics_db).
+--   Не комітьте реальний пароль у git.
 CREATE USER cosmetics_app WITH
-    PASSWORD 'AppPassword123!'
+    PASSWORD '__CHANGE_ME__'
     NOSUPERUSER
     NOCREATEDB
     NOCREATEROLE

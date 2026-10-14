@@ -146,6 +146,26 @@ CATEGORY_PHRASES_EN = {
 
 
 def _make_description(category, risk, lang='uk'):
+    if category == 'unknown':
+        if risk == 'unknown':
+            return (CATEGORY_PHRASES_UK['unknown'] if lang == 'uk'
+                    else CATEGORY_PHRASES_EN['unknown'])
+        risk_texts_uk = {
+            'safe': 'Цей компонент не містить відомих небезпечних речовин',
+            'low': 'Незначний ризик, зазвичай безпечний у косметиці',
+            'medium': 'Може викликати подразнення у чутливої шкіри',
+            'high': 'Краще уникати — пов\'язаний з підвищеним ризиком',
+        }
+        risk_texts_en = {
+            'safe': 'This ingredient contains no known harmful substances',
+            'low': 'Minor risk, generally safe in cosmetics',
+            'medium': 'May cause irritation on sensitive skin',
+            'high': 'Better to avoid — linked to increased risk',
+        }
+        texts = risk_texts_uk if lang == 'uk' else risk_texts_en
+        return texts.get(risk,
+                         CATEGORY_PHRASES_UK['unknown'] if lang == 'uk'
+                         else CATEGORY_PHRASES_EN['unknown'])
     phrases = CATEGORY_PHRASES_UK if lang == 'uk' else CATEGORY_PHRASES_EN
     base = phrases.get(category, phrases['unknown'])
     if risk in ('high', 'medium'):
@@ -982,8 +1002,8 @@ class ExternalDataFetcher:
                 "name": ingredient_name,
                 "risk_level": risk,
                 "category": category,
-                "description": _make_description(category, risk, lang='uk') + " (Open Beauty Facts)",
-                "description_en": _make_description(category, risk, lang='en') + " (Open Beauty Facts)",
+                "description": _make_description(category, risk, lang='uk'),
+                "description_en": _make_description(category, risk, lang='en'),
                 "source": "openbeautyfacts",
                 "aliases": [],
                 "context": "Open Beauty Facts",
@@ -1018,8 +1038,8 @@ class ExternalDataFetcher:
                 "name": ingredient_name,
                 "risk_level": risk,
                 "category": category,
-                "description": _make_description(category, risk, lang='uk') + " (Open Beauty Facts)",
-                "description_en": _make_description(category, risk, lang='en') + " (Open Beauty Facts)",
+                "description": _make_description(category, risk, lang='uk'),
+                "description_en": _make_description(category, risk, lang='en'),
                 "source": "openbeautyfacts",
                 "aliases": [],
                 "context": "Open Beauty Facts (текстовий пошук)",
@@ -1081,25 +1101,14 @@ class ExternalDataFetcher:
 
             compound_data = {"name": ingredient_name, "props": compound.get("props", [])}
             risk, safety_info = self._parse_pubchem_safety(compound_data)
-
-            desc_uk = f"Хімічна сполука (PubChem CID: {cid}). {safety_info}."
-            desc_en = f"Chemical compound (PubChem CID: {cid}). {safety_info.split('/')[-1].strip()}"
-            if mol_formula:
-                desc_uk += f" Формула: {mol_formula}."
-                desc_en += f" Formula: {mol_formula}."
-            if iupac_name and iupac_name != ingredient_name:
-                desc_uk += f" IUPAC: {iupac_name[:80]}."
-                desc_en += f" IUPAC: {iupac_name[:80]}."
-            if cas_number:
-                desc_uk += f" CAS: {cas_number}."
-                desc_en += f" CAS: {cas_number}."
+            category = classify_by_name(ingredient_name.lower())
 
             return {
                 "name": ingredient_name,
                 "risk_level": risk,
-                "category": classify_by_name(ingredient_name.lower()),
-                "description": desc_uk,
-                "description_en": desc_en,
+                "category": category,
+                "description": _make_description(category, risk, lang='uk'),
+                "description_en": _make_description(category, risk, lang='en'),
                 "source": "pubchem",
                 "aliases": [],
                 "context": f"PubChem CID: {cid}",
@@ -1138,12 +1147,6 @@ class ExternalDataFetcher:
 
             desc_uk = _make_description(category, risk, lang='uk')
             desc_en = _make_description(category, risk, lang='en')
-            if chebi_id:
-                desc_uk += f' (ChEBI ID: {chebi_id})'
-                desc_en += f' (ChEBI ID: {chebi_id})'
-            else:
-                desc_uk += ' (ChEBI)'
-                desc_en += ' (ChEBI)'
 
             return {
                 "name": compound_name,

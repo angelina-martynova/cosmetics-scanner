@@ -25,6 +25,22 @@ import json
 import traceback
 import io
 import zipfile
+import click
+
+# --- Безпечний вивід у консоль Windows (cp1251): не падати на emoji/✓/✚ ---
+import sys
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+# Завантаження .env (з кореня репозиторію, незалежно від поточного cwd).
+# python-dotenv раніше був у залежностях, але load_dotenv() ніде не викликався.
+from dotenv import load_dotenv
+_dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, '.env')
+load_dotenv(_dotenv_path if os.path.exists(_dotenv_path) else None)
 
 # ═══════════════════════════════════════════════════════════════════
 # ІНІЦІАЛІЗАЦІЯ ДОДАТКУ
@@ -34,7 +50,14 @@ frontend_folder = os.path.join(os.getcwd(), 'frontend')
 static_css_folder = os.path.join(os.getcwd(), 'static')
 
 app = Flask(__name__, template_folder=frontend_folder, static_folder=static_css_folder)
-app.config.from_object(config.get('default'))
+
+# Вибір конфігурації за APP_ENV (development | production | testing).
+env_name = os.environ.get('APP_ENV', 'development')
+selected_config = config.get(env_name, config['development'])
+app.config.from_object(selected_config)
+# Валідація обов'язкових змінних оточення. Для production кине RuntimeError,
+# якщо не задано SECRET_KEY / DATABASE_URL — застосунок не стартує з дефолтами.
+selected_config.init_app(app)
 
 # Імпорт моделей з models.py та ініціалізація БД
 from models import db, User, Ingredient, IngredientAlias, Scan, ScanIngredient, calculate_safety_status_with_message
@@ -43,6 +66,68 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page'
+
+# ═══════════════════════════════════════════════════════════════════
+# RATE LIMITING (Flask-Limiter)
+# ═══════════════════════════════════════════════════════════════════
+
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+
+def _rate_limit_key():
+    """Ключ для підрахунку лімітів.
+
+    Рішення: авторизованих користувачів рахуємо по user_id, а не по IP.
+    Причина — кілька людей за одним NAT/офісним IP не повинні блокувати
+    одне одного; водночас зловживання прив'язане до конкретного акаунта.
+    Гостей (сесії ще немає) рахуємо по IP через get_remote_address().
+    """
+    try:
+        if current_user.is_authenticated:
+            return f"user:{current_user.id}"
+    except Exception:
+        pass
+    return get_remote_address()
+
+
+limiter = Limiter(
+    key_func=_rate_limit_key,
+    app=app,
+    storage_uri=app.config.get('RATELIMIT_STORAGE_URI', 'memory://'),
+    strategy='fixed-window',
+)
+
+# Перевірка при старті (не в рантаймі запиту): memory:// + кілька воркерів
+# gunicorn => кожен воркер має власний лічильник, і фактичний ліміт множиться
+# на кількість воркерів. Логування ще не налаштоване (P1) — тому print.
+_workers = int(os.environ.get('GUNICORN_WORKERS', '1'))
+_storage_uri = app.config.get('RATELIMIT_STORAGE_URI', 'memory://')
+if _workers > 1 and _storage_uri.startswith('memory://'):
+    print(
+        "ПОПЕРЕДЖЕННЯ: GUNICORN_WORKERS > 1 разом з RATELIMIT_STORAGE_URI="
+        "memory:// -> ліміти рахуються окремо на кожен воркер. "
+        "Задайте RATELIMIT_STORAGE_URI=redis://... перед запуском у "
+        "production з кількома воркерами."
+    )
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Єдина відповідь на перевищення ліміту — JSON, а не HTML-сторінка."""
+    retry_after = getattr(e, 'retry_after', None)
+    payload = {
+        "status": "error",
+        "message": "Перевищено ліміт запитів. Спробуйте пізніше. / "
+                   "Rate limit exceeded, please try again later.",
+        "limit": str(getattr(e, 'description', '') or '') or None,
+        "retry_after": retry_after,
+    }
+    response = make_response(jsonify(payload), 429)
+    if retry_after is not None:
+        response.headers['Retry-After'] = str(retry_after)
+    return response
+
 
 scan_exporter = ScanExporter()
 
@@ -173,6 +258,7 @@ def scans_page():
 # ═══════════════════════════════════════════════════════════════════
 
 @app.route('/api/register', methods=['POST'])
+@limiter.limit(lambda: app.config['AUTH_RATE_LIMIT'])
 def register():
     try:
         data = request.get_json()
@@ -192,6 +278,7 @@ def register():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/login', methods=['POST'])
+@limiter.limit(lambda: app.config['AUTH_RATE_LIMIT'])
 def login():
     try:
         data = request.get_json()
@@ -231,6 +318,7 @@ def api_status():
 # ═══════════════════════════════════════════════════════════════════
 
 @app.route('/api/analyze', methods=['POST'])
+@limiter.limit(lambda: app.config['SCAN_DAILY_LIMIT'])
 def analyze():
     try:
         file = request.files.get('image')
@@ -274,6 +362,7 @@ def analyze():
 
 
 @app.route('/api/analyze_text', methods=['POST'])
+@limiter.limit(lambda: app.config['SCAN_DAILY_LIMIT'])
 def analyze_text():
     try:
         data = request.get_json()
@@ -299,6 +388,7 @@ def analyze_text():
 
 
 @app.route('/api/upload_text_file', methods=['POST'])
+@limiter.limit(lambda: app.config['SCAN_DAILY_LIMIT'])
 def upload_text_file():
     try:
         if 'file' not in request.files:
@@ -597,6 +687,7 @@ def export_multiple_scans_zip():
 # ═══════════════════════════════════════════════════════════════════
 
 @app.route('/api/external/search', methods=['POST'])
+@limiter.limit(lambda: app.config['EXTERNAL_SEARCH_LIMIT'])
 def external_search():
     try:
         data = request.get_json()
@@ -977,15 +1068,11 @@ def init_db():
         db.create_all()
         print("Структура БД перевірена (включно з ingredient_aliases, scan_ingredients)")
 
+        # Користувачі НЕ створюються автоматично.
+        # Адміністратор створюється вручну:  flask --app app create-admin
         if User.query.count() == 0:
-            admin = User(email="admin@cosmetics.com", role="admin")
-            admin.set_password("admin123")
-            db.session.add(admin)
-            user = User(email="user@example.com", role="user")
-            user.set_password("user123")
-            db.session.add(user)
-            db.session.commit()
-            print("Створено тестових користувачів")
+            print("Користувачів немає. Створіть адміністратора командою: "
+                  "flask --app app create-admin")
 
         print(f"Стан БД: {User.query.count()} користувачів, "
               f"{Ingredient.query.count()} інгредієнтів, "
@@ -994,8 +1081,77 @@ def init_db():
         print("Ініціалізація завершена")
 
 
+@app.cli.command('create-admin')
+@click.option('--email', prompt='Email адміністратора', help='Email нового адміністратора.')
+@click.option('--password', prompt='Пароль', hide_input=True, confirmation_prompt=True,
+              help='Пароль (не показується під час вводу).')
+def create_admin(email, password):
+    """Створити користувача з роллю admin (обов'язковий ручний крок після деплою)."""
+    email = (email or '').strip().lower()
+    password = password or ''
+
+    if not email or '@' not in email:
+        raise click.ClickException("Некоректний email.")
+    if not password.strip():
+        raise click.ClickException("Пароль не може бути порожнім.")
+    if password.strip().lower() == email:
+        raise click.ClickException("Пароль не може співпадати з email.")
+    if len(password) < 8:
+        raise click.ClickException("Пароль має бути щонайменше 8 символів.")
+
+    existing = User.query.filter_by(email=email).first()
+    if existing:
+        raise click.ClickException(
+            f"Користувач {email} вже існує (роль: {existing.role})."
+        )
+
+    user = User(email=email, role='admin')
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    click.echo(f"OK: створено адміністратора {email}")
+
+
 if __name__ == '__main__':
+    import sys
+    if '--clear-cache' in sys.argv:
+        import sqlite3 as _sqlite3
+        cache_file = os.path.join('data_cache', 'external_cache.db')
+        if not os.path.exists(cache_file):
+            print("Кеш не знайдено (файл відсутній). Нічого не видалено.")
+        else:
+            conn = _sqlite3.connect(cache_file)
+            cur = conn.cursor()
+            cur.execute("DELETE FROM ingredients_cache")
+            deleted = cur.rowcount
+            conn.commit()
+            conn.close()
+            print(f"Видалено {deleted} записів з ingredients_cache.")
+        sys.exit(0)
+
+    if '--refresh-descriptions' in sys.argv:
+        from checker import _make_description
+        with app.app_context():
+            unverified = Ingredient.query.filter_by(verified=False).all()
+            updated = 0
+            for ing in unverified:
+                new_uk = _make_description(ing.category or 'unknown', ing.risk_level or 'unknown', lang='uk')
+                new_en = _make_description(ing.category or 'unknown', ing.risk_level or 'unknown', lang='en')
+                if ing.description != new_uk or ing.description_en != new_en:
+                    ing.description = new_uk
+                    ing.description_en = new_en
+                    updated += 1
+            db.session.commit()
+            print(f"Оновлено описів: {updated} з {len(unverified)} неверифікованих інгредієнтів.")
+        sys.exit(0)
+
     init_db()
-    print("Запуск Cosmetics Scanner...")
-    print("http://localhost:5000")
-    app.run(debug=True, port=5001, threaded=True)
+    # УВАГА: app.run() нижче — ЛИШЕ для локальної розробки.
+    # У production запускайте через WSGI-сервер (див. Procfile / README):
+    #   gunicorn app:app --pythonpath backend -w $GUNICORN_WORKERS \
+    #       -b 0.0.0.0:$PORT --timeout $GUNICORN_TIMEOUT
+    debug_mode = bool(app.config.get('DEBUG', False))
+    port = int(os.environ.get('PORT', app.config.get('PORT', 5001)))
+    print("Запуск Cosmetics Scanner (локальний режим розробки)...")
+    print(f"http://localhost:{port}  (APP_ENV={env_name}, debug={debug_mode})")
+    app.run(debug=debug_mode, port=port, threaded=True, use_reloader=False)

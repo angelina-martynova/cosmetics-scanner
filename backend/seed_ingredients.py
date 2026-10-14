@@ -19,6 +19,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from datetime import datetime
 
+# --- Безпечний вивід у консоль Windows (cp1251): не падати на emoji/✓/✚ ---
+import sys
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 # ═══════════════════════════════════════════════════════════════════
 # СПИСОК ІНГРЕДІЄНТІВ (з розширеними полями)
 #
@@ -792,23 +801,9 @@ def seed_database():
         db.session.commit()
         print(f"\nДодано: {added}, Оновлено: {updated}")
 
-        # Тестові користувачі
-        print("\nСтворення тестових користувачів...")
-        admin = User.query.filter_by(email="admin@cosmetics.com").first()
-        if not admin:
-            admin = User(email="admin@cosmetics.com", role="admin")
-            admin.set_password("admin123")
-            db.session.add(admin)
-            print("  Створено: admin@cosmetics.com / admin123")
-
-        user = User.query.filter_by(email="user@example.com").first()
-        if not user:
-            user = User(email="user@example.com", role="user")
-            user.set_password("user123")
-            db.session.add(user)
-            print("  Створено: user@example.com / user123")
-
-        db.session.commit()
+        # Користувачі тут НЕ створюються — seed відповідає лише за довідник
+        # інгредієнтів. Адміністратор створюється вручну:
+        #   flask --app app create-admin
 
         # Статистика
         from sqlalchemy import func

@@ -3,6 +3,12 @@ flask==2.3.3
 flask-cors==5.0.0
 flask-sqlalchemy==3.0.5
 flask-login==0.6.3
+flask-limiter==3.8.0
+# Спільне сховище лічильників rate-limit. ОБОВ'ЯЗКОВЕ, якщо GUNICORN_WORKERS > 1
+# (memory:// у такому разі дає окремий лічильник на кожен воркер).
+# Розкоментуйте при переході на кілька воркерів і задайте
+# RATELIMIT_STORAGE_URI=redis://localhost:6379
+# redis==5.0.8
 werkzeug==2.3.7
 
 # База даних PostgreSQL

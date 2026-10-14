@@ -24,6 +24,15 @@ import os
 import argparse
 from datetime import datetime
 
+# --- Безпечний вивід у консоль Windows (cp1251): не падати на emoji/✓/✚ ---
+import sys
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 print("=" * 60)
 print("ІНІЦІАЛІЗАЦІЯ БАЗИ ДАНИХ COSMETICS SCANNER")
 print(f"Дата: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -77,34 +86,19 @@ def step_create_tables(app, db):
 
 
 def step_create_users(app, db):
-    """Крок 2: Створення тестових користувачів."""
+    """Крок 2: Користувачі створюються вручну, не автоматично."""
     print("\n" + "─" * 50)
-    print("КРОК 2: Тестові користувачі")
+    print("КРОК 2: Користувачі")
     print("─" * 50)
 
     from models import User
 
     with app.app_context():
-        test_users = [
-            {"email": "admin@cosmetics.com", "password": "admin123", "role": "admin"},
-            {"email": "user@example.com", "password": "user123", "role": "user"},
-        ]
-
-        created = 0
-        for data in test_users:
-            existing = User.query.filter_by(email=data['email']).first()
-            if not existing:
-                user = User(email=data['email'], role=data['role'])
-                user.set_password(data['password'])
-                db.session.add(user)
-                created += 1
-                print(f"  ✚ Створено: {data['email']} ({data['role']})")
-            else:
-                print(f"  ✓ Вже існує: {data['email']} ({existing.role})")
-
-        if created:
-            db.session.commit()
-        print(f"\n✓ Користувачів: {User.query.count()}")
+        count = User.query.count()
+        print(f"  Користувачів у БД: {count}")
+        if count == 0:
+            print("  Адміністратор НЕ створюється автоматично.")
+            print("  Створіть його вручну:  flask --app app create-admin")
 
 
 def step_seed_ingredients(app, db):
@@ -343,12 +337,13 @@ def main():
     print("✓ БАЗА ДАНИХ COSMETICS SCANNER ГОТОВА!")
     print("=" * 60)
     print(f"""
-  ТЕСТОВІ ОБЛІКОВІ ЗАПИСИ:
-    Адмін:      admin@cosmetics.com / admin123
-    Користувач: user@example.com    / user123
+  СТВОРЕННЯ АДМІНІСТРАТОРА (обов'язковий ручний крок після ініціалізації):
+    flask --app app create-admin
 
-  ЗАПУСК:
+  ЗАПУСК (локальна розробка):
     python app.py
+  ЗАПУСК (production):
+    gunicorn app:app --pythonpath backend -w $GUNICORN_WORKERS -b 0.0.0.0:$PORT --timeout $GUNICORN_TIMEOUT
 
   НОВІ АДМІН-ЕНДПОІНТИ:
     GET  /api/admin/unverified      — неверифіковані інгредієнти
